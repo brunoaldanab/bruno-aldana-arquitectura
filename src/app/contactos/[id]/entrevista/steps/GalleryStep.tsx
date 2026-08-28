@@ -2,53 +2,65 @@
 
 import { useState } from "react";
 import { mobiliarioCardsBase, styleCards, type StyleCard } from "@/lib/entrevista/data";
-import type { CardPersonalizada, EntrevistaState, EstiloDetalle, FotoRef } from "@/lib/entrevista/types";
+import type { EntrevistaState, EstiloDetalle, FotoReaccion } from "@/lib/entrevista/types";
+import type { GaleriaData, GaleriaFotoDTO } from "@/lib/entrevista/galeria";
 import { imageFileToDataUrl } from "@/lib/entrevista/imageToDataUrl";
+import { addGaleriaCardCustom, addGaleriaFoto, removeGaleriaCardCustom, removeGaleriaFoto } from "../galeriaActions";
 import { PhotoLightbox } from "./PhotoLightbox";
 
 type Kind = "estilo" | "mobiliario";
+type SetState = React.Dispatch<React.SetStateAction<EntrevistaState>>;
+type SetGaleria = React.Dispatch<React.SetStateAction<GaleriaData>>;
 
 function emptyDetail(): EstiloDetalle {
-  return { fotos: [null, null, null, null, null, null], notas: "", audios: [] };
+  return { reacciones: {}, notas: "" };
 }
 
 export function GalleryStep({
   kind,
   state,
   setState,
+  galeria,
+  setGaleria,
 }: {
   kind: Kind;
   state: EntrevistaState;
-  setState: React.Dispatch<React.SetStateAction<EntrevistaState>>;
+  setState: SetState;
+  galeria: GaleriaData;
+  setGaleria: SetGaleria;
 }) {
   const [tabIndex, setTabIndex] = useState(0);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxFotoId, setLightboxFotoId] = useState<string | null>(null);
 
+  const tipo = kind === "mobiliario" ? "MOBILIARIO" : "ESTILO";
   const baseCards: StyleCard[] = kind === "mobiliario" ? mobiliarioCardsBase : styleCards;
-  const customStore = kind === "mobiliario" ? state.mobiliarioTiposPersonalizados : state.estilosPersonalizados;
-  const custom = customStore.proyecto || [];
-  const cards: StyleCard[] = [...baseCards, ...custom];
+  const customCards = kind === "mobiliario" ? galeria.mobiliarioCustom : galeria.estiloCustom;
+  const galeriaFotos = kind === "mobiliario" ? galeria.mobiliarioFotos : galeria.estiloFotos;
+
+  const cards: { k: string; t: string; mood: string; facts: { k: string; v: string }[]; custom?: boolean }[] = [
+    ...baseCards.map((c) => ({ k: c.k, t: c.t, mood: c.mood, facts: c.facts })),
+    ...customCards.map((c) => ({ k: c.key, t: c.titulo, mood: c.mood, facts: c.facts, custom: true })),
+  ];
   const idx = Math.min(tabIndex, cards.length - 1);
   const card = cards[idx];
-  const key = "proyecto::" + card.k;
+  const fotos = galeriaFotos.filter((f) => f.cardKey === card.k).sort((a, b) => a.orden - b.orden);
 
   const detailMap = kind === "mobiliario" ? state.mobiliarioGaleria.detalle : state.estiloDetalle;
-  const detail = detailMap[key] || emptyDetail();
+  const detail = detailMap[card.k] || emptyDetail();
   const seleccion = kind === "mobiliario" ? state.mobiliarioGaleria.seleccion : state.estilo.seleccion;
   const isSelected = seleccion.includes(card.k);
 
   function updateDetail(patch: Partial<EstiloDetalle>) {
     setState((s) =>
       kind === "mobiliario"
-        ? {
-            ...s,
-            mobiliarioGaleria: {
-              ...s.mobiliarioGaleria,
-              detalle: { ...s.mobiliarioGaleria.detalle, [key]: { ...detail, ...patch } },
-            },
-          }
-        : { ...s, estiloDetalle: { ...s.estiloDetalle, [key]: { ...detail, ...patch } } }
+        ? { ...s, mobiliarioGaleria: { ...s.mobiliarioGaleria, detalle: { ...s.mobiliarioGaleria.detalle, [card.k]: { ...detail, ...patch } } } }
+        : { ...s, estiloDetalle: { ...s.estiloDetalle, [card.k]: { ...detail, ...patch } } }
     );
+  }
+
+  function updateReaccion(fotoId: string, patch: Partial<FotoReaccion>) {
+    const current: FotoReaccion = detail.reacciones[fotoId] || { reaction: "", rating: 0, comment: "" };
+    updateDetail({ reacciones: { ...detail.reacciones, [fotoId]: { ...current, ...patch } } });
   }
 
   function toggleSelected() {
@@ -68,71 +80,51 @@ export function GalleryStep({
     });
   }
 
-  async function handleUpload(i: number, file: File) {
+  async function handleUpload(file: File) {
     const dataUrl = await imageFileToDataUrl(file);
-    const fotos = detail.fotos.slice();
-    fotos[i] = { dataUrl, reaction: "", rating: 0, comment: "" };
-    updateDetail({ fotos });
+    const foto = await addGaleriaFoto(tipo, card.k, dataUrl);
+    setGaleria((g) =>
+      kind === "mobiliario" ? { ...g, mobiliarioFotos: [...g.mobiliarioFotos, foto] } : { ...g, estiloFotos: [...g.estiloFotos, foto] }
+    );
   }
 
-  function removePhoto(i: number) {
-    const fotos = detail.fotos.slice();
-    fotos[i] = null;
-    updateDetail({ fotos });
+  async function removePhoto(fotoId: string) {
+    await removeGaleriaFoto(fotoId);
+    setGaleria((g) =>
+      kind === "mobiliario"
+        ? { ...g, mobiliarioFotos: g.mobiliarioFotos.filter((f) => f.id !== fotoId) }
+        : { ...g, estiloFotos: g.estiloFotos.filter((f) => f.id !== fotoId) }
+    );
   }
 
-  function updatePhoto(i: number, patch: Partial<FotoRef>) {
-    const fotos = detail.fotos.slice();
-    const current = fotos[i];
-    if (!current) return;
-    fotos[i] = { ...current, ...patch };
-    updateDetail({ fotos });
-  }
-
-  function addCustomCard() {
+  async function addCustomCard() {
     const nombre = window.prompt("Nombre del nuevo " + (kind === "mobiliario" ? "tipo de mobiliario" : "estilo") + ":");
     if (!nombre || !nombre.trim()) return;
-    const nueva: CardPersonalizada = {
-      k: "custom-" + Date.now(),
-      t: nombre.trim(),
-      mood: "Personalizado",
-      d: "Agregado por el estudio",
-      custom: true,
-      facts: [
-        { k: "De qué se trata", v: "Definilo con tus propias palabras durante la reunión." },
-        { k: "Materiales típicos", v: "—" },
-        { k: "Ideal para", v: "—" },
-        { k: "Cuidado con", v: "—" },
-      ],
-    };
-    setState((s) => {
-      if (kind === "mobiliario") {
-        const list = s.mobiliarioTiposPersonalizados.proyecto || [];
-        return { ...s, mobiliarioTiposPersonalizados: { ...s.mobiliarioTiposPersonalizados, proyecto: [...list, nueva] } };
-      }
-      const list = s.estilosPersonalizados.proyecto || [];
-      return { ...s, estilosPersonalizados: { ...s.estilosPersonalizados, proyecto: [...list, nueva] } };
-    });
+    const nueva = await addGaleriaCardCustom(tipo, nombre.trim());
+    setGaleria((g) =>
+      kind === "mobiliario" ? { ...g, mobiliarioCustom: [...g.mobiliarioCustom, nueva] } : { ...g, estiloCustom: [...g.estiloCustom, nueva] }
+    );
     setTabIndex(cards.length);
   }
 
-  function removeCustomCard(k: string) {
-    setState((s) => {
-      if (kind === "mobiliario") {
-        const list = (s.mobiliarioTiposPersonalizados.proyecto || []).filter((c) => c.k !== k);
-        return { ...s, mobiliarioTiposPersonalizados: { ...s.mobiliarioTiposPersonalizados, proyecto: list } };
-      }
-      const list = (s.estilosPersonalizados.proyecto || []).filter((c) => c.k !== k);
-      return { ...s, estilosPersonalizados: { ...s.estilosPersonalizados, proyecto: list } };
-    });
+  async function removeCustomCard(key: string) {
+    await removeGaleriaCardCustom(tipo, key);
+    setGaleria((g) =>
+      kind === "mobiliario"
+        ? { ...g, mobiliarioCustom: g.mobiliarioCustom.filter((c) => c.key !== key), mobiliarioFotos: g.mobiliarioFotos.filter((f) => f.cardKey !== key) }
+        : { ...g, estiloCustom: g.estiloCustom.filter((c) => c.key !== key), estiloFotos: g.estiloFotos.filter((f) => f.cardKey !== key) }
+    );
     setTabIndex(0);
   }
 
   const title = kind === "mobiliario" ? "¿Qué tipo de mobiliario les gusta más?" : "¿Qué forma / estilo arquitectónico los representa?";
   const desc =
     kind === "mobiliario"
-      ? "Esto es sobre las PIEZAS de mobiliario en sí — más allá del estilo general del espacio. Subí fotos de referencia y calificalas."
-      : "Esto define la FORMA del espacio — líneas, volúmenes, ornamento. Es independiente del color, eso se define en el paso de paleta. Subí fotos de referencia con el cliente delante y reaccioná en vivo: descartar, me gusta o me encanta.";
+      ? "Esto es sobre las PIEZAS de mobiliario en sí. Las fotos de referencia son tu biblioteca compartida — subí una vez, reutilizá con todos los clientes."
+      : "Esto define la FORMA del espacio — líneas, volúmenes, ornamento. Las fotos de referencia son tu biblioteca compartida (no de este cliente en particular): subí una vez y quedan disponibles para cualquier entrevista futura. Reaccioná con este cliente delante: descartar, me gusta o me encanta.";
+
+  const activeFoto: GaleriaFotoDTO | undefined = fotos.find((f) => f.id === lightboxFotoId);
+  const activeReaccion: FotoReaccion = (lightboxFotoId && detail.reacciones[lightboxFotoId]) || { reaction: "", rating: 0, comment: "" };
 
   return (
     <div>
@@ -188,48 +180,49 @@ export function GalleryStep({
         </button>
       </div>
 
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Fotos de referencia (hasta 6 — clic para calificar)</p>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+        Fotos de referencia de la biblioteca — clic para reaccionar con este cliente
+      </p>
       <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {detail.fotos.map((f, i) => (
-          <div key={i} className="relative aspect-square overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
-            {f ? (
-              <>
-                <button type="button" onClick={() => setLightboxIndex(i)} className="block h-full w-full">
-                  <img src={f.dataUrl} alt={`Referencia ${i + 1}`} className="h-full w-full object-cover" />
-                </button>
-                {f.reaction && (
-                  <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] text-white">
-                    {f.reaction === "super" ? "★" : f.reaction === "like" ? "♥" : "✕"}
-                  </span>
-                )}
-                {(f.reaction === "like" || f.reaction === "super") && (
-                  <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 text-[10px] text-white">{f.rating}/10</span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removePhoto(i)}
-                  className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-[10px] text-neutral-700"
-                >
-                  ×
-                </button>
-              </>
-            ) : (
-              <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center text-xs text-neutral-400">
-                <span>+ Subir</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleUpload(i, file);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-            )}
-          </div>
-        ))}
+        {fotos.map((f) => {
+          const r = detail.reacciones[f.id];
+          return (
+            <div key={f.id} className="relative aspect-square overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
+              <button type="button" onClick={() => setLightboxFotoId(f.id)} className="block h-full w-full">
+                <img src={f.dataUrl} alt="Referencia" className="h-full w-full object-cover" />
+              </button>
+              {r?.reaction && (
+                <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] text-white">
+                  {r.reaction === "super" ? "★" : r.reaction === "like" ? "♥" : "✕"}
+                </span>
+              )}
+              {r && (r.reaction === "like" || r.reaction === "super") && (
+                <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 text-[10px] text-white">{r.rating}/10</span>
+              )}
+              <button
+                type="button"
+                onClick={() => removePhoto(f.id)}
+                title="Quitar de la biblioteca (afecta a todos los clientes)"
+                className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-[10px] text-neutral-700"
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
+        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 text-xs text-neutral-400 hover:border-neutral-400">
+          <span>+ Subir</span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleUpload(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
       </div>
 
       {card.facts.length > 0 && (
@@ -259,11 +252,12 @@ export function GalleryStep({
         />
       </label>
 
-      {lightboxIndex !== null && detail.fotos[lightboxIndex] && (
+      {activeFoto && (
         <PhotoLightbox
-          foto={detail.fotos[lightboxIndex] as FotoRef}
-          onChange={(patch) => updatePhoto(lightboxIndex, patch)}
-          onClose={() => setLightboxIndex(null)}
+          dataUrl={activeFoto.dataUrl}
+          reaccion={activeReaccion}
+          onChange={(patch) => updateReaccion(activeFoto.id, patch)}
+          onClose={() => setLightboxFotoId(null)}
         />
       )}
     </div>

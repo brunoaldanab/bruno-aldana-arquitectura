@@ -3,6 +3,7 @@
 import { mobiliarioCardsBase, officePaletteCombos, paletteDefs, styleCards } from "@/lib/entrevista/data";
 import { matchRoomProfile } from "@/lib/entrevista/roomProfiles";
 import type { EntrevistaState } from "@/lib/entrevista/types";
+import type { GaleriaData } from "@/lib/entrevista/galeria";
 
 const sumGrid = "grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2";
 const k = "font-mono text-[10px] uppercase tracking-wide text-neutral-400 pt-2";
@@ -32,17 +33,32 @@ const TIPO_LABEL: Record<string, string> = {
   "ambiente-unico": "Un solo ambiente",
 };
 
-export function ResumenStep({ state }: { state: EntrevistaState; setState: React.Dispatch<React.SetStateAction<EntrevistaState>> }) {
+export function ResumenStep({
+  state,
+  galeria,
+}: {
+  state: EntrevistaState;
+  setState: React.Dispatch<React.SetStateAction<EntrevistaState>>;
+  galeria: GaleriaData;
+  setGaleria: React.Dispatch<React.SetStateAction<GaleriaData>>;
+}) {
   const esOficina = state.proyecto.tipoProyecto === "oficina";
 
-  const estiloCards = [...styleCards, ...(state.estilosPersonalizados.proyecto || [])];
+  const estiloCards = [...styleCards.map((c) => ({ k: c.k, t: c.t })), ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo }))];
   const estiloNombres = state.estilo.seleccion.map((k) => estiloCards.find((c) => c.k === k)?.t || k);
 
-  const mobCards = [...mobiliarioCardsBase, ...(state.mobiliarioTiposPersonalizados.proyecto || [])];
+  const mobCards = [
+    ...mobiliarioCardsBase.map((c) => ({ k: c.k, t: c.t })),
+    ...galeria.mobiliarioCustom.map((c) => ({ k: c.key, t: c.titulo })),
+  ];
   const mobNombres = state.mobiliarioGaleria.seleccion.map((k) => mobCards.find((c) => c.k === k)?.t || k);
 
+  const officePalettes = [
+    ...officePaletteCombos.map((p) => ({ key: p.key, nombre: p.nombre })),
+    ...galeria.paletaOficinaCustom.map((p) => ({ key: p.key, nombre: p.nombre })),
+  ];
   const paletteNombres = esOficina
-    ? state.paletaOficina.seleccion.map((k) => [...officePaletteCombos, ...state.paletaOficina.personalizadas].find((p) => p.key === k)?.nombre || k)
+    ? state.paletaOficina.seleccion.map((k) => officePalettes.find((p) => p.key === k)?.nombre || k)
     : state.paleta.seleccion.map((k) => paletteDefs.find((p) => p.key === k)?.nombre || k);
 
   return (

@@ -1,25 +1,15 @@
 export type TipoProyecto = "" | "vivienda" | "oficina" | "ambiente-unico" | "construccion";
 
-export interface FotoRef {
-  dataUrl: string;
+/** Reacción de ESTE cliente a una foto de la biblioteca compartida. */
+export interface FotoReaccion {
   reaction: string;
   rating: number;
   comment: string;
 }
 
 export interface EstiloDetalle {
-  fotos: (FotoRef | null)[];
+  reacciones: Record<string, FotoReaccion>;
   notas: string;
-  audios: { url: string; name: string }[];
-}
-
-export interface CardPersonalizada {
-  k: string;
-  t: string;
-  mood: string;
-  d: string;
-  facts: { k: string; v: string }[];
-  custom: true;
 }
 
 export interface Rol {
@@ -47,18 +37,6 @@ export interface AmbienteDetalle {
   comprarNotas: string;
   respuestas: Record<string, string>;
   funcional: string[];
-}
-
-export interface OfficePaletteDetalle {
-  fotos: (string | null)[];
-}
-
-export interface OfficePaletteCustom {
-  key: string;
-  nombre: string;
-  colores: { n: string; h: string }[];
-  uso: string;
-  custom: true;
 }
 
 export interface EntrevistaState {
@@ -92,12 +70,10 @@ export interface EntrevistaState {
     refs: string;
   };
   estiloDetalle: Record<string, EstiloDetalle>;
-  estilosPersonalizados: Record<string, CardPersonalizada[]>;
   mobiliarioGaleria: {
     seleccion: string[];
     detalle: Record<string, EstiloDetalle>;
   };
-  mobiliarioTiposPersonalizados: Record<string, CardPersonalizada[]>;
   paleta: {
     seleccion: string[];
     base: string[];
@@ -108,8 +84,6 @@ export interface EntrevistaState {
   };
   paletaOficina: {
     seleccion: string[];
-    detalle: Record<string, OfficePaletteDetalle>;
-    personalizadas: OfficePaletteCustom[];
   };
   materiales: {
     seleccion: string[];
@@ -167,11 +141,9 @@ export function createInitialEntrevistaState(): EntrevistaState {
     roles: [],
     estilo: { seleccion: [], atemporalidad: 5, densidad: "equilibrado", refs: "" },
     estiloDetalle: {},
-    estilosPersonalizados: {},
     mobiliarioGaleria: { seleccion: [], detalle: {} },
-    mobiliarioTiposPersonalizados: {},
     paleta: { seleccion: [], base: [], evitar: [], calidoFrio: 5, notas: "", customColores: [] },
-    paletaOficina: { seleccion: [], detalle: {}, personalizadas: [] },
+    paletaOficina: { seleccion: [] },
     materiales: { seleccion: [], notas: "" },
     ambientesDetalle: {},
     mobiliario: { reutilizar: "", noNegociables: "", electrodomesticos: "", arte: "" },

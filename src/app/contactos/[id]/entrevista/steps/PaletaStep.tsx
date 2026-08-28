@@ -2,14 +2,33 @@
 
 import { useRef, useState } from "react";
 import { colorSwatches, officePaletteCombos, paletteDefs } from "@/lib/entrevista/data";
-import type { EntrevistaState, OfficePaletteCustom } from "@/lib/entrevista/types";
+import type { EntrevistaState } from "@/lib/entrevista/types";
+import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { imageFileToDataUrl } from "@/lib/entrevista/imageToDataUrl";
+import {
+  addPaletaOficinaCustom,
+  addPaletaOficinaFoto,
+  removePaletaOficinaCustom,
+  removePaletaOficinaFoto,
+  setPaletaOficinaCustomColor,
+} from "../galeriaActions";
 
 type SetState = React.Dispatch<React.SetStateAction<EntrevistaState>>;
+type SetGaleria = React.Dispatch<React.SetStateAction<GaleriaData>>;
 
-export function PaletaStep({ state, setState }: { state: EntrevistaState; setState: SetState }) {
+export function PaletaStep({
+  state,
+  setState,
+  galeria,
+  setGaleria,
+}: {
+  state: EntrevistaState;
+  setState: SetState;
+  galeria: GaleriaData;
+  setGaleria: SetGaleria;
+}) {
   if (state.proyecto.tipoProyecto === "oficina") {
-    return <PaletaOficina state={state} setState={setState} />;
+    return <PaletaOficina state={state} setState={setState} galeria={galeria} setGaleria={setGaleria} />;
   }
   return <PaletaGeneral state={state} setState={setState} />;
 }
@@ -166,13 +185,24 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
   );
 }
 
-type AnyOfficePalette = (typeof officePaletteCombos)[number] | OfficePaletteCustom;
-
-function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: SetState }) {
+function PaletaOficina({
+  state,
+  setState,
+  galeria,
+  setGaleria,
+}: {
+  state: EntrevistaState;
+  setState: SetState;
+  galeria: GaleriaData;
+  setGaleria: SetGaleria;
+}) {
   const colorInputRef = useRef<HTMLInputElement>(null);
   const pendingSlot = useRef<{ key: string; index: number } | null>(null);
 
-  const palettes: AnyOfficePalette[] = [...officePaletteCombos, ...state.paletaOficina.personalizadas];
+  const palettes = [
+    ...officePaletteCombos.map((p) => ({ key: p.key, nombre: p.nombre, colores: p.colores, uso: p.uso, custom: false })),
+    ...galeria.paletaOficinaCustom.map((p) => ({ key: p.key, nombre: p.nombre, colores: p.colores, uso: p.uso, custom: true })),
+  ];
 
   function toggleSeleccion(key: string) {
     setState((s) => {
@@ -187,23 +217,19 @@ function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: 
     });
   }
 
-  function addPalette() {
+  async function addPalette() {
     const nombre = window.prompt("Nombre de la nueva paleta:");
     if (!nombre || !nombre.trim()) return;
-    const key = "custom-palette-" + Date.now();
-    setState((s) => ({
-      ...s,
-      paletaOficina: {
-        ...s.paletaOficina,
-        personalizadas: [...s.paletaOficina.personalizadas, { key, nombre: nombre.trim(), colores: [], uso: "", custom: true }],
-      },
-    }));
+    const combo = await addPaletaOficinaCustom(nombre.trim());
+    setGaleria((g) => ({ ...g, paletaOficinaCustom: [...g.paletaOficinaCustom, combo] }));
   }
 
-  function removePalette(key: string) {
-    setState((s) => ({
-      ...s,
-      paletaOficina: { ...s.paletaOficina, personalizadas: s.paletaOficina.personalizadas.filter((p) => p.key !== key) },
+  async function removePalette(key: string) {
+    await removePaletaOficinaCustom(key);
+    setGaleria((g) => ({
+      ...g,
+      paletaOficinaCustom: g.paletaOficinaCustom.filter((p) => p.key !== key),
+      paletaOficinaFotos: g.paletaOficinaFotos.filter((f) => f.comboKey !== key),
     }));
   }
 
@@ -212,42 +238,26 @@ function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: 
     colorInputRef.current?.click();
   }
 
-  function handleColorPicked(hex: string) {
+  async function handleColorPicked(hex: string) {
     const target = pendingSlot.current;
     if (!target) return;
-    setState((s) => ({
-      ...s,
-      paletaOficina: {
-        ...s.paletaOficina,
-        personalizadas: s.paletaOficina.personalizadas.map((p) => {
-          if (p.key !== target.key) return p;
-          const colores = p.colores.slice();
-          colores[target.index] = { n: hex.toUpperCase(), h: hex };
-          return { ...p, colores };
-        }),
-      },
+    const updated = await setPaletaOficinaCustomColor(target.key, target.index, hex, hex);
+    if (!updated) return;
+    setGaleria((g) => ({
+      ...g,
+      paletaOficinaCustom: g.paletaOficinaCustom.map((p) => (p.key === target.key ? updated : p)),
     }));
   }
 
-  function moodFotos(key: string): (string | null)[] {
-    return state.paletaOficina.detalle[key]?.fotos || new Array(10).fill(null);
-  }
-
-  async function handleMoodUpload(key: string, index: number, file: File) {
+  async function handleMoodUpload(key: string, file: File) {
     const dataUrl = await imageFileToDataUrl(file);
-    setState((s) => {
-      const fotos = (s.paletaOficina.detalle[key]?.fotos || new Array(10).fill(null)).slice();
-      fotos[index] = dataUrl;
-      return { ...s, paletaOficina: { ...s.paletaOficina, detalle: { ...s.paletaOficina.detalle, [key]: { fotos } } } };
-    });
+    const foto = await addPaletaOficinaFoto(key, dataUrl);
+    setGaleria((g) => ({ ...g, paletaOficinaFotos: [...g.paletaOficinaFotos, foto] }));
   }
 
-  function removeMoodPhoto(key: string, index: number) {
-    setState((s) => {
-      const fotos = (s.paletaOficina.detalle[key]?.fotos || new Array(10).fill(null)).slice();
-      fotos[index] = null;
-      return { ...s, paletaOficina: { ...s.paletaOficina, detalle: { ...s.paletaOficina.detalle, [key]: { fotos } } } };
-    });
+  async function removeMoodPhoto(fotoId: string) {
+    await removePaletaOficinaFoto(fotoId);
+    setGaleria((g) => ({ ...g, paletaOficinaFotos: g.paletaOficinaFotos.filter((f) => f.id !== fotoId) }));
   }
 
   return (
@@ -255,16 +265,15 @@ function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: 
       <input ref={colorInputRef} type="color" className="sr-only" onChange={(e) => handleColorPicked(e.target.value)} />
       <h2 className="mb-1 text-lg font-semibold text-neutral-900">Paleta de color de oficina</h2>
       <p className="mb-6 text-sm text-neutral-500">
-        Estas son las 10 combinaciones de color más usadas en espacios corporativos — subí fotos de referencia (hasta 10 por paleta)
-        para armar un moodboard con el cliente en vivo.
+        Estas son las 10 combinaciones de color más usadas en espacios corporativos. El moodboard de fotos es tu biblioteca
+        compartida — subí una vez, reutilizá con todos los clientes.
       </p>
 
       <div className="mb-4 space-y-4">
         {palettes.map((pl) => {
-          const isCustom = "custom" in pl && pl.custom;
           const isSelected = state.paletaOficina.seleccion.includes(pl.key);
-          const fotos = moodFotos(pl.key);
-          const slotCount = isCustom ? 4 : pl.colores.length;
+          const fotos = galeria.paletaOficinaFotos.filter((f) => f.comboKey === pl.key).sort((a, b) => a.orden - b.orden);
+          const slotCount = pl.custom ? 4 : pl.colores.length;
           return (
             <div
               key={pl.key}
@@ -273,7 +282,7 @@ function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: 
               <button type="button" onClick={() => toggleSeleccion(pl.key)} className="mb-2 flex w-full items-center justify-between text-left">
                 <span className="font-semibold text-neutral-900">
                   {pl.nombre}
-                  {isCustom && (
+                  {pl.custom && (
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
@@ -304,42 +313,37 @@ function PaletaOficina({ state, setState }: { state: EntrevistaState; setState: 
                   );
                 })}
               </div>
-              <p className="mb-3 text-xs text-neutral-500">
-                {"uso" in pl && pl.uso ? pl.uso : "Definí vos la combinación — agregá los colores con el ícono +."}
-              </p>
+              <p className="mb-3 text-xs text-neutral-500">{pl.uso || "Definí vos la combinación — agregá los colores con el ícono +."}</p>
 
               <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Moodboard — fotos de referencia (hasta 10)</p>
               <div className="grid grid-cols-5 gap-1.5">
-                {fotos.map((f, i) => (
-                  <div key={i} className="relative aspect-square overflow-hidden rounded border border-neutral-200 bg-neutral-50">
-                    {f ? (
-                      <>
-                        <img src={f} alt={`ref ${i + 1}`} className="h-full w-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeMoodPhoto(pl.key, i)}
-                          className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/90 text-[9px]"
-                        >
-                          ×
-                        </button>
-                      </>
-                    ) : (
-                      <label className="flex h-full w-full cursor-pointer items-center justify-center text-[10px] text-neutral-400">
-                        {i + 1}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleMoodUpload(pl.key, i, file);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-                    )}
+                {fotos.map((f) => (
+                  <div key={f.id} className="relative aspect-square overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+                    <img src={f.dataUrl} alt="ref" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeMoodPhoto(f.id)}
+                      className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/90 text-[9px]"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
+                {fotos.length < 10 && (
+                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded border border-dashed border-neutral-300 text-[10px] text-neutral-400">
+                    +
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleMoodUpload(pl.key, file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
               </div>
             </div>
           );

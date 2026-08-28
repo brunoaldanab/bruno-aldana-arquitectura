@@ -68,3 +68,52 @@ model Entrevista {
 
   @@index([contactoId])
 }
+
+/// Biblioteca compartida de referencias visuales (Estilo, Tipo de mobiliario,
+/// Paleta de oficina) — es propia del estudio, no de un contacto puntual.
+/// Lo que se sube o agrega acá queda disponible para todas las entrevistas.
+enum GaleriaTipo {
+  ESTILO
+  MOBILIARIO
+}
+
+model GaleriaFoto {
+  id        String      @id @default(cuid())
+  tipo      GaleriaTipo
+  cardKey   String
+  dataUrl   String
+  orden     Int
+  createdAt DateTime    @default(now())
+
+  @@index([tipo, cardKey])
+}
+
+model GaleriaCardCustom {
+  id          String      @id @default(cuid())
+  tipo        GaleriaTipo
+  key         String      @unique
+  titulo      String
+  mood        String
+  descripcion String
+  facts       Json
+  createdAt   DateTime    @default(now())
+}
+
+model PaletaOficinaFoto {
+  id        String   @id @default(cuid())
+  comboKey  String
+  dataUrl   String
+  orden     Int
+  createdAt DateTime @default(now())
+
+  @@index([comboKey])
+}
+
+model PaletaOficinaCustom {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  nombre    String
+  colores   Json
+  uso       String
+  createdAt DateTime @default(now())
+}

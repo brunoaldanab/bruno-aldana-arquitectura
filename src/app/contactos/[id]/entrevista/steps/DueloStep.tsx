@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { styleCards } from "@/lib/entrevista/data";
-import type { EntrevistaState, FotoRef } from "@/lib/entrevista/types";
+import type { EntrevistaState } from "@/lib/entrevista/types";
+import type { GaleriaData } from "@/lib/entrevista/galeria";
 
 interface DuelItem {
   styleKey: string;
@@ -20,16 +21,17 @@ interface DuelState {
   roundNum: number;
 }
 
-function buildPool(state: EntrevistaState): DuelItem[] {
+function buildPool(state: EntrevistaState, galeria: GaleriaData): DuelItem[] {
   const pool: DuelItem[] = [];
-  const custom = state.estilosPersonalizados.proyecto || [];
-  const cards = [...styleCards, ...custom];
+  const cards = [...styleCards.map((c) => ({ k: c.k, t: c.t })), ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo }))];
   cards.forEach((c) => {
-    const det = state.estiloDetalle["proyecto::" + c.k];
+    const det = state.estiloDetalle[c.k];
     if (!det) return;
-    det.fotos.forEach((f) => {
-      if (f && (f.reaction === "like" || f.reaction === "super") && f.rating >= 6) {
-        pool.push({ styleKey: c.k, styleName: c.t, dataUrl: f.dataUrl, rating: f.rating, reaction: f.reaction });
+    const fotos = galeria.estiloFotos.filter((f) => f.cardKey === c.k);
+    fotos.forEach((f) => {
+      const r = det.reacciones[f.id];
+      if (r && (r.reaction === "like" || r.reaction === "super") && r.rating >= 6) {
+        pool.push({ styleKey: c.k, styleName: c.t, dataUrl: f.dataUrl, rating: r.rating, reaction: r.reaction });
       }
     });
   });
@@ -46,14 +48,16 @@ function makePairs(items: DuelItem[]): { pairs: [DuelItem, DuelItem][]; bye: Due
   return { pairs, bye };
 }
 
-function computeRanking(state: EntrevistaState) {
-  const custom = state.estilosPersonalizados.proyecto || [];
-  const cards = [...styleCards, ...custom];
+function computeRanking(state: EntrevistaState, galeria: GaleriaData) {
+  const cards = [...styleCards.map((c) => ({ k: c.k, t: c.t })), ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo }))];
   return cards
     .map((c) => {
-      const det = state.estiloDetalle["proyecto::" + c.k];
-      const rated = (det?.fotos || []).filter((f): f is FotoRef => !!f && (f.reaction === "like" || f.reaction === "super"));
-      const avg = rated.length ? rated.reduce((s, f) => s + f.rating, 0) / rated.length : 0;
+      const det = state.estiloDetalle[c.k];
+      const fotos = galeria.estiloFotos.filter((f) => f.cardKey === c.k);
+      const rated = fotos
+        .map((f) => det?.reacciones[f.id])
+        .filter((r): r is NonNullable<typeof r> => !!r && (r.reaction === "like" || r.reaction === "super"));
+      const avg = rated.length ? rated.reduce((s, r) => s + r.rating, 0) / rated.length : 0;
       return { key: c.k, name: c.t, avg, count: rated.length };
     })
     .filter((r) => r.count > 0)
@@ -62,14 +66,17 @@ function computeRanking(state: EntrevistaState) {
 
 export function DueloStep({
   state,
+  galeria,
 }: {
   state: EntrevistaState;
   setState: React.Dispatch<React.SetStateAction<EntrevistaState>>;
+  galeria: GaleriaData;
+  setGaleria: React.Dispatch<React.SetStateAction<GaleriaData>>;
 }) {
   const [duel, setDuel] = useState<DuelState | null>(null);
-  const ranking = useMemo(() => computeRanking(state), [state]);
+  const ranking = useMemo(() => computeRanking(state, galeria), [state, galeria]);
   const maxAvg = Math.max(...ranking.map((r) => r.avg), 1);
-  const pool = useMemo(() => buildPool(state), [state]);
+  const pool = useMemo(() => buildPool(state, galeria), [state, galeria]);
 
   function start() {
     if (pool.length < 2) return;

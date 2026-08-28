@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { getSteps, type StepId } from "@/lib/entrevista/steps";
 import type { EntrevistaState } from "@/lib/entrevista/types";
+import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { saveEntrevista } from "./actions";
 
 import { TipoProyectoStep } from "./steps/TipoProyectoStep";
@@ -26,6 +27,8 @@ import { DetalleAmbientesStep } from "./steps/DetalleAmbientesStep";
 type StepComponentProps = {
   state: EntrevistaState;
   setState: React.Dispatch<React.SetStateAction<EntrevistaState>>;
+  galeria: GaleriaData;
+  setGaleria: React.Dispatch<React.SetStateAction<GaleriaData>>;
   onAdvance?: () => void;
 };
 
@@ -55,13 +58,16 @@ export function EntrevistaWizard({
   contactoId,
   contactoNombre,
   initialData,
+  initialGaleria,
 }: {
   entrevistaId: string;
   contactoId: string;
   contactoNombre: string;
   initialData: EntrevistaState;
+  initialGaleria: GaleriaData;
 }) {
   const [state, setState] = useState<EntrevistaState>(initialData);
+  const [galeria, setGaleria] = useState<GaleriaData>(initialGaleria);
   const [current, setCurrent] = useState(0);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [, startTransition] = useTransition();
@@ -133,7 +139,13 @@ export function EntrevistaWizard({
       </div>
 
       <div className="rounded-lg border border-neutral-200 bg-white p-6">
-        <StepComponent state={state} setState={setState} onAdvance={() => setCurrent((c) => Math.min(c + 1, steps.length - 1))} />
+        <StepComponent
+          state={state}
+          setState={setState}
+          galeria={galeria}
+          setGaleria={setGaleria}
+          onAdvance={() => setCurrent((c) => Math.min(c + 1, steps.length - 1))}
+        />
       </div>
 
       <div className="mt-6 flex items-center justify-between">
