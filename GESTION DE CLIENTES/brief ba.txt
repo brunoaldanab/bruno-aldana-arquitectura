@@ -1,0 +1,267 @@
+# Brief para Claude Code — Sistema de Contactos y Cotizaciones (Bruno)
+
+Sos mi asistente en Claude Code. Vamos a construir desde cero un sistema de
+gestión para mi estudio de arquitectura/diseño de interiores. Ya definí
+*todas* las decisiones de diseño en una sesión anterior con otro Claude —
+no me las vuelvas a preguntar, están cerradas. Sí preguntame antes de cada
+paso que requiera una acción mía (crear cuentas, dar permisos, elegir
+nombres, etc.) — no asumas ni inventes esas cosas por mí.
+
+## 0. Quién soy y qué necesito
+
+Soy arquitecto/diseñador de interiores (Bolivia). Cotizo en **Bolivianos
+(BOB)**, con opción de USD por cotización. Necesito un sistema propio, no
+una herramienta no-code, que pueda seguir haciendo crecer con vos con el
+tiempo.
+
+## 1. Punto de partida
+
+En la raíz de este proyecto tengo (o voy a poner) un archivo llamado
+Entrevista_Diseno_Interiores_v2_3.html — es un wizard de entrevista a
+clientes que ya armé antes (con Claude en modo artefacto): tipo de proyecto,
+estilo, paleta, materiales, ambiente por ambiente, presupuesto, plazos. Hoy
+vive 100% en el navegador, sin persistencia (se pierde al recargar, solo se
+puede imprimir a PDF). **Si no está el archivo en la carpeta, avisame antes
+de seguir** — lo tengo que copiar ahí.
+
+Importante de ese archivo: tiene una función getSteps() que arma
+dinámicamente la lista de pasos del wizard según
+state.proyecto.tipoProyecto ('oficina' / 'ambiente-unico' / vivienda
+por defecto) — cada tipo de proyecto muestra preguntas distintas en los
+pasos siguientes. Esa lógica de ramificación se tiene que preservar 1:1 al
+portarla a React: mismo if/else, ahora como componentes que leen/escriben
+el mismo estado compartido, en vez de las funciones render()/bind()
+manuales que tiene hoy.
+
+## 2. Alcance del MVP — no te salgas de esto
+
+*Sí construir ahora:*
+- Login mío (único usuario administrador)
+- CRUD de Contactos
+- CRUD de Cotizaciones, cada una ligada a un contacto
+- La ficha de Entrevista portada al sistema, ligada a un contacto, con
+  autoguardado en base de datos
+
+*Explícitamente fuera de alcance (no lo construyas aunque parezca fácil):*
+- Seguimiento de obra/proyecto una vez aprobada la cotización
+- Ítems de precio desglosados en la cotización — la cotización tiene un
+  campo simple de *monto total que yo escribo a mano*, sin desglose
+  automático
+- Multi-usuario / roles / equipo — soy el único admin
+- Portal de cliente con link compartible de solo lectura — **se deja el
+  modelo de datos abierto para esto a futuro, pero no se construye ahora**
+- Cualquier capa de i18n — la app es en español únicamente, no es
+  multilingüe, no uses next-intl ni nada similar
+
+### Modelo de datos de Contacto
+Nombre, teléfono, email, dirección del proyecto, notas libres, origen
+(cómo me contactó: Instagram, referido, web, etc.)
+
+### Modelo de datos de Cotización
+Ligada a un contacto. Campos: título/label, monto total (Decimal,
+opcional, lo completo yo a mano), moneda (BOB | USD, default BOB),
+estado (BORRADOR → ENVIADA → APROBADA / RECHAZADA), notas,
+sentAt, decidedAt.
+
+## 3. Stack y arquitectura (ya decidido, no lo reabras)
+
+- *Next.js (App Router)* + TypeScript estricto + *Prisma* + **PostgreSQL
+  vía Neon** (integrado a través del Marketplace/Storage de Vercel) +
+  *Tailwind CSS*
+- Deploy en *Vercel*, plan Hobby (gratis) para arrancar, dominio propio se
+  agrega después sin tocar código
+- *Auth casera, sin NextAuth/Auth.js*: un único admin, contraseña
+  hasheada con bcryptjs, sesión con cookie httpOnly firmada con jose
+  (JWT), verificada en middleware.ts (Edge runtime — por eso jose y no
+  bcryptjs/Node crypto ahí)
+- Sin capa de i18n (ver arriba)
+- El futuro portal de cliente (no se construye ahora) se resolvería con un
+  link con token único de solo lectura, no con cuentas — no diseñes nada de
+  esto todavía, solo tenelo en mente para no cerrar puertas sin querer
+
+### Por qué esta arquitectura (no reabrir esta discusión)
+- Se descartó no-code (Notion/Airtable): quiero un sistema propio que
+  evolucione conmigo
+- Se descartó NextAuth desde el día 1: un solo usuario admin no lo justifica,
+  se puede migrar el día que sume colaboradores
+
+## 4. Gotchas técnicos ya resueltos — aplicalos directo, no los redescubras
+
+Estos son problemas reales con los que nos topamos construyendo esto mismo
+en otra máquina. Evitalos desde el arranque:
+
+1. **npm install prisma sin fijar versión instala una release candidate
+   inestable** (a la fecha, el tag latest de npm apunta a una 8.0.0-rc.x
+   con una CLI completamente distinta y experimental). Instalá siempre
+   versión fija:
+   bash
+   npm install prisma@7.10.0 --save-dev
+   npm install @prisma/client@7.10.0
+   
+   Si para cuando estés leyendo esto ya existe una 7.x más nueva estable,
+   usá esa — pero **nunca la que el tag latest te dé por default sin
+   revisar antes con npm view prisma dist-tags**.
+
+2. *Prisma 7 sacó la conexión del schema.prisma.* Ya no va url ni
+   directUrl en el bloque datasource. Va en un prisma.config.ts en la
+   raíz. El generador también cambió de nombre y ahora requiere output
+   explícito:
+   prisma
+   // prisma/schema.prisma
+   generator client {
+     provider = "prisma-client"
+     output   = "../src/generated/prisma"
+   }
+
+   datasource db {
+     provider = "postgresql"
+   }
+   
+   ts
+   // prisma.config.ts
+   import { config } from "dotenv";
+   import { defineConfig, env } from "prisma/config";
+
+   // Next.js guarda las env vars locales en .env.local, no en .env —
+   // dotenv/config por defecto solo lee .env, hay que apuntarlo a mano.
+   config({ path: ".env.local" });
+
+   export default defineConfig({
+     schema: "prisma/schema.prisma",
+     migrations: { path: "prisma/migrations" },
+     datasource: {
+       // Conexión DIRECTA (no pooled) para el CLI/migraciones.
+       url: env("DATABASE_URL_UNPOOLED"),
+     },
+   });
+   
+
+3. *El cliente generado no tiene un archivo índice en la raíz* — hay que
+   importar desde el subpath client:
+   ts
+   import { PrismaClient } from "@/generated/prisma/client";
+   
+
+4. *Para runtime de la app, usá el adapter de Neon con la URL pooled*
+   (la conexión directa es solo para el CLI/migraciones):
+   ts
+   // src/lib/prisma.ts
+   import { PrismaClient } from "@/generated/prisma/client";
+   import { PrismaNeon } from "@prisma/adapter-neon";
+
+   const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
+
+   function createPrismaClient() {
+     const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
+     return new PrismaClient({ adapter });
+   }
+
+   export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+   if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+   
+
+5. **npm audit va a marcar una vulnerabilidad (stack exhaustion) en
+   deepmerge-ts**, arrastrada por @prisma/config en la línea 7.x. Es una
+   dependencia de herramienta de desarrollo (no corre en producción /
+   no está expuesta a red), pero se arregla gratis sin bajar de versión de
+   Prisma, agregando en package.json:
+   json
+   "overrides": { "deepmerge-ts": "^8.0.2" }
+   
+
+6. *Build de Vercel*: agregá prisma generate && prisma migrate deploy
+   antes de next build en el script build, y prisma generate como
+   postinstall — así cada deploy aplica migraciones pendientes solo:
+   json
+   "scripts": {
+     "build": "prisma generate && prisma migrate deploy && next build",
+     "postinstall": "prisma generate"
+   }
+   
+
+7. *Al crear la base de datos Postgres desde el Storage tab de Vercel*
+   (proveedor Neon): hay un toggle *"Auth"* — es la autenticación propia
+   de Neon (perfiles de usuario sincronizados a Postgres). *Apagalo* —
+   nosotros ya construimos nuestro propio login casero, no lo necesitamos.
+
+8. *Vercel necesita permiso explícito de GitHub por repo.* Si al intentar
+   importar un repo te da repo_not_found, es porque el GitHub App de
+   Vercel no tiene acceso todavía. Solución (accion mía, avisame para
+   hacerla): ir a vercel.com/new → "Adjust GitHub App Permissions" →
+   darle acceso al repo → recién ahí se puede importar.
+
+9. *Para desarrollo local con las mismas env vars de Neon*, no copies
+   strings de conexión a mano: usá la CLI de Vercel (sin instalar nada
+   global, con npx):
+   bash
+   npx vercel login       # abre el navegador, auth por device code
+   npx vercel link        # vincula esta carpeta al proyecto de Vercel
+   npx vercel env pull .env.local
+   
+
+10. *.gitignore debe incluir* /src/generated/prisma (el cliente se
+    regenera con postinstall, no se versiona) además de lo estándar de
+    Next.js (.env*, .next/, node_modules).
+
+## 5. Orden de trabajo — "online cuanto antes"
+
+Preferí que cada pieza se vea funcionando en mi link real de Vercel apenas
+esté lista, en vez de construir todo local y recién al final desplegar. Andá
+haciendo commits chicos y con mensajes claros a medida que avanza cada
+parte.
+
+### Secuencia sugerida
+1. Verificar que tengo Node, npm y git instalados
+2. git init en la carpeta del proyecto
+3. Escribir un doc corto de diseño (podés basarte en este mismo brief) en
+   docs/plans/ y commitearlo
+4. Escafoldar Next.js (TypeScript, Tailwind, App Router, alias @/* →
+   ./src/*) — si la carpeta no está vacía (por el HTML de la entrevista),
+   escafoldalo en una carpeta temporal e integralo después, sin pisar nada
+5. Pedirme que cree un repo *privado* en GitHub (te doy la URL), conectar
+   el remoto y pushear
+6. Autenticarme en Vercel (vas a necesitar el MCP de Vercel o guiarme por
+   el navegador), crear el proyecto conectado a ese repo, hacer el primer
+   deploy
+7. Agregar Postgres (Neon) desde Storage → Create Database, plan Free,
+   *Auth apagado*, conectado al proyecto, ambientes Production + Preview
+   + Development
+8. Traer las env vars locales con vercel link + vercel env pull
+9. Instalar y configurar Prisma con TODOS los gotchas de la sección 4 ya
+   aplicados de entrada (no repitas el camino largo)
+10. Definir el schema.prisma completo (Admin, Contacto, Cotizacion,
+    Entrevista — modelos de la sección 2) y correr
+    npx prisma migrate dev --name init
+11. Generar un SESSION_SECRET random y agregarlo a las env vars de
+    Vercel (Production/Preview/Development) y a mi .env.local
+12. Construir el login: página /login, Server Action que valida con Zod,
+    compara con bcryptjs, firma cookie con jose, middleware.ts que
+    protege todo excepto /login
+13. Necesito que me generes un script de seed para crear mi usuario Admin
+    inicial — pedime el email y la contraseña que quiero usar antes de
+    correrlo
+14. CRUD de Contactos (listar, crear, editar, ver detalle)
+15. CRUD de Cotizaciones dentro de cada contacto
+16. Portar la ficha de Entrevista (ver sección 1), con autoguardado por
+    Server Action hacia Entrevista.data (JSON)
+17. Verificación final: npx tsc --noEmit, npm run build, probar el
+    flujo real en el navegador (local y en el link de producción)
+
+## 6. Checklist de verificación antes de dar cada parte por terminada
+
+- [ ] npx tsc --noEmit sin errores
+- [ ] npm run build exitoso (incluye prisma generate + `prisma migrate
+      deploy`)
+- [ ] npm audit limpio (o vulnerabilidades justificadas y explicadas)
+- [ ] Probado en el navegador, no solo compilado
+- [ ] Commit hecho con mensaje claro, push a GitHub, deploy de Vercel
+      verificado como "Ready"
+
+## 7. Cosas que sí tenés que preguntarme (no las asumas)
+
+- Nombre del repositorio de GitHub
+- Confirmación de permisos cuando Vercel necesite acceso al repo
+- Región de la base de datos (default Washington D.C. está bien salvo que
+  yo diga otra cosa)
+- Email y contraseña para mi usuario Admin
+- Cualquier decisión de UI/estilo que no esté ya definida acá

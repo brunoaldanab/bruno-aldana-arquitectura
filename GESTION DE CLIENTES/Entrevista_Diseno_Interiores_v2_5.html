@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de Entrevista — Diseño de Interiores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F6F8; --paper:#FFFFFF; --ink:#0B0B0E; --ink-soft:#6B6B74; --line:#E7E7EC;
+    --clay:#5B4CFF; --clay-soft:#EDEBFF; --sage:#00B37E; --blue:#5B4CFF; --gold:#FF7A45; --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--cream); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  .blueprint-bg{
+    position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.6;
+    background-image: radial-gradient(var(--line) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(circle at 15% 0%, black 0%, transparent 60%);
+  }
+  .app{position:relative; z-index:1; max-width:1040px; margin:0 auto; padding:36px 24px 120px;}
+  header.top{display:flex; justify-content:space-between; align-items:center; border-bottom:none; padding-bottom:22px; margin-bottom:8px; gap:16px; flex-wrap:wrap;}
+  .brand-row{display:flex; align-items:center; gap:14px;}
+  .brand-logo{width:48px; height:48px; border-radius:50%; box-shadow:0 4px 16px rgba(11,11,14,0.18); flex-shrink:0;}
+  .title-block .eyebrow{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--clay); margin-bottom:4px; font-weight:500;}
+  .title-block h1{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(24px,3.6vw,34px); margin:0; line-height:1.05; letter-spacing:-0.02em;}
+  .title-block .sub{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+  .plan-tag{font-family:'JetBrains Mono',monospace; font-size:11px; text-align:right; color:var(--ink-soft); line-height:1.6;}
+  .plan-tag b{color:var(--ink); font-weight:600;}
+
+  .rail{display:flex; gap:4px; margin:22px 0 6px;}
+  .rail .seg{flex:1; height:5px; background:var(--line); cursor:pointer; border-radius:3px;}
+  .rail .seg.done{background:var(--clay); opacity:0.45;}
+  .rail .seg.active{background:var(--clay);}
+  .rail-labels{display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft); margin-bottom:28px; text-transform:uppercase; letter-spacing:0.05em;}
+
+  .sheet{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:36px clamp(20px,4vw,48px); min-height:420px; position:relative; box-shadow:0 2px 24px rgba(11,11,14,0.04);}
+  .sheet::before{content: attr(data-num); position:absolute; top:-14px; left:32px; background:var(--ink); color:var(--paper); font-family:'JetBrains Mono',monospace; font-size:11px; padding:5px 12px; letter-spacing:0.06em; border-radius:20px;}
+  .step-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; margin:6px 0 6px; letter-spacing:-0.01em;}
+  .step-desc{color:var(--ink-soft); font-size:14px; margin-bottom:28px; max-width:680px; line-height:1.6;}
+
+  label.field-label{display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft); margin-bottom:8px;}
+  .field{margin-bottom:22px;}
+  input[type=text], input[type=date], textarea{width:100%; border:none; border-bottom:1.5px solid var(--line); background:transparent; font-family:'Inter',sans-serif; font-size:15px; padding:8px 2px; color:var(--ink); outline:none; transition:border-color .2s;}
+  input[type=text]:focus, input[type=date]:focus, textarea:focus{border-color:var(--clay);}
+  textarea{resize:vertical; min-height:70px; line-height:1.5;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px 28px;}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+  /* ---- estilo arquitectónico cards ---- */
+  .card-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:8px;}
+  .vcard{border:1.5px solid var(--line); border-radius:14px; background:var(--cream); cursor:pointer; overflow:hidden; transition:border-color .15s, transform .15s; position:relative;}
+  .vcard:hover{transform:translateY(-2px);}
+  .vcard.selected{border-color:var(--clay); box-shadow:0 0 0 1px var(--clay);}
+  .vcard.selected .check{opacity:1; transform:scale(1);}
+  .vcard svg.mock{display:block; width:100%; height:120px; background:var(--line);}
+  .vcard .cap{padding:10px 12px 12px; font-size:13px; font-weight:600;}
+  .vcard .cap small{display:block; font-weight:400; color:var(--ink-soft); font-size:11px; margin-top:2px;}
+  .check{position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; background:var(--clay); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; opacity:0; transform:scale(0.6); transition:.15s; z-index:2;}
+
+  /* ---- swatch (color chips) ---- */
+  .swatch-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:12px; margin-bottom:6px;}
+  .swatch{border:1.5px solid transparent; border-radius:var(--radius); cursor:pointer; text-align:center; padding-bottom:2px;}
+  .swatch .sq{height:64px; border:1px solid rgba(0,0,0,0.12); border-radius:10px;}
+  .swatch .lbl{font-size:10.5px; margin-top:6px; color:var(--ink-soft); line-height:1.3;}
+  .swatch.selected{border-color:var(--clay);}
+  .swatch.selected .sq{outline:2px solid var(--clay); outline-offset:2px;}
+
+  /* ---- paleta de color psicológica (NUEVO) ---- */
+  .palette-list{display:flex; flex-direction:column; gap:0; margin-top:6px;}
+  .palette-card{border:1.5px solid var(--line); background:var(--cream); margin-bottom:16px; cursor:pointer; transition:border-color .15s; overflow:hidden; border-radius:14px;}
+  .palette-card.selected{border-color:var(--clay); box-shadow:0 0 0 1px var(--clay);}
+  .palette-top{display:flex; gap:0; flex-wrap:wrap;}
+  .palette-imgs{display:flex; flex:0 0 auto;}
+  .palette-imgs svg{width:120px; height:100px; display:block; background:var(--line);}
+  .palette-info{flex:1; min-width:220px; padding:14px 18px; position:relative;}
+  .palette-info .check{position:absolute; top:12px; right:14px;}
+  .palette-name{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:17px; margin:0 0 6px;}
+  .palette-chips{display:flex; gap:6px; margin-bottom:10px;}
+  .palette-chips .c{width:26px; height:26px; border:1px solid rgba(0,0,0,0.15); flex-shrink:0;}
+  .color-slot-empty{display:flex; align-items:center; justify-content:center; background:var(--cream); color:var(--ink-soft); cursor:pointer; font-size:14px; border:1.5px dashed var(--line) !important;}
+  .color-slot-empty:hover{border-color:var(--clay) !important; color:var(--clay);}
+  .color-picker-row{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+  .color-picker-row input[type=color]{width:52px; height:38px; border:1.5px solid var(--line); border-radius:8px; cursor:pointer; padding:2px; background:var(--paper);}
+  .color-picker-hex{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft); min-width:70px;}
+  .mood-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:8px;}
+  @media(max-width:640px){.mood-grid{grid-template-columns:repeat(3,1fr);}}
+  .mood-slot{aspect-ratio:1; border:1.5px dashed var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; cursor:pointer; background:var(--cream); color:var(--line); font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px;}
+  .mood-slot.filled{border-style:solid;}
+  .mood-slot img{width:100%; height:100%; object-fit:cover; position:absolute; inset:0;}
+  .mood-slot .remove-x{position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,0.9); color:var(--ink); font-size:11px; display:flex; align-items:center; justify-content:center; z-index:2;}
+  .mood-slot input[type=file]{display:none;}
+  .office-palette{padding:16px 18px; margin-bottom:16px; cursor:default;}
+  .office-palette .palette-info{cursor:pointer;}
+  .palette-psych{font-size:12.5px; line-height:1.55; color:var(--ink-soft); max-width:520px;}
+  .palette-psych b{color:var(--ink); font-weight:600;}
+  @media(max-width:560px){ .palette-imgs svg{width:90px; height:80px;} }
+
+  /* ---- materiales ---- */
+  .mat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;}
+  .mat{border:1.5px solid var(--line); cursor:pointer; overflow:hidden; position:relative; background:var(--cream); border-radius:12px;}
+  .mat.selected{border-color:var(--clay); box-shadow:0 0 0 1px var(--clay);}
+  .mat .tex{height:80px; width:100%; display:block; border-radius:12px 12px 0 0;}
+  .mat .lbl{font-size:12px; font-weight:600; padding:8px 10px 10px; background:var(--paper);}
+  .mat .check{width:18px; height:18px; font-size:11px;}
+
+  .pref-row{display:flex; align-items:center; gap:16px; margin-bottom:22px;}
+  .pref-row .ends{font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--ink-soft); width:90px; text-transform:uppercase;}
+  .pref-row .ends:last-child{text-align:right;}
+  input[type=range]{flex:1; accent-color:var(--clay); height:2px;}
+
+  .chip-grid{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{border:1.5px solid var(--line); border-radius:20px; padding:8px 16px; font-size:13px; cursor:pointer; background:var(--cream); transition:.15s; user-select:none; font-weight:500;}
+  .chip.small{padding:6px 12px; font-size:11.5px;}
+  .func-audit-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; margin:26px 0 4px;}
+  .func-audit-sub{font-size:12px; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;}
+  .func-cat{font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--clay); margin-top:16px; margin-bottom:8px;}
+  .func-chip-grid{margin-bottom:4px;}
+  .func-count{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:10px;}
+  .chip.selected{background:var(--clay); color:#fff; border-color:var(--clay);}
+
+  .room{border:1px solid var(--line); margin-bottom:10px; background:var(--cream); border-radius:12px; overflow:hidden;}
+  .room-head{padding:14px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-weight:600; font-size:14px;}
+  .room-head .arrow{transition:.2s; font-size:12px; color:var(--ink-soft);}
+  .room.open .arrow{transform:rotate(90deg);}
+  .room-body{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+  .room.open .room-body{max-height:400px;}
+  .room-body-inner{padding:0 16px 16px;}
+
+  .nav{display:flex; justify-content:space-between; align-items:center; margin-top:24px;}
+  button.btn{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; border:1.5px solid var(--ink); background:var(--ink); color:var(--paper); padding:13px 24px; cursor:pointer; transition:.15s; border-radius:30px;}
+  button.btn.ghost{background:transparent; color:var(--ink);}
+  button.btn:hover{opacity:0.85; transform:translateY(-1px);}
+  button.btn:disabled{opacity:0.25; cursor:not-allowed; transform:none;}
+  .step-count{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft);}
+
+  .summary-block{border-top:1px dashed var(--line); padding-top:18px; margin-top:26px;}
+  .summary-block h3{font-family:'Space Grotesk',sans-serif; font-size:16px; margin:0 0 10px;}
+  .sum-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px 24px; font-size:13px;}
+  .sum-grid .k{color:var(--ink-soft); font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding-top:10px;}
+  .sum-grid .v{padding-bottom:4px;}
+
+  .proj-type-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:8px;}
+  @media(max-width:560px){.proj-type-grid{grid-template-columns:1fr;}}
+  .proj-type-card{border:1.5px solid var(--line); border-radius:16px; padding:22px 20px; cursor:pointer; background:var(--cream); transition:.15s; position:relative;}
+  .proj-type-card:hover{border-color:var(--clay); transform:translateY(-2px);}
+  .proj-type-card.selected{border-color:var(--clay); background:var(--clay-soft); box-shadow:0 0 0 1px var(--clay);}
+  .proj-type-card.disabled{opacity:0.5; cursor:not-allowed;}
+  .proj-type-card.disabled:hover{transform:none; border-color:var(--line);}
+  .pt-icon{font-size:26px; margin-bottom:10px; color:var(--clay);}
+  .pt-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; margin-bottom:4px;}
+  .pt-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
+  .soon-badge{position:absolute; top:14px; right:14px; font-family:'JetBrains Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; background:var(--ink); color:#fff; padding:3px 8px; border-radius:10px;}
+
+  .type-toggle{display:flex; gap:10px; margin-bottom:26px;}
+  .type-toggle .opt{flex:1; border:1.5px solid var(--line); padding:16px; text-align:center; cursor:pointer; font-weight:600; font-size:14px; background:var(--cream); border-radius:12px; transition:.15s;}
+  .type-toggle .opt.selected{border-color:var(--clay); background:var(--clay); color:#fff;}
+
+  .room-check-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px;}
+  .room-check{border:1.5px solid var(--line); padding:10px 14px; cursor:pointer; font-size:13px; background:var(--cream); display:flex; align-items:center; gap:8px; border-radius:10px; transition:.15s;}
+  .room-check.selected{border-color:var(--sage); background:var(--sage); color:#fff;}
+  .room-check .dot{width:8px; height:8px; border-radius:50%; border:1.5px solid currentColor; flex-shrink:0;}
+  .room-check.selected .dot{background:#fff;}
+
+  .note{font-size:12px; color:var(--ink-soft); background:var(--clay-soft); border-left:3px solid var(--clay); padding:10px 14px; margin-bottom:22px; line-height:1.5; border-radius:0 10px 10px 0;}
+
+  /* ---- GALERÍA DE ESTILOS (una página por estilo) ---- */
+  .style-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; border-bottom:1px solid var(--line); padding-bottom:14px;}
+  .style-tab{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; padding:9px 16px; border:1px solid var(--line); background:var(--cream); cursor:pointer; color:var(--ink-soft); transition:.15s; border-radius:20px; font-weight:500;}
+  .style-tab.active{background:var(--clay); color:#fff; border-color:var(--clay);}
+  .style-tab.add-tab{background:transparent; border-style:dashed; color:var(--clay);}
+  .style-tab.is-custom{padding-right:10px;}
+  .style-tab .tab-remove{display:inline-block; margin-left:6px; opacity:0.6; cursor:pointer;}
+  .style-tab .tab-remove:hover{opacity:1;}
+  .style-tab.liked::after{content:" ♥"; color:var(--clay);}
+  .style-tab.liked.active::after{color:#fff;}
+
+  .style-page-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px; flex-wrap:wrap;}
+  .style-page-head h2{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:24px; margin:0 0 4px;}
+  .style-page-head .mood{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--clay);}
+  .btn-like{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; border:1.5px solid var(--ink); background:transparent; padding:10px 16px; cursor:pointer; white-space:nowrap; transition:.15s;}
+  .btn-like.on{background:var(--ink); color:var(--paper);}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:22px;}
+  @media(max-width:640px){.photo-grid{grid-template-columns:repeat(2,1fr);}}
+  .photo-slot{aspect-ratio:4/3; border:1.5px dashed var(--line); background:var(--cream); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--ink-soft); font-size:10.5px; text-align:center; cursor:pointer; position:relative; overflow:hidden; padding:6px; border-radius:12px;}
+  .photo-slot:hover{border-color:var(--clay); color:var(--clay);}
+  .photo-slot .num{font-family:'Space Grotesk',sans-serif; font-size:20px; color:var(--line);}
+  .photo-slot.r-like{border-style:solid; border-color:var(--clay); box-shadow:0 0 0 2px var(--clay) inset;}
+  .photo-slot.r-super{border-style:solid; border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset;}
+  .photo-slot.r-dislike{opacity:0.35;}
+  .photo-slot .badge{position:absolute; top:6px; right:6px; font-size:14px; background:rgba(0,0,0,0.55); color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .photo-slot .remove-x{position:absolute; top:6px; left:6px; font-size:13px; background:rgba(255,255,255,0.9); color:var(--ink); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:3; opacity:0; transition:.15s; border:1px solid var(--line);}
+  .photo-slot:hover .remove-x{opacity:1;}
+  .photo-slot .rating-pill{position:absolute; bottom:6px; left:6px; background:rgba(0,0,0,0.6); color:#fff; font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 6px; border-radius:10px;}
+  .photo-slot img{width:100%; height:100%; object-fit:cover; position:absolute; inset:0;}
+  .photo-slot input[type=file]{display:none;}
+
+  /* ---- LIGHTBOX (revisión estilo Tinder) ---- */
+  .lightbox-overlay{position:fixed; inset:0; background:rgba(18,16,13,0.95); z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;}
+  .lb-close{position:absolute; top:20px; right:24px; background:none; border:none; color:#fff; font-size:26px; cursor:pointer; line-height:1;}
+  .lb-progress{position:absolute; top:24px; left:24px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.05em;}
+  .lb-nav{position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:22px; width:44px; height:44px; border-radius:50%; cursor:pointer;}
+  .lb-nav.prev{left:16px;} .lb-nav.next{right:16px;}
+  .lb-nav:hover{background:rgba(255,255,255,0.2);}
+  .lb-imgwrap{max-width:560px; width:100%; max-height:50vh; display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
+  .lb-imgwrap img{max-width:100%; max-height:50vh; object-fit:contain; box-shadow:0 20px 60px rgba(0,0,0,0.6);}
+  .lb-actions{display:flex; gap:22px; margin-bottom:20px;}
+  .lb-btn{width:58px; height:58px; border-radius:50%; border:none; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center; transition:.15s; background:#3A3733; color:#fff;}
+  .lb-btn:hover{transform:scale(1.1);}
+  .lb-btn.dislike.active{background:#8B3A3A; box-shadow:0 0 0 3px #fff3;}
+  .lb-btn.like{background:var(--clay);}
+  .lb-btn.like.active{box-shadow:0 0 0 3px #fff3;}
+  .lb-btn.super{background:var(--gold);}
+  .lb-btn.super.active{box-shadow:0 0 0 3px #fff3;}
+  .lb-panel{background:var(--paper); width:100%; max-width:440px; padding:18px 20px; box-shadow:0 10px 40px rgba(0,0,0,0.4);}
+  .lb-panel .field-label{margin-bottom:6px;}
+  .lb-panel textarea{min-height:50px; font-size:13px;}
+  .lb-save{width:100%; margin-top:12px; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; border:none; background:var(--ink); color:var(--paper); padding:12px; cursor:pointer;}
+
+  /* ---- COMPARADOR DE ESTILOS ---- */
+  .compare-btn{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; border:1px solid var(--ink); background:transparent; padding:8px 14px; cursor:pointer; margin-left:auto;}
+  .compare-overlay{position:fixed; inset:0; background:rgba(18,16,13,0.92); z-index:1000; overflow-y:auto; padding:40px 20px;}
+  .compare-inner{max-width:1000px; margin:0 auto; background:var(--paper); padding:28px clamp(18px,4vw,40px);}
+  .compare-close{float:right; background:none; border:none; font-size:22px; cursor:pointer; color:var(--ink);}
+  .compare-selects{display:flex; gap:16px; margin:18px 0 26px; flex-wrap:wrap;}
+  .compare-selects select{flex:1; min-width:180px; font-family:'Inter',sans-serif; font-size:14px; padding:10px; border:1.5px solid var(--line); background:var(--cream);}
+  .compare-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media(max-width:640px){.compare-cols{grid-template-columns:1fr;}}
+  .compare-col h3{font-family:'Space Grotesk',sans-serif; font-size:19px; margin:0 0 4px;}
+  .compare-col .mood{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--clay); text-transform:uppercase; margin-bottom:12px;}
+  .compare-photos{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:14px;}
+  .compare-photos .ph{aspect-ratio:1; background:var(--line); overflow:hidden; position:relative;}
+  .compare-photos .ph img{width:100%; height:100%; object-fit:cover;}
+  .compare-photos .ph .st{position:absolute; top:3px; right:3px; font-size:11px;}
+
+  /* ---- RANKING & DUELO ---- */
+  .ranking-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .ranking-row .rank-num{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; width:22px; color:var(--ink-soft);}
+  .ranking-row .rank-num.top{color:var(--clay);}
+  .ranking-row .rank-name{width:180px; font-size:13px; font-weight:600; flex-shrink:0;}
+  .ranking-bar-wrap{flex:1; background:var(--line); border-radius:8px; height:10px; overflow:hidden;}
+  .ranking-bar{height:100%; background:var(--clay); border-radius:8px; transition:width .4s;}
+  .ranking-score{font-family:'JetBrains Mono',monospace; font-size:11px; width:52px; text-align:right; color:var(--ink-soft); flex-shrink:0;}
+
+  .duel-progress{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); text-align:center; margin-bottom:18px;}
+  .duel-pair{display:flex; gap:20px; justify-content:center; align-items:center; margin:10px 0 26px; flex-wrap:wrap;}
+  .duel-card{flex:1; min-width:200px; max-width:280px; border:1.5px solid var(--line); border-radius:16px; overflow:hidden; cursor:pointer; transition:.15s; background:var(--cream);}
+  .duel-card:hover{border-color:var(--clay); transform:translateY(-3px); box-shadow:0 10px 24px rgba(11,11,14,0.08);}
+  .duel-card img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block;}
+  .duel-card .info{padding:10px 14px 14px;}
+  .duel-card .info .sn{font-size:12px; font-weight:600;}
+  .duel-card .info .sr{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  .duel-vs{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; color:var(--line);}
+
+  .champion-card{text-align:center; padding:34px 20px; border:2px solid var(--clay); border-radius:20px; background:var(--clay-soft); margin-top:10px;}
+  .champion-card .tag{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--clay); margin-bottom:12px;}
+  .champion-card img{width:200px; height:200px; object-fit:cover; border-radius:50%; margin-bottom:16px; box-shadow:0 10px 30px rgba(11,11,14,0.18); border:4px solid #fff;}
+  .champion-card h3{font-family:'Space Grotesk',sans-serif; font-size:22px; margin:0 0 4px;}
+  .champion-card .sr{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft);}
+
+  .fact-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; margin-bottom:24px;}
+  @media(max-width:560px){.fact-grid{grid-template-columns:1fr;}}
+  .fact{border-left:2px solid var(--line); padding-left:12px;}
+  .fact .fk{font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:3px;}
+  .fact .fv{font-size:13px; line-height:1.45;}
+
+  .recorder{display:flex; align-items:center; gap:12px; border:1px solid var(--line); padding:12px 16px; background:var(--cream); margin-bottom:10px; flex-wrap:wrap;}
+  .rec-btn{width:38px; height:38px; border-radius:50%; border:none; background:var(--clay); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; transition:.15s;}
+  .rec-btn.recording{background:#a83232; animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(168,50,50,.5);}70%{box-shadow:0 0 0 10px rgba(168,50,50,0);}100%{box-shadow:0 0 0 0 rgba(168,50,50,0);}}
+  .rec-status{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft); flex:1; min-width:120px;}
+  .rec-audio{max-width:220px; height:32px;}
+  .rec-dl{font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; text-decoration:none; color:var(--ink); border:1px solid var(--ink); padding:6px 10px;}
+
+  @media print{
+    .rail, .nav, .no-print{display:none !important;}
+    .blueprint-bg{opacity:0.25;}
+    .sheet{border:none; padding:0;}
+  }
+</style>
+</head>
+<body>
+<div class="blueprint-bg"></div>
+<div id="lightbox-root"></div>
+<div id="compare-root"></div>
+<div class="app">
+
+  <header class="top">
+    <div class="brand-row">
+      <img class="brand-logo" src="data:image/png;base64,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" alt="Logo del estudio">
+      <div class="title-block">
+        <div class="eyebrow">Ficha de entrevista · Diseño de interiores</div>
+        <h1 id="mainTitle">Entrevista con el cliente</h1>
+        <div class="sub">Herramienta general — se adapta a departamento o casa según lo que respondan</div>
+      </div>
+    </div>
+    <div class="plan-tag">
+      Fecha: <b id="dateStamp">—</b><br>
+      <span id="propTag">Propiedad: —</span>
+    </div>
+  </header>
+
+  <div class="rail" id="rail"></div>
+  <div class="rail-labels" id="railLabels"></div>
+
+  <div class="sheet" id="sheet" data-num="00"></div>
+
+  <div class="nav no-print">
+    <button class="btn ghost" id="prevBtn">← Anterior</button>
+    <span class="step-count" id="stepCount"></span>
+    <button class="btn" id="nextBtn">Siguiente →</button>
+  </div>
+</div>
+
+<script>
+/* ===========================================================
+   ILUSTRACIONES — generadas en SVG (vectorial), 100% incrustadas
+   en el archivo. No dependen de internet ni de servicios externos,
+   por eso se ven cargadas al instante.
+=========================================================== */
+function roomSVG({wall, floor, accent, dark, variant='living'}){
+  if(variant==='bedroom'){
+    return `<svg class="mock" viewBox="0 0 220 130" xmlns="http://www.w3.org/2000/svg">
+      <rect width="220" height="95" fill="${wall}"/>
+      <rect y="95" width="220" height="35" fill="${floor}"/>
+      <rect x="18" y="45" width="90" height="50" fill="${accent}"/>
+      <rect x="18" y="35" width="90" height="12" fill="${dark}"/>
+      <rect x="120" y="20" width="34" height="70" fill="${dark}" opacity="0.85"/>
+      <rect x="165" y="55" width="40" height="20" fill="${accent}" opacity="0.6"/>
+    </svg>`;
+  }
+  if(variant==='detail'){
+    return `<svg class="mock" viewBox="0 0 220 130" xmlns="http://www.w3.org/2000/svg">
+      <rect width="220" height="130" fill="${wall}"/>
+      <circle cx="60" cy="60" r="34" fill="${accent}"/>
+      <rect x="120" y="30" width="70" height="70" fill="${dark}"/>
+      <rect x="0" y="108" width="220" height="22" fill="${floor}"/>
+    </svg>`;
+  }
+  /* living default */
+  return `<svg class="mock" viewBox="0 0 220 130" xmlns="http://www.w3.org/2000/svg">
+    <rect width="220" height="95" fill="${wall}"/>
+    <rect y="95" width="220" height="35" fill="${floor}"/>
+    <rect x="14" y="60" width="70" height="35" fill="${accent}"/>
+    <rect x="150" y="20" width="56" height="75" fill="${dark}"/>
+    <line x1="0" y1="95" x2="220" y2="95" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+  </svg>`;
+}
+
+const state = {
+  proyecto: { tipoProyecto:"", cliente:"", tipo:"", direccion:"", fecha:"", m2:"", integrantes:"", contacto:"" },
+  ambientesSeleccion: [],
+  oficina: { personas:"", modalidad:"", salaReuniones:"", identidadMarca:"", tecnologia:"", acustica:"", visitas:"", horario:"", funcional:[] },
+  roles: [], /* [{id, nombre, funcion, recibeClientes:'', recorrido:'', mobiliario:[], almacenamiento:[], organizacion:'', tecnologia:[], cruces:'', confort:[], notas:''}] */
+  estilo: { seleccion:[], atemporalidad:5, densidad:"equilibrado", refs:"" },
+  estiloDetalle: {}, /* clave compuesta "contexto::estiloKey" -> {fotos:[{dataUrl,reaction,rating,comment}], notas:"", audios:[{url,name}]} */
+  estilosPersonalizados: {}, /* { [contexto]: [ {k,t,mood,d,facts:[],custom:true} ] } */
+  mobiliarioGaleria: { seleccion:[], detalle:{} }, /* mismo patrón que estilo pero para tipos de mueble */
+  mobiliarioTiposPersonalizados: {}, /* { [contexto]: [ {k,t,mood,d,facts:[],custom:true} ] } */
+  paleta: { seleccion:[], base:[], evitar:[], calidoFrio:5, notas:"", customColores:[] },
+  paletaOficina: { seleccion:[], detalle:{}, personalizadas:[] }, /* { detalle: { [key]: {fotos:[10 slots]} } } */
+  materiales: { seleccion:[], notas:"" },
+  ambientesDetalle: {}, /* { [room]: {mobiliario:[], iluminacion:[], comprarNotas:'', respuestas:{}} } */
+  mobiliario: { reutilizar:"", noNegociables:"", electrodomesticos:"", arte:"" },
+  presupuesto: { monto:"", distribucion:"", incluyeObra:"", flexible:"" },
+  plazos: { fecha:"", motivo:"", etapas:"" },
+  cierre: { evitar:"", palabra:"", pendientes:"" }
+};
+
+document.getElementById('dateStamp').textContent = new Date().toLocaleDateString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+const ambientesDepto = ["Living / Comedor","Cocina","Dormitorio principal","Dormitorio(s) secundario(s)","Baño(s)","Balcón","Lavandería / área de servicio","Home office"];
+const ambientesCasa  = ["Living / Comedor","Cocina","Dormitorio principal","Dormitorio(s) secundario(s)","Baño(s)","Jardín / patio","Garaje","Lavandería / área de servicio","Home office","Quincho / parrillero","Piscina","Sala de estar / TV"];
+const ambientesOficina = ["Recepción","Puestos de trabajo / open space","Oficinas privadas","Sala de reuniones","Kitchenette / office","Baños","Gerencia","Sala de espera","Comedor / break room","Depósito / archivo"];
+const ambientesUnico = ["Dormitorio","Cocina","Baño","Living / Estar","Comedor","Home office","Balcón / terraza","Otro"];
+
+const tiposProyecto = [
+  {k:'vivienda', t:'Vivienda completa', d:'Departamento o casa — todos los ambientes', icon:'⌂', disabled:false},
+  {k:'oficina', t:'Oficina / local comercial', d:'Espacio de trabajo o atención al público', icon:'▣', disabled:false},
+  {k:'ambiente-unico', t:'Un solo ambiente', d:'Cocina, dormitorio, baño... un espacio puntual', icon:'◧', disabled:false},
+  {k:'construccion', t:'Construcción de vivienda', d:'Obra nueva desde el terreno', icon:'△', disabled:true}
+];
+
+/* ---- CONTEXTO ACTIVO (determina qué fotos/estilos/mobiliario se muestran) ---- */
+function getStyleContext(){
+  return 'proyecto'; /* un único contexto para todo el proyecto — todos los espacios comparten el mismo estilo/mobiliario elegido */
+}
+
+/* Nota: se probó dividir por espacio de oficina y usar nombres de estilo distintos para oficina,
+   pero se revirtió a pedido explícito: todos los ambientes de un mismo proyecto se trabajan
+   con la MISMA dirección de estilo. officeStyleCards queda definido por si se reutiliza más
+   adelante para otro propósito, pero getStyleCards() ya no lo usa. */
+const officeStyleCards = [
+  {k:'corporativo-moderno', t:'Corporativo moderno', mood:'Seriedad · Eficiencia · Orden', d:'Líneas limpias, colores neutros, imagen profesional',
+    facts:[
+      {k:'De qué se trata', v:'Espacios ordenados que transmiten solidez y confianza a clientes y visitas.'},
+      {k:'Materiales típicos', v:'Vidrio templado, metal cepillado, maderas claras, superficies mate.'},
+      {k:'Ideal para', v:'Empresas que reciben clientes y necesitan proyectar formalidad.'},
+      {k:'Cuidado con', v:'Puede sentirse impersonal si no se suma algún acento de marca.'}
+    ]},
+  {k:'creativo-startup', t:'Creativo / Startup', mood:'Energía · Colaboración · Informalidad', d:'Espacios abiertos, colores vivos, mobiliario flexible',
+    facts:[
+      {k:'De qué se trata', v:'Espacios que fomentan la colaboración espontánea y la flexibilidad.'},
+      {k:'Materiales típicos', v:'Mobiliario modular, colores de marca, pizarras, madera cruda.'},
+      {k:'Ideal para', v:'Equipos jóvenes, trabajo en proyectos, poca jerarquía visual.'},
+      {k:'Cuidado con', v:'Sin zonas de foco/silencio, puede afectar la concentración.'}
+    ]},
+  {k:'ejecutivo-clasico', t:'Ejecutivo clásico', mood:'Autoridad · Tradición · Prestigio', d:'Maderas oscuras, líneas formales, materiales nobles',
+    facts:[
+      {k:'De qué se trata', v:'Espacios que comunican jerarquía, experiencia y estabilidad.'},
+      {k:'Materiales típicos', v:'Madera oscura, cuero, alfombras, herrajes en bronce.'},
+      {k:'Ideal para', v:'Estudios jurídicos, gerencias, empresas con clientes de alto perfil.'},
+      {k:'Cuidado con', v:'Sin actualizar puede sentirse pesado para equipos más jóvenes.'}
+    ]},
+  {k:'industrial-tech', t:'Industrial tech', mood:'Innovación · Crudeza · Urbano', d:'Cemento, metal negro, cableado visto con estética tech',
+    facts:[
+      {k:'De qué se trata', v:'Estética urbana con foco en tecnología visible como parte del diseño.'},
+      {k:'Materiales típicos', v:'Cemento alisado, metal negro, ladrillo visto, pantallas integradas.'},
+      {k:'Ideal para', v:'Empresas de tecnología, agencias, equipos técnicos.'},
+      {k:'Cuidado con', v:'Puede resultar ruidoso acústicamente si no se compensa con textiles.'}
+    ]},
+  {k:'biofilico-wellness', t:'Biofílico / Wellness', mood:'Bienestar · Calma · Naturaleza', d:'Plantas, madera, luz natural, foco en salud del equipo',
+    facts:[
+      {k:'De qué se trata', v:'Prioriza el bienestar del equipo integrando naturaleza al espacio de trabajo.'},
+      {k:'Materiales típicos', v:'Madera clara, plantas reales, materiales naturales, mucha luz natural.'},
+      {k:'Ideal para', v:'Empresas con foco en retención de talento y bienestar laboral.'},
+      {k:'Cuidado con', v:'Requiere mantenimiento real de plantas — definir quién se hace cargo.'}
+    ]},
+  {k:'coworking-flexible', t:'Coworking flexible', mood:'Adaptabilidad · Dinamismo', d:'Mobiliario modular, espacios multiuso, fácil reconfiguración',
+    facts:[
+      {k:'De qué se trata', v:'Todo pensado para reconfigurarse rápido según la necesidad del día.'},
+      {k:'Materiales típicos', v:'Mobiliario con ruedas, paneles móviles, mesas plegables.'},
+      {k:'Ideal para', v:'Equipos que crecen rápido o alternan formatos de trabajo.'},
+      {k:'Cuidado con', v:'Sin buen storage, la flexibilidad se convierte en desorden.'}
+    ]}
+];
+
+function getStyleCards(){
+  const ctx = getStyleContext();
+  const custom = state.estilosPersonalizados[ctx] || [];
+  return styleCards.concat(custom);
+}
+
+/* ---- TIPOS DE MOBILIARIO (mismo sistema que Estilo, categorías editables) ---- */
+const mobiliarioCardsBase = [
+  {k:'contemporaneo', t:'Contemporáneo', mood:'Actual · Versátil', d:'Líneas rectas, funcional, se adapta a cualquier estilo',
+    facts:[{k:'De qué se trata', v:'Mobiliario de líneas simples que envejece bien y combina fácil.'},{k:'Materiales típicos', v:'Madera + metal, tapizados lisos.'},{k:'Ideal para', v:'Proyectos que buscan versatilidad a largo plazo.'},{k:'Cuidado con', v:'Puede sentirse genérico sin un acento distintivo.'}]},
+  {k:'clasico-mueble', t:'Clásico / Tradicional', mood:'Elegante · Atemporal', d:'Formas curvas, maderas nobles, detalles tallados',
+    facts:[{k:'De qué se trata', v:'Piezas con historia, proporciones clásicas y materiales nobles.'},{k:'Materiales típicos', v:'Madera maciza, tapizados con textura, herrajes metálicos.'},{k:'Ideal para', v:'Espacios formales o de alto perfil.'},{k:'Cuidado con', v:'Requiere curaduría para no sentirse recargado.'}]},
+  {k:'modular', t:'Modular / Sistema', mood:'Flexible · Escalable', d:'Piezas que se combinan y reconfiguran según necesidad',
+    facts:[{k:'De qué se trata', v:'Mobiliario pensado para crecer o reorganizarse sin comprar de nuevo.'},{k:'Materiales típicos', v:'Melamina, metal, sistemas de rieles.'},{k:'Ideal para', v:'Espacios que cambian de uso o de tamaño de equipo.'},{k:'Cuidado con', v:'La estética puede quedar en segundo plano frente a la función.'}]}
+];
+
+function getMobiliarioCards(){
+  const ctx = getStyleContext();
+  const custom = state.mobiliarioTiposPersonalizados[ctx] || [];
+  return mobiliarioCardsBase.concat(custom);
+}
+
+/* ---- ESTILO ARQUITECTÓNICO (forma, no color) ---- */
+const styleCards = [
+  {k:'minimalista', t:'Moderno minimalista', mood:'Calma · Orden · Precisión', d:'Líneas limpias, poco ornamento, funcional',
+    svg: roomSVG({wall:'#F2EFE8', floor:'#E3DDD0', accent:'#C9C2AF', dark:'#3A3733'}),
+    facts:[
+      {k:'De qué se trata', v:'Menos elementos, mejor elegidos. Superficies limpias, guardado oculto, casi nada a la vista.'},
+      {k:'Materiales típicos', v:'Madera clara sin veta marcada, laca mate, piedra lisa, metal cepillado.'},
+      {k:'Ideal para', v:'Quien prioriza el orden visual y no quiere "pensar" al mirar el espacio.'},
+      {k:'Cuidado con', v:'Puede sentirse frío o impersonal si no se suma textura o algún objeto con historia.'}
+    ]},
+  {k:'calido', t:'Cálido contemporáneo', mood:'Confort · Cercanía · Hogar', d:'Formas suaves, madera visible, confort',
+    svg: roomSVG({wall:'#F2EFE8', floor:'#D8CDBB', accent:'#B9A187', dark:'#7A6A55'}),
+    facts:[
+      {k:'De qué se trata', v:'Líneas modernas pero con materiales nobles a la vista — madera, lino, cerámica artesanal.'},
+      {k:'Materiales típicos', v:'Madera con veta visible, textiles gruesos, cerámica, mimbre.'},
+      {k:'Ideal para', v:'Familias que buscan un espacio moderno pero que "abrace", no que impresione.'},
+      {k:'Cuidado con', v:'Sin curaduría puede desordenarse visualmente — cada pieza debe ganarse su lugar.'}
+    ]},
+  {k:'clasico', t:'Clásico renovado', mood:'Elegancia · Permanencia', d:'Molduras, simetría, detalles sobrios',
+    svg: roomSVG({wall:'#F2EFE8', floor:'#E3DDD0', accent:'#C9BFA3', dark:'#8B7B5A', variant:'detail'}),
+    facts:[
+      {k:'De qué se trata', v:'Proporciones simétricas, molduras o zócalos marcados, mobiliario con presencia.'},
+      {k:'Materiales típicos', v:'Madera oscura, mármol, textiles con caída, herrajes en bronce.'},
+      {k:'Ideal para', v:'Quien quiere un espacio "que no pase de moda" y con cierta formalidad.'},
+      {k:'Cuidado con', v:'Sin actualizarlo con piezas contemporáneas puede sentirse pesado o anticuado.'}
+    ]},
+  {k:'industrial', t:'Industrial / loft', mood:'Carácter · Crudeza · Urbano', d:'Estructura vista, materiales crudos',
+    svg: roomSVG({wall:'#DAD6CE', floor:'#B9B5AB', accent:'#8B8880', dark:'#2B2A28'}),
+    facts:[
+      {k:'De qué se trata', v:'La estructura se muestra en lugar de esconderse — cemento, metal, instalaciones vistas.'},
+      {k:'Materiales típicos', v:'Cemento alisado, metal negro, ladrillo visto, cuero envejecido.'},
+      {k:'Ideal para', v:'Espacios de techos altos, o clientes con gusto urbano y poco convencional.'},
+      {k:'Cuidado con', v:'Puede resultar duro o ruidoso acústicamente si no se compensa con textiles.'}
+    ]},
+  {k:'escandinavo', t:'Escandinavo', mood:'Luz · Simpleza · Frescura', d:'Formas simples, mucha luz, orden',
+    svg: roomSVG({wall:'#F7F5F0', floor:'#E8E4DA', accent:'#D9D5CC', dark:'#B9CBD1'}),
+    facts:[
+      {k:'De qué se trata', v:'Funcionalidad nórdica: pocos objetos, mucha luz natural, madera clara constante.'},
+      {k:'Materiales típicos', v:'Madera de pino o roble claro, lana, lino blanco, metal delgado.'},
+      {k:'Ideal para', v:'Espacios con poca luz natural, o clientes que buscan sensación de amplitud.'},
+      {k:'Cuidado con', v:'Sin un acento de color puede sentirse todo igual, sin punto focal.'}
+    ]},
+  {k:'bohemio', t:'Bohemio ecléctico', mood:'Expresión · Historia · Textura', d:'Formas orgánicas, mezcla de piezas',
+    svg: roomSVG({wall:'#F2EFE8', floor:'#D8CDBB', accent:'#B98F63', dark:'#7C8B6B', variant:'detail'}),
+    facts:[
+      {k:'De qué se trata', v:'Mezcla curada de objetos, texturas y orígenes — cada pieza cuenta una historia.'},
+      {k:'Materiales típicos', v:'Fibras naturales, cerámica pintada, textiles con patrones, madera rústica.'},
+      {k:'Ideal para', v:'Clientes coleccionistas, viajeros, o que no quieren un espacio "de catálogo".'},
+      {k:'Cuidado con', v:'El límite entre "curado" y "desordenado" es fino — requiere buen ojo de composición.'}
+    ]}
+];
+
+/* ---- PALETA DE COLOR + PSICOLOGÍA (foco principal) ---- */
+/* ---- PALETAS COMBINADAS PARA OFICINA (10 más usadas en espacios corporativos) ---- */
+const officePaletteCombos = [
+  {key:'azul-gris-corp', nombre:'Azul corporativo + Gris plata', colores:[{n:'Azul marino',h:'#1F3A5F'},{n:'Gris plata',h:'#B9BEC5'},{n:'Blanco',h:'#F5F5F5'},{n:'Naranja acento',h:'#E8703A'}], uso:'La combinación más usada en bancos, seguros y consultoras — transmite confianza y seriedad, con un acento cálido para no sentirse frío.'},
+  {key:'blanco-madera-negro', nombre:'Blanco + Madera clara + Negro', colores:[{n:'Blanco',h:'#FAFAF8'},{n:'Madera clara',h:'#D9BA8B'},{n:'Negro mate',h:'#1A1A1A'},{n:'Gris cálido',h:'#B0A99F'}], uso:'Estética escandinava-corporativa — muy usada en oficinas de tecnología y coworkings modernos.'},
+  {key:'verde-salvia-madera', nombre:'Verde salvia + Madera natural', colores:[{n:'Verde salvia',h:'#8A9A7E'},{n:'Madera natural',h:'#C9A574'},{n:'Blanco hueso',h:'#F7F3EC'},{n:'Verde oscuro',h:'#3E4A38'}], uso:'Paleta biofílica — cada vez más común en empresas que priorizan el bienestar del equipo.'},
+  {key:'negro-dorado-blanco', nombre:'Negro + Dorado + Blanco', colores:[{n:'Negro',h:'#111111'},{n:'Dorado',h:'#B4913F'},{n:'Blanco',h:'#FFFFFF'},{n:'Gris carbón',h:'#333333'}], uso:'Lujo ejecutivo — gerencias, estudios jurídicos e inmobiliarias de alto segmento.'},
+  {key:'azul-petroleo-terracota', nombre:'Azul petróleo + Terracota', colores:[{n:'Azul petróleo',h:'#2B4C4F'},{n:'Terracota',h:'#C1694F'},{n:'Crema',h:'#EFE6D8'},{n:'Gris cálido',h:'#8D8579'}], uso:'Combinación creativa y cálida, frecuente en agencias de diseño y marketing.'},
+  {key:'grafito-mostaza', nombre:'Gris grafito + Amarillo mostaza', colores:[{n:'Grafito',h:'#3A3A3C'},{n:'Amarillo mostaza',h:'#D8A93E'},{n:'Blanco',h:'#FAFAFA'},{n:'Gris claro',h:'#D6D6D6'}], uso:'Paleta de energía tipo startup — dinamismo sin perder seriedad.'},
+  {key:'beige-cafe-crema', nombre:'Beige + Café + Crema', colores:[{n:'Beige',h:'#DCCBAE'},{n:'Café',h:'#6B4A34'},{n:'Crema',h:'#F5EFE3'},{n:'Gris piedra',h:'#9C9689'}], uso:'Paleta cálida tradicional — frecuente en despachos, notarías y oficinas familiares.'},
+  {key:'blanco-azul-cielo-madera', nombre:'Blanco + Azul cielo + Madera clara', colores:[{n:'Blanco',h:'#FAF9F5'},{n:'Azul cielo',h:'#A9C6D8'},{n:'Madera clara',h:'#E4C9A0'},{n:'Gris claro',h:'#D9D5CC'}], uso:'Escandinavo aplicado a oficina — luminoso y calmo, ideal para espacios chicos.'},
+  {key:'verde-bosque-cuero', nombre:'Verde bosque + Cuero café', colores:[{n:'Verde bosque',h:'#2F4A3D'},{n:'Cuero café',h:'#7A5230'},{n:'Crema',h:'#EDE6D3'},{n:'Dorado envejecido',h:'#9C7A34'}], uso:'Ejecutivo clásico con toque natural — estudios y gerencias de perfil tradicional.'},
+  {key:'blanco-rojo-gris', nombre:'Blanco + Rojo corporativo + Gris', colores:[{n:'Blanco',h:'#FFFFFF'},{n:'Rojo corporativo',h:'#C6303E'},{n:'Gris medio',h:'#8B8B8B'},{n:'Negro',h:'#1A1A1A'}], uso:'Cuando la marca tiene un color fuerte propio — se usa como acento dominante sobre neutros.'}
+];
+
+function ensurePaletteOficinaDetail(key){
+  if(!state.paletaOficina.detalle[key]) state.paletaOficina.detalle[key] = { fotos: new Array(10).fill(null) };
+  return state.paletaOficina.detalle[key];
+}
+function getOfficePalettes(){
+  return officePaletteCombos.concat(state.paletaOficina.personalizadas);
+}
+
+const paletteDefs = [
+  {
+    key:'elegante-oscuro', nombre:'Minimalista Elegante',
+    colores:[{n:'Negro grafito',h:'#1C1B19'},{n:'Gris plomo',h:'#6E6A62'},{n:'Blanco roto',h:'#F2EEE4'},{n:'Dorado sutil',h:'#B4913F'}],
+    psicologia:'<b>Autoridad y control.</b> El contraste negro–blanco con toques dorados comunica sofisticación y estatus. Es la paleta de quien valora la precisión visual — puede sentirse fría si no se equilibra con textura (lino, madera oscura, cuero).'
+  },
+  {
+    key:'calido-cercano', nombre:'Minimalista Cálido',
+    colores:[{n:'Crema',h:'#F1E8DA'},{n:'Terracota suave',h:'#C9A583'},{n:'Madera clara',h:'#D9BA8B'},{n:'Blanco hueso',h:'#F7F3EC'}],
+    psicologia:'<b>Calidez sin ruido visual.</b> Tonos tierra claros generan cercanía y serenidad sin perder la limpieza del minimalismo. Ideal para quien busca un hogar tranquilo pero acogedor, no clínico.'
+  },
+  {
+    key:'familiar-acogedor', nombre:'Familiar / Acogedor',
+    colores:[{n:'Mostaza',h:'#C79A3D'},{n:'Verde oliva',h:'#5F6B3E'},{n:'Terracota',h:'#B5654A'},{n:'Madera media',h:'#9C6B45'}],
+    psicologia:'<b>Unión y confort.</b> Colores tierra más saturados evocan vida en comunidad — cenas largas, chicos jugando, reuniones. Es la paleta típica de una casa que prioriza el tiempo compartido por sobre la formalidad.'
+  },
+  {
+    key:'clasico-atemporal', nombre:'Clásico Atemporal',
+    colores:[{n:'Marfil',h:'#EDE6D3'},{n:'Camel',h:'#A9764F'},{n:'Verde botella',h:'#2F4A3D'},{n:'Dorado envejecido',h:'#9C7A34'}],
+    psicologia:'<b>Permanencia y legado.</b> Comunica que la familia no busca "estar a la moda" sino construir algo duradero. Transmite seguridad y buen gusto sin caer en la ostentación.'
+  },
+  {
+    key:'contemporaneo-sofisticado', nombre:'Contemporáneo Sofisticado',
+    colores:[{n:'Grafito',h:'#2B2A28'},{n:'Gris plomo',h:'#8B8880'},{n:'Blanco frío',h:'#EDEDE8'},{n:'Negro mate',h:'#161514'}],
+    psicologia:'<b>Orden mental.</b> Una escala de grises casi sin color evoca seriedad y modernidad urbana. Frecuente en perfiles ejecutivos o creativos que necesitan un espacio que no compita visualmente con su vida diaria.'
+  },
+  {
+    key:'natural-organico', nombre:'Natural / Orgánico',
+    colores:[{n:'Verde salvia',h:'#7C8B6B'},{n:'Arena',h:'#DCCBAE'},{n:'Terracota',h:'#B5654A'},{n:'Madera natural',h:'#B98F63'}],
+    psicologia:'<b>Conexión y calma.</b> Paleta inspirada en paisajes naturales — reduce el estrés visual. Recomendada para quien busca desconectar del ritmo urbano dentro de su propio hogar.'
+  },
+  {
+    key:'dramatico-nocturno', nombre:'Dramático / Nocturno',
+    colores:[{n:'Azul marino',h:'#1F2B38'},{n:'Negro',h:'#161514'},{n:'Dorado',h:'#B4913F'},{n:'Borgoña',h:'#5C2A2A'}],
+    psicologia:'<b>Intimidad y lujo.</b> Tonos profundos y saturados generan misterio y una sensación envolvente. Funciona muy bien en dormitorios o livings de uso nocturno, pero exige buena iluminación artificial para no oscurecer de más.'
+  },
+  {
+    key:'escandinavo-luminoso', nombre:'Escandinavo Luminoso',
+    colores:[{n:'Blanco',h:'#FAF9F5'},{n:'Gris claro',h:'#D9D5CC'},{n:'Azul pálido',h:'#B9CBD1'},{n:'Madera clara',h:'#E4C9A0'}],
+    psicologia:'<b>Claridad mental.</b> Baja saturación que maximiza la sensación de luz y amplitud. Asociada psicológicamente a la calma y el orden — buena elección para espacios pequeños o con poca luz natural.'
+  }
+];
+function paletteMocks(p){
+  const c = p.colores;
+  return roomSVG({wall:c[2].h, floor:c[1].h, accent:c[0].h, dark:c[3].h}) +
+         roomSVG({wall:c[2].h, floor:c[1].h, accent:c[3].h, dark:c[0].h, variant:'bedroom'});
+}
+
+/* ---- MATERIALES — texturas en degradé, sin fotos externas ---- */
+const materialCards = [
+  {n:'Madera clara', css:'linear-gradient(100deg,#E4C9A0,#D9BA8B 45%,#E4C9A0 90%)'},
+  {n:'Madera oscura', css:'linear-gradient(100deg,#5A3E28,#4A3120 45%,#5A3E28 90%)'},
+  {n:'Mármol / cuarzo claro', css:'linear-gradient(120deg,#F2EEE6 30%,#D8D2C4 55%,#F2EEE6 80%)'},
+  {n:'Piedra oscura', css:'linear-gradient(120deg,#3A3A38,#55534E 55%,#3A3A38 90%)'},
+  {n:'Metal negro mate', css:'linear-gradient(100deg,#232220,#302F2C 60%,#232220)'},
+  {n:'Latón / dorado', css:'linear-gradient(100deg,#B4913F,#D9BE7A 50%,#B4913F 90%)'},
+  {n:'Cemento alisado', css:'linear-gradient(100deg,#B7B2A6,#C7C2B4 55%,#B7B2A6)'},
+  {n:'Textil / lino natural', css:'linear-gradient(100deg,#EFE7D6,#E3D9C2 55%,#EFE7D6)'}
+];
+
+/* ---- swatches sueltos para ajuste fino de color ---- */
+const colorSwatches = [
+  {n:"Blanco roto", h:"#F2EEE4"}, {n:"Beige arena", h:"#DCCBAE"}, {n:"Terracota", h:"#B5654A"},
+  {n:"Verde salvia", h:"#7C8B6B"}, {n:"Azul grisáceo", h:"#4F7089"}, {n:"Negro grafito", h:"#242119"},
+  {n:"Camel", h:"#A9764F"}, {n:"Oliva profundo", h:"#54563B"}, {n:"Rosa arcilla", h:"#C89486"}, {n:"Gris piedra", h:"#9C9689"}
+];
+
+/* ===========================================================
+   PASOS — motor dinámico según tipo de proyecto
+=========================================================== */
+function getSteps(){
+  const tipo = state.proyecto.tipoProyecto;
+  const list = [
+    { label:'Tipo de proyecto', render: renderTipoProyecto, bind: bindTipoProyecto },
+    { label:'Datos generales', render: renderInicio, bind: bindInicio },
+  ];
+
+  if(tipo==='oficina'){
+    list.push({ label:'Espacios', render: renderSeleccionAmbientes, bind: bindSeleccionAmbientes });
+    list.push({ label:'La oficina', render: renderOficina, bind: bindOficina });
+  } else if(tipo==='ambiente-unico'){
+    list.push({ label:'El ambiente', render: renderSeleccionAmbientes, bind: bindSeleccionAmbientes });
+  } else {
+    /* vivienda (default también antes de elegir tipo) */
+    list.push({ label:'Ambientes', render: renderSeleccionAmbientes, bind: bindSeleccionAmbientes });
+  }
+
+  if(tipo==='oficina'){
+    list.push({ label:'Roles y flujo', render: renderRoles, bind: bindRoles });
+  }
+
+  list.push({ label:'Estilo', render: renderEstilo, bind: bindEstilo });
+  list.push({ label:'Ranking & Duelo', render: renderDuelo, bind: bindDuelo });
+  list.push({ label:'Tipo de mobiliario', render: renderMobiliarioGaleria, bind: bindMobiliarioGaleria });
+  list.push({ label:'Paleta de color', render: renderPaleta, bind: bindPaleta });
+  list.push({ label:'Materiales', render: renderMateriales, bind: bindMateriales });
+  list.push({ label: tipo==='ambiente-unico' ? 'Detalle del ambiente' : 'Detalle x ambiente', render: renderDetalleAmbientes, bind: bindDetalleAmbientes });
+  list.push({ label:'Mobiliario', render: renderMobiliario, bind: bindMobiliario });
+  list.push({ label:'Presupuesto', render: renderPresupuesto, bind: bindPresupuesto });
+  list.push({ label:'Plazos', render: renderPlazos, bind: bindPlazos });
+  list.push({ label:'Cierre', render: renderCierre, bind: bindCierre });
+  list.push({ label:'Resumen', render: renderResumen, bind: ()=>{} });
+
+  list.forEach((s,i)=> s.num = String(i).padStart(2,'0'));
+  return list;
+}
+
+let steps = getSteps();
+let current = 0;
+function rebuildSteps(){
+  const prevLen = steps.length;
+  steps = getSteps();
+  if(current >= steps.length) current = steps.length-1;
+}
+
+function buildRail(){
+  const rail = document.getElementById('rail'); const labels = document.getElementById('railLabels');
+  rail.innerHTML=''; labels.innerHTML='';
+  steps.forEach((s,i)=>{
+    const seg=document.createElement('div');
+    seg.className='seg'+(i<current?' done':'')+(i===current?' active':'');
+    seg.onclick=()=>{ current=i; renderStep(); };
+    rail.appendChild(seg);
+  });
+  const first=document.createElement('span'); first.textContent=steps[0].label;
+  const last=document.createElement('span'); last.textContent=steps[steps.length-1].label;
+  const mid=document.createElement('span'); mid.textContent=steps[current].label; mid.style.color='var(--ink)'; mid.style.fontWeight='600';
+  labels.appendChild(first); labels.appendChild(mid); labels.appendChild(last);
+}
+
+function renderStep(){
+  rebuildSteps();
+  const sheet=document.getElementById('sheet');
+  sheet.setAttribute('data-num', steps[current].num);
+  sheet.innerHTML = steps[current].render();
+  buildRail();
+  document.getElementById('stepCount').textContent = `Paso ${current+1} de ${steps.length}`;
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===steps.length-1 ? 'Imprimir ficha ↓' : 'Siguiente →';
+  const tipoLabel = {vivienda:'Vivienda completa', oficina:'Oficina / local', 'ambiente-unico':'Un solo ambiente'}[state.proyecto.tipoProyecto] || '—';
+  document.getElementById('propTag').textContent = tipoLabel + (state.proyecto.direccion ? ' · '+state.proyecto.direccion : '');
+  document.getElementById('mainTitle').textContent = state.proyecto.cliente ? `Entrevista — ${state.proyecto.cliente}` : 'Entrevista con el cliente';
+  steps[current].bind();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('prevBtn').onclick=()=>{ if(current>0){current--; renderStep();} };
+document.getElementById('nextBtn').onclick=()=>{
+  if(current===0 && !state.proyecto.tipoProyecto){ renderStep(); return; }
+  if(current<steps.length-1){ current++; renderStep(); }
+  else { window.print(); }
+};
+
+/* ---------- 00 TIPO DE PROYECTO ---------- */
+function renderTipoProyecto(){
+  return `
+    <div class="step-title">¿Qué vamos a diseñar hoy?</div>
+    <div class="step-desc">Esto define todo el resto de la entrevista — solo vas a ver preguntas relevantes para este tipo de proyecto, sin pasos de más.</div>
+    <div class="proj-type-grid" id="proj-type-grid">
+      ${tiposProyecto.map(t=>`
+        <div class="proj-type-card ${state.proyecto.tipoProyecto===t.k?'selected':''} ${t.disabled?'disabled':''}" data-k="${t.k}">
+          ${t.disabled ? '<span class="soon-badge">Próximamente</span>' : ''}
+          <div class="pt-icon">${t.icon}</div>
+          <div class="pt-title">${t.t}</div>
+          <div class="pt-desc">${t.d}</div>
+        </div>
+      `).join('')}
+    </div>
+    ${state.proyecto.tipoProyecto==='' ? '<div class="note" style="margin-top:20px;">Elegí una opción para continuar.</div>' : ''}
+  `;
+}
+function bindTipoProyecto(){
+  document.querySelectorAll('#proj-type-grid .proj-type-card').forEach(card=>{
+    if(card.classList.contains('disabled')){
+      card.onclick=()=>{}; return;
+    }
+    card.onclick=()=>{
+      state.proyecto.tipoProyecto = card.dataset.k;
+      current = current + 1; /* avanza directo, sin pedir clic en "Siguiente" */
+      renderStep();
+    };
+  });
+}
+
+/* ---------- 01 INICIO ---------- */
+function renderInicio(){
+  const tipo = state.proyecto.tipoProyecto;
+  const esVivienda = tipo==='vivienda';
+  return `
+    <div class="step-title">Datos generales</div>
+    <div class="step-desc">${esVivienda ? 'Definí el tipo de propiedad — de eso depende qué ambientes van a aparecer después.' : 'Estos datos van a encabezar la ficha final del proyecto.'}</div>
+
+    ${esVivienda ? `
+    <label class="field-label">Tipo de propiedad</label>
+    <div class="type-toggle" id="tipo-toggle">
+      <div class="opt" data-v="Departamento">Departamento</div>
+      <div class="opt" data-v="Casa">Casa</div>
+    </div>
+    ` : ''}
+
+    <div class="grid2">
+      <div class="field"><label class="field-label">Nombre del/los cliente/s</label><input type="text" id="i-cliente" placeholder="Ej: Familia Rodríguez / Empresa XYZ"></div>
+      <div class="field"><label class="field-label">Dirección / referencia</label><input type="text" id="i-direccion" placeholder="Barrio, torre, calle..."></div>
+      <div class="field"><label class="field-label">Fecha de la reunión</label><input type="date" id="i-fecha"></div>
+      <div class="field"><label class="field-label">Superficie aproximada (m²)</label><input type="text" id="i-m2" placeholder="Ej: 120 m²"></div>
+      <div class="field"><label class="field-label">${esVivienda ? '¿Quiénes van a vivir ahí?' : tipo==='oficina' ? '¿Cuántas personas trabajan ahí?' : '¿Quién va a usar este ambiente?'}</label><input type="text" id="i-integrantes" placeholder="${esVivienda ? 'Ej: pareja + 2 hijos + mascota' : tipo==='oficina' ? 'Ej: 12 personas' : 'Ej: uso personal / toda la familia'}"></div>
+      <div class="field"><label class="field-label">Contacto / quién decide</label><input type="text" id="i-contacto" placeholder="Nombre, teléfono"></div>
+    </div>
+  `;
+}
+function bindInicio(){
+  const tipoToggle = document.getElementById('tipo-toggle');
+  if(tipoToggle){
+    document.querySelectorAll('#tipo-toggle .opt').forEach(o=>{
+      if(o.dataset.v===state.proyecto.tipo) o.classList.add('selected');
+      o.onclick=()=>{
+        document.querySelectorAll('#tipo-toggle .opt').forEach(x=>x.classList.remove('selected'));
+        o.classList.add('selected');
+        state.proyecto.tipo=o.dataset.v;
+      };
+    });
+  }
+  const map={'i-cliente':'cliente','i-direccion':'direccion','i-fecha':'fecha','i-m2':'m2','i-integrantes':'integrantes','i-contacto':'contacto'};
+  Object.entries(map).forEach(([id,key])=>{
+    const el=document.getElementById(id); el.value=state.proyecto[key]||'';
+    el.oninput=()=> state.proyecto[key]=el.value;
+  });
+}
+
+/* ---------- SELECCIÓN DE AMBIENTES (se adapta a vivienda / oficina / ambiente único) ---------- */
+function renderSeleccionAmbientes(){
+  const tipo = state.proyecto.tipoProyecto;
+  let lista, titulo, desc, single=false;
+
+  if(tipo==='oficina'){
+    lista = ambientesOficina;
+    titulo = '¿Qué espacios tiene la oficina?';
+    desc = 'Marcá los espacios que existen y que vamos a intervenir.';
+  } else if(tipo==='ambiente-unico'){
+    lista = ambientesUnico;
+    titulo = '¿Qué ambiente vamos a diseñar?';
+    desc = 'Elegí un solo espacio — toda la entrevista se enfoca 100% en él, sin pasos de más.';
+    single = true;
+  } else {
+    lista = state.proyecto.tipo==='Casa' ? ambientesCasa : ambientesDepto;
+    titulo = '¿Qué ambientes vamos a diseñar?';
+    desc = 'Marcá los ambientes que existen en la propiedad y que van a intervenir. El resto de la entrevista se ajusta a esta selección.';
+  }
+
+  return `
+    <div class="step-title">${titulo}</div>
+    <div class="step-desc">${desc}</div>
+    <div class="room-check-grid" id="room-select" data-single="${single}">
+      ${lista.map(r=>`<div class="room-check" data-r="${r}"><span class="dot"></span>${r}</div>`).join('')}
+    </div>
+    ${!single ? `
+    <div class="field" style="margin-top:22px;">
+      <label class="field-label">Otro ambiente (si no está en la lista)</label>
+      <input type="text" id="otro-ambiente" placeholder="Escribir y presionar Enter">
+    </div>` : ''}
+  `;
+}
+function bindSeleccionAmbientes(){
+  const wrap = document.getElementById('room-select');
+  const single = wrap.dataset.single === 'true';
+  document.querySelectorAll('#room-select .room-check').forEach(c=>{
+    if(state.ambientesSeleccion.includes(c.dataset.r)) c.classList.add('selected');
+    c.onclick=()=>{
+      const r=c.dataset.r;
+      if(single){
+        state.ambientesSeleccion = [r];
+        renderStep();
+        return;
+      }
+      const i=state.ambientesSeleccion.indexOf(r);
+      if(i>-1){state.ambientesSeleccion.splice(i,1); c.classList.remove('selected');}
+      else{state.ambientesSeleccion.push(r); c.classList.add('selected');}
+    };
+  });
+  const otro=document.getElementById('otro-ambiente');
+  if(otro){
+    otro.onkeydown=(e)=>{
+      if(e.key==='Enter' && otro.value.trim()){
+        state.ambientesSeleccion.push(otro.value.trim());
+        otro.value='';
+        renderStep();
+      }
+    };
+  }
+}
+
+/* ---------- HELPERS: checklist funcional/ergonómico (reutilizable) ---------- */
+function renderFuncionalGroups(groups, selected){
+  return groups.map(g=>`
+    <div class="func-cat">${g.categoria}</div>
+    <div class="chip-grid func-chip-grid">
+      ${g.items.map(it=>`<div class="chip small ${selected.includes(it)?'selected':''}" data-v="${it}">${it}</div>`).join('')}
+    </div>
+  `).join('');
+}
+function bindFuncionalGroups(containerEl, selected){
+  containerEl.querySelectorAll('.func-chip-grid .chip').forEach(ch=>{
+    ch.onclick=()=>{
+      const v = ch.dataset.v; const i = selected.indexOf(v);
+      if(i>-1){selected.splice(i,1); ch.classList.remove('selected');}
+      else{selected.push(v); ch.classList.add('selected');}
+      const counter = containerEl.parentElement.querySelector('.func-count');
+      if(counter) counter.textContent = `${selected.length} ítems marcados como relevantes para este proyecto`;
+    };
+  });
+}
+
+/* ---------- OFICINA: preguntas específicas + auditoría funcional/ergonómica ---------- */
+const officeFuncionalGroups = [
+  { categoria:'Ergonomía de puestos', items:[
+    'Escritorio de altura ajustable (sit-stand)','Silla con soporte lumbar ajustable','Reposabrazos ajustables',
+    'Monitor a la altura de los ojos','Distancia ojo-pantalla 50-70cm','Reposapiés donde se necesite'
+  ]},
+  { categoria:'Circulación y accesibilidad', items:[
+    'Pasillos con mínimo 90cm de ancho','Accesibilidad para movilidad reducida (rampas, anchos de puerta)',
+    'Rutas de evacuación despejadas y señalizadas','Puertas de salas de reunión con apertura hacia afuera'
+  ]},
+  { categoria:'Infraestructura eléctrica y de datos', items:[
+    'Mínimo 2-3 tomas eléctricas por puesto','Cableado de red estructurado','Puntos de carga USB integrados en mobiliario','Respaldo eléctrico (UPS) para equipos críticos'
+  ]},
+  { categoria:'Climatización y confort ambiental', items:[
+    'Climatización zonificada por área','Control de temperatura accesible','Ventilación cruzada o mecánica adecuada'
+  ]},
+  { categoria:'Acústica', items:[
+    'Aislación entre salas de reunión y open space','Cabinas fonoabsorbentes para llamadas','Materiales que absorban ruido (alfombras, paneles)'
+  ]},
+  { categoria:'Seguridad', items:[
+    'Salidas de emergencia señalizadas','Extintores accesibles','Control de acceso (tarjetas / biometría)'
+  ]},
+  { categoria:'Tecnología', items:[
+    'Pantallas para videoconferencia en salas','Wifi de alta densidad (muchos dispositivos)','Sistema de reserva de salas'
+  ]}
+];
+
+function renderOficina(){
+  const o = state.oficina;
+  return `
+    <div class="step-title">Sobre la oficina</div>
+    <div class="step-desc">Estas preguntas son específicas de espacios de trabajo — no aparecen en proyectos de vivienda.</div>
+    <div class="grid2">
+      <div class="field"><label class="field-label">Cantidad de personas / puestos</label><input type="text" id="of-personas" placeholder="Ej: 15 puestos"></div>
+      <div class="field"><label class="field-label">Horario de uso</label><input type="text" id="of-horario" placeholder="Ej: L-V 9 a 18h"></div>
+    </div>
+    <label class="field-label">Modalidad de trabajo</label>
+    <div class="chip-grid" id="of-modalidad">${['Open space','Oficinas privadas','Mixto'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+
+    <label class="field-label" style="margin-top:20px; display:block;">¿Necesitan sala de reuniones?</label>
+    <div class="chip-grid" id="of-sala">${['Sí, chica (2-4)','Sí, grande (6+)','No'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+
+    <label class="field-label" style="margin-top:20px; display:block;">¿Reciben clientes o visitas en la oficina?</label>
+    <div class="chip-grid" id="of-visitas">${['Sí, frecuente','A veces','No'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+
+    <label class="field-label" style="margin-top:20px; display:block;">Prioridad acústica (llamadas, concentración)</label>
+    <div class="chip-grid" id="of-acustica">${['Alta','Media','Baja'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+
+    <div class="field" style="margin-top:22px;"><label class="field-label">Identidad de marca a reflejar (colores corporativos, logo, valores)</label><textarea id="of-marca" placeholder="Ej: usar el azul y blanco del logo, transmitir innovación..."></textarea></div>
+    <div class="field"><label class="field-label">Necesidades de tecnología</label><textarea id="of-tec" placeholder="Ej: pantallas para videollamadas, cableado estructurado..."></textarea></div>
+
+    <div class="func-audit-title">Auditoría funcional y ergonómica</div>
+    <div class="func-audit-sub">Esto va más allá del gusto — son los puntos técnicos que definen si la oficina realmente funciona bien día a día. Marcá los que apliquen a este proyecto.</div>
+    <div id="of-funcional">${renderFuncionalGroups(officeFuncionalGroups, o.funcional)}</div>
+    <div class="func-count">${o.funcional.length} ítems marcados como relevantes para este proyecto</div>
+  `;
+}
+function bindOficina(){
+  const map={'of-personas':'personas','of-horario':'horario','of-marca':'identidadMarca','of-tec':'tecnologia'};
+  Object.entries(map).forEach(([id,key])=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.value=state.oficina[key]||''; el.oninput=()=> state.oficina[key]=el.value;
+  });
+  bindChipGroup('of-modalidad', v=>state.oficina.modalidad=v, state.oficina.modalidad);
+  bindChipGroup('of-sala', v=>state.oficina.salaReuniones=v, state.oficina.salaReuniones);
+  bindChipGroup('of-visitas', v=>state.oficina.visitas=v, state.oficina.visitas);
+  bindChipGroup('of-acustica', v=>state.oficina.acustica=v, state.oficina.acustica);
+  bindFuncionalGroups(document.getElementById('of-funcional'), state.oficina.funcional);
+}
+
+/* ---------- ROLES Y FLUJO DE TRABAJO (solo Oficina) ---------- */
+const rolMobiliarioOpciones = ['Escritorio individual','Escritorio grande (doble uso)','Escritorio compartido','Mostrador / counter','Cajonera con llave','Vitrina de exhibición','Sillón de espera para visitas (cuántos asientos)','Mesa de reuniones propia','Estación de pie / mostrador rápido','Silla ergonómica','Repisa/estante abierto','Perchero'];
+const rolEquipoOpciones = ['Computadora de escritorio','Laptop','Doble monitor','Un solo monitor','Impresora/escáner propio','Terminal POS / caja registradora','Teléfono fijo','Lector de tickets/turnos','Calculadora/báscula','Radio o intercomunicador'];
+const rolAlmacenamientoOpciones = ['Archivador visible','Archivador oculto','Caja fuerte','Bóveda de documentos','Estante de catálogos/muestras','Casillero personal','Guardado de objetos personales (cartera, abrigo)'];
+const rolTecnologiaOpciones = ['Cámara de seguridad en su zona','Monitor/TV para visualizar cámaras','Sistema de tickets / turnos','Caja registradora / POS','Teléfono fijo','Impresora / escáner','Terminal de tarjetas','Radio / intercomunicador'];
+const rolConfortOpciones = ['A/C dedicado en su zona','Iluminación de tarea reforzada','Necesita privacidad acústica','Necesita privacidad visual'];
+const rolInstalacionesOpciones = ['2 tomas de corriente','4 tomas de corriente','6+ tomas de corriente','Punto de red / internet por cable','Wifi es suficiente','Regulador/UPS (equipo sensible a cortes)','Cable a la vista aceptable','Cableado debe quedar oculto'];
+
+function ensureRol(){
+  return { id:'rol_'+Date.now()+'_'+Math.floor(Math.random()*1000), nombre:'', funcion:'', recibeClientes:'', recorrido:'', mobiliario:[], equipo:[], instalaciones:[], almacenamiento:[], organizacion:'', tecnologia:[], conectaCon:[], conexionDetalle:'', cruces:'', confort:[], notas:'' };
+}
+
+function renderRoles(){
+  return `
+    <div class="step-title">Roles y flujo de trabajo</div>
+    <div class="step-desc">Antes de decidir dónde va cada mueble, hay que entender cómo funciona realmente la empresa por dentro — quién hace qué, a quién recibe, y qué necesita a mano. Agregá cada puesto/rol que exista (Promotor, Secretaria, Gerente, Cajero...) y completá su ficha. Esto es investigación operativa, no gusto estético.</div>
+
+    <div class="field" style="margin-bottom:20px;">
+      <label class="field-label">Agregar un puesto / rol nuevo</label>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="nuevo-rol-nombre" placeholder="Ej: Promotor de ventas, Secretaria, Gerente..." style="flex:1;">
+        <button class="btn" id="btn-add-rol" style="white-space:nowrap;">+ Agregar rol</button>
+      </div>
+    </div>
+
+    <div id="roles-list">
+      ${state.roles.length ? state.roles.map(r=>renderRolBlock(r)).join('') : '<div class="note">Todavía no agregaste ningún rol. Empezá por el que más interactúa con clientes.</div>'}
+    </div>
+  `;
+}
+
+function renderRolBlock(r){
+  const otrosRoles = state.roles.filter(x=>x.id!==r.id);
+  return `
+    <div class="room open" data-rol="${r.id}">
+      <div class="room-head"><span>${r.nombre || '(sin nombre)'}</span><span class="arrow">›</span></div>
+      <div class="room-body"><div class="room-body-inner">
+
+        <div class="field">
+          <label class="field-label">Nombre del puesto / rol</label>
+          <input type="text" class="rol-nombre" value="${r.nombre}" placeholder="Ej: Promotor de ventas">
+        </div>
+
+        <label class="field-label">Función principal — ¿qué hace exactamente este puesto?</label>
+        <textarea class="rol-funcion" placeholder="Ej: recibe al cliente, explica el proyecto, lo acompaña a la sala de ventas...">${r.funcion}</textarea>
+
+        <label class="field-label" style="margin-top:16px; display:block;">¿Recibe clientes o visitas directamente?</label>
+        <div class="chip-grid rol-recibe">
+          ${['Sí, todo el tiempo','A veces','No, trabajo interno'].map(o=>`<div class="chip ${r.recibeClientes===o?'selected':''}" data-v="${o}">${o}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Recorrido del cliente (si aplica) — ¿por dónde entra, qué le muestra, a dónde lo lleva?</label>
+        <textarea class="rol-recorrido" placeholder="Ej: entra por recepción, lo hacen esperar en sala de espera, luego pasa a sala de ventas a ver maqueta...">${r.recorrido}</textarea>
+
+        <div class="func-audit-title" style="margin-top:22px;">Mobiliario y equipamiento del puesto</div>
+        <div class="func-audit-sub">Esto define medidas reales — no es decoración, es la base de todo el diseño del puesto.</div>
+
+        <label class="field-label">Mobiliario</label>
+        <div class="chip-grid rol-mobiliario">
+          ${rolMobiliarioOpciones.map(m=>`<div class="chip small ${r.mobiliario.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:14px; display:block;">Equipo que usa</label>
+        <div class="chip-grid rol-equipo">
+          ${rolEquipoOpciones.map(m=>`<div class="chip small ${r.equipo.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:14px; display:block;">Instalaciones necesarias en su puesto</label>
+        <div class="chip-grid rol-instalaciones">
+          ${rolInstalacionesOpciones.map(m=>`<div class="chip small ${r.instalaciones.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:14px; display:block;">Almacenamiento que necesita</label>
+        <div class="chip-grid rol-almacenamiento">
+          ${rolAlmacenamientoOpciones.map(m=>`<div class="chip small ${r.almacenamiento.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:14px; display:block;">Sistema de organización (siglas, rotulado, código de carpetas)</label>
+        <textarea class="rol-organizacion" placeholder="Ej: carpetas por lote con sigla del proyecto, archivador alfabético...">${r.organizacion}</textarea>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Tecnología de seguridad / atención</label>
+        <div class="chip-grid rol-tecnologia">
+          ${rolTecnologiaOpciones.map(m=>`<div class="chip small ${r.tecnologia.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <div class="func-audit-title" style="margin-top:22px;">Conexión con otras áreas o trabajadores</div>
+        <div class="func-audit-sub">¿Este puesto depende de otro, le pasa cosas a otro, o debe estar físicamente cerca de alguien?</div>
+        ${otrosRoles.length ? `
+        <label class="field-label">¿Con qué otros roles ya cargados se conecta?</label>
+        <div class="chip-grid rol-conecta">
+          ${otrosRoles.map(o=>`<div class="chip small ${r.conectaCon.includes(o.id)?'selected':''}" data-v="${o.id}">${o.nombre||'(sin nombre)'}</div>`).join('')}
+        </div>` : '<div class="note">Agregá más roles para poder vincularlos entre sí.</div>'}
+        <label class="field-label" style="margin-top:14px; display:block;">¿Qué se comparte o transfiere en esa conexión?</label>
+        <textarea class="rol-conexion-detalle" placeholder="Ej: le pasa los contratos firmados a la secretaria, debe estar a la vista de gerencia...">${r.conexionDetalle}</textarea>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Cruces de circulación — ¿cómo evitar que choque con otros puestos?</label>
+        <textarea class="rol-cruces" placeholder="Ej: no debe cruzarse con la fila de caja, necesita entrada independiente...">${r.cruces}</textarea>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Confort de su puesto</label>
+        <div class="chip-grid rol-confort">
+          ${rolConfortOpciones.map(m=>`<div class="chip small ${r.confort.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Notas adicionales</label>
+        <textarea class="rol-notas" placeholder="Cualquier detalle puntual de este rol...">${r.notas}</textarea>
+
+        <button class="btn ghost" style="margin-top:16px;" data-remove-rol="${r.id}">Eliminar este rol</button>
+      </div></div>
+    </div>
+  `;
+}
+
+function bindRoles(){
+  const nombreInput = document.getElementById('nuevo-rol-nombre');
+  document.getElementById('btn-add-rol').onclick=()=>{
+    const nombre = nombreInput.value.trim();
+    if(!nombre) return;
+    const rol = ensureRol();
+    rol.nombre = nombre;
+    state.roles.push(rol);
+    nombreInput.value='';
+    renderStep();
+  };
+  nombreInput.onkeydown=(e)=>{ if(e.key==='Enter') document.getElementById('btn-add-rol').click(); };
+
+  document.querySelectorAll('#roles-list .room').forEach(block=>{
+    const id = block.dataset.rol;
+    const r = state.roles.find(x=>x.id===id);
+    if(!r) return;
+
+    block.querySelector('.room-head').onclick=()=> block.classList.toggle('open');
+
+    const nombreField = block.querySelector('.rol-nombre');
+    nombreField.oninput=()=> r.nombre = nombreField.value;
+    nombreField.onblur=()=> renderStep();
+
+    block.querySelector('.rol-funcion').oninput=(e)=> r.funcion = e.target.value;
+    block.querySelector('.rol-recorrido').oninput=(e)=> r.recorrido = e.target.value;
+    block.querySelector('.rol-organizacion').oninput=(e)=> r.organizacion = e.target.value;
+    block.querySelector('.rol-conexion-detalle').oninput=(e)=> r.conexionDetalle = e.target.value;
+    block.querySelector('.rol-cruces').oninput=(e)=> r.cruces = e.target.value;
+    block.querySelector('.rol-notas').oninput=(e)=> r.notas = e.target.value;
+
+    block.querySelectorAll('.rol-recibe .chip').forEach(ch=>{
+      ch.onclick=()=>{
+        block.querySelectorAll('.rol-recibe .chip').forEach(x=>x.classList.remove('selected'));
+        ch.classList.add('selected'); r.recibeClientes = ch.dataset.v;
+      };
+    });
+
+    const multiGroups = [
+      ['.rol-mobiliario', r.mobiliario],
+      ['.rol-equipo', r.equipo],
+      ['.rol-instalaciones', r.instalaciones],
+      ['.rol-almacenamiento', r.almacenamiento],
+      ['.rol-tecnologia', r.tecnologia],
+      ['.rol-conecta', r.conectaCon],
+      ['.rol-confort', r.confort]
+    ];
+    multiGroups.forEach(([sel, arr])=>{
+      block.querySelectorAll(sel + ' .chip').forEach(ch=>{
+        ch.onclick=()=>{
+          const v = ch.dataset.v; const i = arr.indexOf(v);
+          if(i>-1){arr.splice(i,1); ch.classList.remove('selected');}
+          else{arr.push(v); ch.classList.add('selected');}
+        };
+      });
+    });
+
+    const removeBtn = block.querySelector('[data-remove-rol]');
+    if(removeBtn) removeBtn.onclick=()=>{
+      state.roles = state.roles.filter(x=>x.id!==id);
+      renderStep();
+    };
+  });
+}
+
+/* ---------- 02 ESTILO ARQUITECTÓNICO (y 02b MOBILIARIO, mismo motor genérico) ---------- */
+let styleTabIndex = 0;
+let mobTabIndex = 0;
+const mediaRecorders = {}; /* "kind::key" -> MediaRecorder */
+let lb = null; /* {kind:'estilo'|'mobiliario', key, i} lightbox actual */
+let compareOpen = null; /* {kind, a, b} */
+
+function ensureMobiliarioDetail(key){
+  const ctx = getStyleContext();
+  const fullKey = ctx + '::' + key;
+  if(!state.mobiliarioGaleria.detalle[fullKey]) state.mobiliarioGaleria.detalle[fullKey] = { fotos:[null,null,null,null,null,null], notas:"", audios:[] };
+  return state.mobiliarioGaleria.detalle[fullKey];
+}
+function ensureStyleDetail(key){
+  const ctx = getStyleContext();
+  const fullKey = ctx + '::' + key;
+  if(!state.estiloDetalle[fullKey]) state.estiloDetalle[fullKey] = { fotos:[null,null,null,null,null,null], notas:"", audios:[] };
+  return state.estiloDetalle[fullKey];
+}
+function cardsFor(kind){ return kind==='mobiliario' ? getMobiliarioCards() : getStyleCards(); }
+function detailFor(kind,key){ return kind==='mobiliario' ? ensureMobiliarioDetail(key) : ensureStyleDetail(key); }
+function seleccionFor(kind){ return kind==='mobiliario' ? state.mobiliarioGaleria.seleccion : state.estilo.seleccion; }
+function personalizadosFor(kind){ return kind==='mobiliario' ? state.mobiliarioTiposPersonalizados : state.estilosPersonalizados; }
+
+function renderRoomContextSelector(){
+  if(state.proyecto.tipoProyecto!=='oficina' || !state.ambientesSeleccion.length) return '';
+  const ctx = getStyleContext();
+  return `
+    <div class="field" style="margin-bottom:18px;">
+      <label class="field-label">¿Para qué espacio de la oficina?</label>
+      <div class="chip-grid" id="ctx-room-selector">
+        ${state.ambientesSeleccion.map(r=>`<div class="chip ${r===ctx?'selected':''}" data-r="${r}">${r}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+function bindRoomContextSelector(){
+  const wrap = document.getElementById('ctx-room-selector');
+  if(!wrap) return;
+  wrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick=()=>{
+      styleRoomContext = ch.dataset.r;
+      styleTabIndex = 0; mobTabIndex = 0;
+      renderStep();
+    };
+  });
+}
+
+function renderGalleryStep(kind){
+  const list = cardsFor(kind);
+  const tabIdx = kind==='mobiliario' ? mobTabIndex : styleTabIndex;
+  const c = list[Math.min(tabIdx, list.length-1)];
+  const det = detailFor(kind, c.k);
+  const seleccion = seleccionFor(kind);
+  const isSelected = seleccion.includes(c.k);
+  const title = kind==='mobiliario' ? '¿Qué tipo de mobiliario les gusta más?' : '¿Qué forma / estilo arquitectónico los representa?';
+  const desc = kind==='mobiliario'
+    ? 'Esto es sobre las PIEZAS de mobiliario en sí — más allá del estilo general del espacio. Subí fotos de referencia y calificalas igual que en el paso anterior.'
+    : 'Esto define la FORMA del espacio — líneas, volúmenes, ornamento. Es independiente del color: el mismo estilo minimalista puede pintarse elegante-oscuro o cálido-claro (eso se define en el paso de paleta). Andá pasando por cada estilo con el cliente delante — subí las fotos de referencia, y revisalas en pantalla completa tipo swipe: descartar, me gusta o me encanta.';
+  const ctxLabel = getStyleContext();
+  return `
+    <div class="step-title">${title}</div>
+    <div class="step-desc">${desc}</div>
+    ${renderRoomContextSelector()}
+    ${state.proyecto.tipoProyecto==='oficina' ? `<div class="note" style="margin-bottom:18px;">Mostrando fotos específicas de: <b>${ctxLabel}</b> — cada espacio guarda su propio set, no se comparten entre sí.</div>` : ''}
+
+    <div class="style-tabs" id="gallery-tabs">
+      ${list.map((s,i)=>`<div class="style-tab ${i===tabIdx?'active':''} ${seleccion.includes(s.k)?'liked':''} ${s.custom?'is-custom':''}" data-i="${i}" data-k="${s.k}">${s.t}${s.custom?' <span class="tab-remove" data-remove-k="'+s.k+'">×</span>':''}</div>`).join('')}
+      <button class="style-tab add-tab" id="btn-add-card">+ Agregar</button>
+      <button class="compare-btn" id="btn-compare">⇄ Comparar dos</button>
+    </div>
+
+    <div class="style-page-head">
+      <div>
+        <h2>${c.t}</h2>
+        <div class="mood">${c.mood}</div>
+      </div>
+      <button class="btn-like ${isSelected?'on':''}" id="btn-select-card">${isSelected?'✓ Elegido por el cliente':'Marcar como elegido'}</button>
+    </div>
+
+    <label class="field-label">Fotos de referencia (subí hasta 6 — clic para abrir en pantalla completa y calificar)</label>
+    <div class="photo-grid" id="photo-grid">
+      ${det.fotos.map((f,i)=>`
+        <div class="photo-slot ${f?('r-'+(f.reaction||'')):''}" data-i="${i}">
+          ${f ? `<img src="${f.dataUrl}" alt="Referencia ${i+1}">
+                 <span class="remove-x" data-remove="${i}" title="Quitar foto">×</span>
+                 ${f.reaction==='super' ? '<span class="badge">★</span>' : f.reaction==='like' ? '<span class="badge">♥</span>' : f.reaction==='dislike' ? '<span class="badge">✕</span>' : ''}
+                 ${(f.reaction==='like'||f.reaction==='super') && f.rating!=null ? `<span class="rating-pill">${f.rating}/10</span>` : ''}`
+              : `<span class="num">${i+1}</span><span>Subir foto</span>`}
+          <input type="file" accept="image/*" data-i="${i}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="step-desc" style="margin-top:-14px; font-size:11.5px;">Clic en una foto ya subida para revisarla en grande y reaccionar (✕ / ♥ / ★). Pasá el mouse sobre la miniatura y tocá la × para quitarla y subir otra. Doble clic en el nombre de una pestaña para renombrarla.</div>
+
+    <label class="field-label">Lo esencial</label>
+    <div class="fact-grid">
+      ${(c.facts||[]).map(f=>`<div class="fact"><div class="fk">${f.k}</div><div class="fv">${f.v}</div></div>`).join('')}
+    </div>
+
+    <label class="field-label">Qué le gustó / qué comentó el cliente (en general)</label>
+    <div class="field">
+      <textarea id="gallery-notes" placeholder="Anotá en vivo lo que mencione el cliente..."></textarea>
+    </div>
+
+    <label class="field-label">Nota de voz (opcional)</label>
+    <div class="recorder" id="recorder-box">
+      <button class="rec-btn" id="rec-btn">●</button>
+      <div class="rec-status" id="rec-status">Grabar comentario del cliente</div>
+    </div>
+    <div id="audio-list"></div>
+  `;
+}
+
+function bindGalleryStep(kind){
+  const list = cardsFor(kind);
+  const tabIdx = kind==='mobiliario' ? Math.min(mobTabIndex, list.length-1) : Math.min(styleTabIndex, list.length-1);
+  const c = list[tabIdx];
+  const det = detailFor(kind, c.k);
+  const seleccion = seleccionFor(kind);
+  const mediaKey = kind + '::' + getStyleContext() + '::' + c.k;
+
+  bindRoomContextSelector();
+
+  document.querySelectorAll('#gallery-tabs .style-tab[data-i]').forEach(t=>{
+    t.onclick=(e)=>{
+      if(e.target.classList.contains('tab-remove')) return;
+      const idx = parseInt(t.dataset.i);
+      if(kind==='mobiliario') mobTabIndex=idx; else styleTabIndex=idx;
+      renderStep();
+    };
+    t.ondblclick=(e)=>{
+      e.stopPropagation();
+      const card = list[parseInt(t.dataset.i)];
+      const nuevo = window.prompt('Renombrar:', card.t);
+      if(nuevo && nuevo.trim()){ card.t = nuevo.trim(); renderStep(); }
+    };
+  });
+  document.querySelectorAll('.tab-remove').forEach(x=>{
+    x.onclick=(e)=>{
+      e.stopPropagation();
+      const k = e.target.dataset.removeK;
+      const ctx = getStyleContext();
+      const store = personalizadosFor(kind);
+      if(store[ctx]) store[ctx] = store[ctx].filter(card=>card.k!==k);
+      if(kind==='mobiliario') mobTabIndex=0; else styleTabIndex=0;
+      renderStep();
+    };
+  });
+  document.getElementById('btn-add-card').onclick=()=>{
+    const nombre = window.prompt('Nombre del nuevo ' + (kind==='mobiliario' ? 'tipo de mobiliario' : 'estilo') + ':');
+    if(!nombre || !nombre.trim()) return;
+    const ctx = getStyleContext();
+    const store = personalizadosFor(kind);
+    if(!store[ctx]) store[ctx]=[];
+    const k = 'custom-' + Date.now();
+    store[ctx].push({k, t:nombre.trim(), mood:'Personalizado', d:'Agregado por el estudio', custom:true, facts:[
+      {k:'De qué se trata', v:'Definilo con tus propias palabras durante la reunión.'},
+      {k:'Materiales típicos', v:'—'}, {k:'Ideal para', v:'—'}, {k:'Cuidado con', v:'—'}
+    ]});
+    const newIdx = cardsFor(kind).length - 1;
+    if(kind==='mobiliario') mobTabIndex=newIdx; else styleTabIndex=newIdx;
+    renderStep();
+  };
+  document.getElementById('btn-compare').onclick=()=> openCompare(kind);
+
+  document.getElementById('btn-select-card').onclick=()=>{
+    const idx = seleccion.indexOf(c.k);
+    if(idx>-1) seleccion.splice(idx,1); else seleccion.push(c.k);
+    renderStep();
+  };
+
+  document.querySelectorAll('#photo-grid .photo-slot').forEach(slot=>{
+    const i = parseInt(slot.dataset.i);
+    const input = slot.querySelector('input[type=file]');
+    const removeBtn = slot.querySelector('.remove-x');
+    slot.onclick=()=>{
+      if(det.fotos[i]){ openLightbox(kind, c.k, i); }
+      else{ input.click(); }
+    };
+    if(removeBtn){
+      removeBtn.onclick=(e)=>{ e.stopPropagation(); det.fotos[i]=null; renderStep(); };
+    }
+    input.onclick=(e)=> e.stopPropagation();
+    input.onchange=(e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload=(ev)=>{ det.fotos[i] = {dataUrl: ev.target.result, reaction:null, rating:null, comment:""}; renderStep(); };
+      reader.readAsDataURL(file);
+    };
+  });
+
+  const notes = document.getElementById('gallery-notes'); notes.value = det.notas;
+  notes.oninput = ()=> det.notas = notes.value;
+
+  renderAudioList(kind, c.k);
+  bindRecorder(kind, c.k);
+}
+
+function renderEstilo(){ return renderGalleryStep('estilo'); }
+function bindEstilo(){ bindGalleryStep('estilo'); }
+function renderMobiliarioGaleria(){ return renderGalleryStep('mobiliario'); }
+function bindMobiliarioGaleria(){ bindGalleryStep('mobiliario'); }
+
+function renderAudioList(kind, key){
+  const det = detailFor(kind, key);
+  const list = document.getElementById('audio-list');
+  if(!list) return;
+  list.innerHTML = det.audios.map((a)=>`
+    <div class="recorder" style="margin-top:8px;">
+      <audio class="rec-audio" controls src="${a.url}"></audio>
+      <span class="rec-status">${a.name}</span>
+      <a class="rec-dl" href="${a.url}" download="${a.name}">Descargar</a>
+    </div>
+  `).join('');
+}
+
+function bindRecorder(kind, key){
+  const det = detailFor(kind, key);
+  const btn = document.getElementById('rec-btn');
+  const status = document.getElementById('rec-status');
+  if(!btn) return;
+  const mediaKey = kind + '::' + getStyleContext() + '::' + key;
+
+  btn.onclick = async ()=>{
+    if(!mediaRecorders[mediaKey] || mediaRecorders[mediaKey].state!=='recording'){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
+        recorder.ondataavailable = e=> chunks.push(e.data);
+        recorder.onstop = ()=>{
+          const blob = new Blob(chunks, {type:'audio/webm'});
+          const url = URL.createObjectURL(blob);
+          const name = `nota_${kind}_${key}_${det.audios.length+1}.webm`;
+          det.audios.push({url, name});
+          stream.getTracks().forEach(t=>t.stop());
+          btn.classList.remove('recording'); btn.textContent='●';
+          status.textContent='Grabar comentario del cliente';
+          renderAudioList(kind, key);
+        };
+        recorder.start();
+        mediaRecorders[mediaKey] = recorder;
+        btn.classList.add('recording'); btn.textContent='■';
+        status.textContent='Grabando... clic para detener';
+      }catch(err){
+        status.textContent='No se pudo acceder al micrófono (revisá permisos del navegador).';
+      }
+    } else {
+      mediaRecorders[mediaKey].stop();
+    }
+  };
+}
+
+/* ---------- LIGHTBOX ESTILO TINDER (genérico: estilo o mobiliario) ---------- */
+function filledIndexes(det){
+  const arr=[]; det.fotos.forEach((f,i)=>{ if(f) arr.push(i); }); return arr;
+}
+function openLightbox(kind,key,i){ lb={kind,key,i}; renderLightbox(); }
+function closeLightbox(){ lb=null; document.getElementById('lightbox-root').innerHTML=''; renderStep(); }
+function lbMove(dir){
+  const det = detailFor(lb.kind, lb.key);
+  const idxs = filledIndexes(det);
+  const pos = idxs.indexOf(lb.i);
+  const newPos = pos + dir;
+  if(newPos>=0 && newPos<idxs.length){ lb.i = idxs[newPos]; renderLightbox(); }
+  else if(newPos>=idxs.length){ closeLightbox(); }
+}
+function lbSetReaction(type){
+  const det = detailFor(lb.kind, lb.key);
+  const f = det.fotos[lb.i];
+  f.reaction = type;
+  if(type==='dislike'){ f.rating=null; f.comment=""; renderLightbox(); setTimeout(()=>lbMove(1), 350); }
+  else { if(f.rating==null) f.rating=7; renderLightbox(); }
+}
+function renderLightbox(){
+  const root = document.getElementById('lightbox-root');
+  if(!lb){ root.innerHTML=''; return; }
+  const det = detailFor(lb.kind, lb.key);
+  const f = det.fotos[lb.i];
+  const idxs = filledIndexes(det);
+  const pos = idxs.indexOf(lb.i);
+  const card = cardsFor(lb.kind).find(s=>s.k===lb.key);
+  const cardName = card ? card.t : lb.key;
+  const showPanel = f.reaction==='like' || f.reaction==='super';
+  root.innerHTML = `
+    <div class="lightbox-overlay">
+      <button class="lb-close" id="lb-close">×</button>
+      <div class="lb-progress">${cardName} · ${getStyleContext()} · foto ${pos+1} de ${idxs.length}</div>
+      ${pos>0 ? '<button class="lb-nav prev" id="lb-prev">‹</button>' : ''}
+      ${pos<idxs.length-1 ? '<button class="lb-nav next" id="lb-next">›</button>' : ''}
+      <div class="lb-imgwrap"><img src="${f.dataUrl}" alt="Referencia"></div>
+      <input type="file" accept="image/*" id="lb-replace-input" style="display:none;">
+      <button class="compare-btn" id="lb-replace-btn" style="margin-bottom:16px; background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.3);">Reemplazar esta foto</button>
+      <div class="lb-actions">
+        <button class="lb-btn dislike ${f.reaction==='dislike'?'active':''}" id="lb-dislike" title="No le gusta">✕</button>
+        <button class="lb-btn like ${f.reaction==='like'?'active':''}" id="lb-like" title="Le gusta">♥</button>
+        <button class="lb-btn super ${f.reaction==='super'?'active':''}" id="lb-super" title="Le encanta">★</button>
+      </div>
+      ${showPanel ? `
+        <div class="lb-panel">
+          <label class="field-label">Puntaje (0-10)</label>
+          <div class="pref-row" style="margin-bottom:14px;">
+            <span class="ends">0</span>
+            <input type="range" id="lb-rating" min="0" max="10" value="${f.rating}">
+            <span class="ends" id="lb-rating-val" style="width:30px;">${f.rating}</span>
+          </div>
+          <label class="field-label">Comentario opcional</label>
+          <textarea id="lb-comment" placeholder="Ej: le encantó el mueble, no tanto el color de pared...">${f.comment||''}</textarea>
+          <button class="lb-save" id="lb-save">Guardar ${pos<idxs.length-1?'y siguiente →':''}</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  document.getElementById('lb-close').onclick = closeLightbox;
+  if(document.getElementById('lb-prev')) document.getElementById('lb-prev').onclick=()=>lbMove(-1);
+  if(document.getElementById('lb-next')) document.getElementById('lb-next').onclick=()=>lbMove(1);
+  document.getElementById('lb-dislike').onclick=()=> lbSetReaction('dislike');
+  document.getElementById('lb-like').onclick=()=> lbSetReaction('like');
+  document.getElementById('lb-super').onclick=()=> lbSetReaction('super');
+  document.getElementById('lb-replace-btn').onclick=()=> document.getElementById('lb-replace-input').click();
+  document.getElementById('lb-replace-input').onchange=(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{ f.dataUrl=ev.target.result; f.reaction=null; f.rating=null; f.comment=""; renderLightbox(); };
+    reader.readAsDataURL(file);
+  };
+  if(showPanel){
+    const rating=document.getElementById('lb-rating'); const val=document.getElementById('lb-rating-val');
+    rating.oninput=()=>{ f.rating=parseInt(rating.value); val.textContent=rating.value; };
+    const comment=document.getElementById('lb-comment');
+    comment.oninput=()=> f.comment=comment.value;
+    document.getElementById('lb-save').onclick=()=> lbMove(1);
+  }
+}
+
+/* ---------- COMPARADOR (genérico: estilo o mobiliario) ---------- */
+function openCompare(kind){
+  const list = cardsFor(kind);
+  compareOpen = { kind, a: list[0].k, b: (list[1]||list[0]).k };
+  renderCompare();
+}
+function closeCompare(){ compareOpen=null; document.getElementById('compare-root').innerHTML=''; }
+function renderCompare(){
+  const root = document.getElementById('compare-root');
+  if(!compareOpen){ root.innerHTML=''; return; }
+  const list = cardsFor(compareOpen.kind);
+  const colHTML = (key)=>{
+    const card = list.find(s=>s.k===key);
+    const det = detailFor(compareOpen.kind, key);
+    const goodPhotos = det.fotos.filter(f=>f && (f.reaction==='like'||f.reaction==='super'));
+    return `
+      <div class="compare-col">
+        <h3>${card.t}</h3>
+        <div class="mood">${card.mood}</div>
+        <div class="compare-photos">
+          ${goodPhotos.length ? goodPhotos.map(f=>`<div class="ph"><img src="${f.dataUrl}"><span class="st">${f.reaction==='super'?'★':'♥'}</span></div>`).join('') : '<div style="grid-column:1/-1; font-size:12px; color:var(--ink-soft);">Sin fotos calificadas aún</div>'}
+        </div>
+        ${(card.facts||[]).map(fa=>`<div class="fact" style="margin-bottom:10px;"><div class="fk">${fa.k}</div><div class="fv">${fa.v}</div></div>`).join('')}
+        <div class="fact"><div class="fk">Notas del cliente</div><div class="fv">${det.notas||'—'}</div></div>
+      </div>
+    `;
+  };
+  root.innerHTML = `
+    <div class="compare-overlay">
+      <div class="compare-inner">
+        <button class="compare-close" id="compare-close">×</button>
+        <div class="step-title" style="margin-top:0;">Comparar dos opciones</div>
+        <div class="step-desc">Útil cuando el cliente duda entre dos direcciones — poné una al lado de la otra.</div>
+        <div class="compare-selects">
+          <select id="sel-a">${list.map(s=>`<option value="${s.k}" ${s.k===compareOpen.a?'selected':''}>${s.t}</option>`).join('')}</select>
+          <select id="sel-b">${list.map(s=>`<option value="${s.k}" ${s.k===compareOpen.b?'selected':''}>${s.t}</option>`).join('')}</select>
+        </div>
+        <div class="compare-cols" id="compare-cols">
+          ${colHTML(compareOpen.a)}
+          ${colHTML(compareOpen.b)}
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('compare-close').onclick = closeCompare;
+  document.getElementById('sel-a').onchange=(e)=>{ compareOpen.a=e.target.value; renderCompare(); };
+  document.getElementById('sel-b').onchange=(e)=>{ compareOpen.b=e.target.value; renderCompare(); };
+}
+
+/* ---------- 03 PALETA DE COLOR + PSICOLOGÍA (paso central) ---------- */
+/* ---------- 03 RANKING AUTOMÁTICO + DUELO DE FAVORITOS (solo estilo arquitectónico) ---------- */
+let duelState = null;
+
+function buildDuelPool(){
+  const pool=[];
+  getStyleCards().forEach(c=>{
+    const det = ensureStyleDetail(c.k);
+    det.fotos.forEach((f)=>{
+      if(f && (f.reaction==='like'||f.reaction==='super') && f.rating!=null && f.rating>=6){
+        pool.push({styleKey:c.k, styleName:c.t, dataUrl:f.dataUrl, rating:f.rating, reaction:f.reaction});
+      }
+    });
+  });
+  return pool;
+}
+function makeDuelPairs(items){
+  const pairs=[]; let bye=null;
+  for(let idx=0; idx<items.length; idx+=2){
+    if(idx+1<items.length) pairs.push([items[idx], items[idx+1]]);
+    else bye=items[idx];
+  }
+  return {pairs, bye};
+}
+function startDuel(){
+  const pool = buildDuelPool();
+  if(pool.length<2){ duelState={notEnough:true}; return; }
+  const sorted = pool.slice().sort((a,b)=>b.rating-a.rating);
+  const {pairs, bye} = makeDuelPairs(sorted);
+  duelState = { pairs, pairIndex:0, winners: bye?[bye]:[], champion:null, roundNum:1 };
+}
+function duelPick(winner){
+  duelState.winners.push(winner);
+  duelState.pairIndex++;
+  if(duelState.pairIndex >= duelState.pairs.length){
+    if(duelState.winners.length===1){
+      duelState.champion = duelState.winners[0];
+    } else {
+      const {pairs, bye} = makeDuelPairs(duelState.winners);
+      duelState.pairs = pairs; duelState.pairIndex = 0;
+      duelState.winners = bye ? [bye] : []; duelState.roundNum++;
+    }
+  }
+  renderStep();
+}
+function resetDuel(){ duelState=null; renderStep(); }
+
+function computeRanking(){
+  return getStyleCards().map(c=>{
+    const det = ensureStyleDetail(c.k);
+    const rated = det.fotos.filter(f=>f && (f.reaction==='like'||f.reaction==='super') && f.rating!=null);
+    const avg = rated.length ? rated.reduce((s,f)=>s+f.rating,0)/rated.length : 0;
+    return { key:c.k, name:c.t, avg, count:rated.length };
+  }).filter(r=>r.count>0).sort((a,b)=>b.avg-a.avg);
+}
+
+
+function renderDuelo(){
+  const ranking = computeRanking();
+  const maxAvg = Math.max(...ranking.map(r=>r.avg), 1);
+  return `
+    <div class="step-title">Ranking automático & duelo de favoritos</div>
+    <div class="step-desc">Con lo que calificaron en el paso anterior armamos dos cosas: un ranking automático de estilos según puntaje promedio, y un duelo cara a cara entre las fotos mejor calificadas (6+/10) de todas las categorías — como para definir, en vivo, cuál es LA favorita absoluta.</div>
+
+    <label class="field-label">Ranking automático de estilos</label>
+    ${ranking.length ? ranking.map((r,i)=>`
+      <div class="ranking-row">
+        <div class="rank-num ${i===0?'top':''}">${i+1}</div>
+        <div class="rank-name">${r.name}</div>
+        <div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${(r.avg/maxAvg*100).toFixed(0)}%"></div></div>
+        <div class="ranking-score">${r.avg.toFixed(1)}/10</div>
+      </div>
+    `).join('') : `<div class="note">Todavía no hay fotos calificadas con ♥ o ★ en el paso anterior — volvé a "Estilo" y calificá algunas para ver el ranking acá.</div>`}
+
+    <label class="field-label" style="margin-top:28px; display:block;">Duelo de favoritos</label>
+    <div id="duel-zone"></div>
+  `;
+}
+
+function renderDuelZone(){
+  const zone = document.getElementById('duel-zone');
+  if(!zone) return;
+
+  if(!duelState){
+    const pool = buildDuelPool();
+    zone.innerHTML = `
+      <div class="step-desc" style="margin-bottom:16px;">${pool.length} foto(s) calificadas con 6+ puntos, listas para el duelo.</div>
+      <button class="btn" id="btn-start-duel" ${pool.length<2?'disabled':''}>Iniciar duelo →</button>
+      ${pool.length<2 ? '<div class="note" style="margin-top:16px;">Se necesitan al menos 2 fotos con 6+ puntos en distintas fotos para poder enfrentarlas.</div>' : ''}
+    `;
+    const btn = document.getElementById('btn-start-duel');
+    if(btn) btn.onclick=()=>{ startDuel(); renderDuelZone(); };
+    return;
+  }
+
+  if(duelState.notEnough){
+    zone.innerHTML = `<div class="note">Se necesitan al menos 2 fotos con 6+ puntos para poder armar un duelo. Volvé al paso "Estilo" y calificá más fotos.</div>`;
+    return;
+  }
+
+  if(duelState.champion){
+    const ch = duelState.champion;
+    zone.innerHTML = `
+      <div class="champion-card">
+        <div class="tag">★ Favorita absoluta de la reunión</div>
+        <img src="${ch.dataUrl}" alt="Foto ganadora">
+        <h3>${ch.styleName}</h3>
+        <div class="sr">Calificada ${ch.rating}/10 · ${ch.reaction==='super'?'Le encantó':'Le gustó'}</div>
+      </div>
+      <button class="btn ghost" id="btn-reset-duel" style="margin-top:16px;">Repetir duelo</button>
+    `;
+    document.getElementById('btn-reset-duel').onclick=()=>{ resetDuel(); renderDuelZone(); };
+    return;
+  }
+
+  const pair = duelState.pairs[duelState.pairIndex];
+  const totalPairsAllRounds = duelState.pairs.length;
+  zone.innerHTML = `
+    <div class="duel-progress">Ronda ${duelState.roundNum} · enfrentamiento ${duelState.pairIndex+1} de ${totalPairsAllRounds}</div>
+    <div class="duel-pair">
+      <div class="duel-card" data-side="a">
+        <img src="${pair[0].dataUrl}">
+        <div class="info"><div class="sn">${pair[0].styleName}</div><div class="sr">${pair[0].rating}/10 ${pair[0].reaction==='super'?'★':'♥'}</div></div>
+      </div>
+      <div class="duel-vs">VS</div>
+      <div class="duel-card" data-side="b">
+        <img src="${pair[1].dataUrl}">
+        <div class="info"><div class="sn">${pair[1].styleName}</div><div class="sr">${pair[1].rating}/10 ${pair[1].reaction==='super'?'★':'♥'}</div></div>
+      </div>
+    </div>
+  `;
+  zone.querySelector('[data-side="a"]').onclick=()=> duelPick(pair[0]);
+  zone.querySelector('[data-side="b"]').onclick=()=> duelPick(pair[1]);
+}
+
+function bindDuelo(){
+  renderDuelZone();
+}
+
+function renderPaleta(){
+  const esOficina = state.proyecto.tipoProyecto==='oficina';
+  if(esOficina) return renderPaletaOficina();
+  return `
+    <div class="step-title">Paleta de color — y qué transmite</div>
+    <div class="step-desc">Esta es la decisión que más define cómo se va a <i>sentir</i> el espacio, más allá del estilo. Mostrale al cliente estas 8 direcciones —cada una con su lectura psicológica— y dejalo reaccionar en vivo. Pueden elegir una o combinar dos (ej: base "Clásico Atemporal" con acentos de "Dramático Nocturno" en el dormitorio).</div>
+
+    <div class="palette-list" id="palette-list">
+      ${paletteDefs.map(p=>`
+        <div class="palette-card" data-k="${p.key}">
+          <div class="palette-top">
+            <div class="palette-imgs">${paletteMocks(p)}</div>
+            <div class="palette-info">
+              <div class="check">✓</div>
+              <div class="palette-name">${p.nombre}</div>
+              <div class="palette-chips">${p.colores.map(c=>`<div class="c" style="background:${c.h}" title="${c.n}"></div>`).join('')}</div>
+              <div class="palette-psych">${p.psicologia}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label class="field-label">Tono general</label>
+      <div class="pref-row"><span class="ends">Frío</span><input type="range" id="i-tono" min="1" max="10" value="${state.paleta.calidoFrio}"><span class="ends">Cálido</span></div>
+    </div>
+
+    <label class="field-label">Ajuste fino — colores puntuales que les gustan además de la paleta elegida</label>
+    ${renderColorPicker()}
+    <div class="swatch-grid" id="base-swatches">
+      ${colorSwatches.concat(state.paleta.customColores).map(c=>`<div class="swatch" data-n="${c.n}"><div class="sq" style="background:${c.h}"></div><div class="lbl">${c.n}</div></div>`).join('')}
+    </div>
+
+    <label class="field-label" style="margin-top:20px; display:block;">Colores a evitar por completo</label>
+    <div class="swatch-grid" id="avoid-swatches">
+      ${colorSwatches.concat(state.paleta.customColores).map(c=>`<div class="swatch" data-n="${c.n}"><div class="sq" style="background:${c.h}"></div><div class="lbl">${c.n}</div></div>`).join('')}
+    </div>
+
+    <div class="field" style="margin-top:22px;"><label class="field-label">Notas sobre color</label><textarea id="i-color-notas" placeholder="Ej: quieren base clásica pero con el dormitorio principal más dramático..."></textarea></div>
+  `;
+}
+
+function renderColorPicker(){
+  return `
+    <div class="color-picker-row" id="color-picker-row">
+      <input type="color" id="color-picker-live" value="#5B4CFF">
+      <span class="color-picker-hex" id="color-picker-hex">#5B4CFF</span>
+      <button class="btn ghost" id="btn-add-color" type="button">+ Agregar este color</button>
+    </div>
+  `;
+}
+function bindColorPicker(onAdd){
+  const picker = document.getElementById('color-picker-live');
+  const hexLabel = document.getElementById('color-picker-hex');
+  if(!picker) return;
+  picker.oninput=()=> hexLabel.textContent = picker.value.toUpperCase();
+  document.getElementById('btn-add-color').onclick=()=>{
+    onAdd(picker.value.toUpperCase());
+  };
+}
+
+function renderPaletaOficina(){
+  const palettes = getOfficePalettes();
+  return `
+    <div class="step-title">Paleta de color de oficina</div>
+    <div class="step-desc">Estas son las 10 combinaciones de color más usadas en espacios corporativos — no colores sueltos, sino combinaciones reales que ya funcionan juntas. Subí fotos de referencia (hasta 10 por paleta) para armar un moodboard con el cliente en vivo.</div>
+
+    <div class="palette-list" id="office-palette-list">
+      ${palettes.map(p=>renderOfficePaletteBlock(p)).join('')}
+    </div>
+
+    <div class="field" style="margin:20px 0;">
+      <button class="btn" id="btn-add-office-palette">+ Agregar paleta personalizada</button>
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label class="field-label">Tono general</label>
+      <div class="pref-row"><span class="ends">Frío</span><input type="range" id="i-tono" min="1" max="10" value="${state.paleta.calidoFrio}"><span class="ends">Cálido</span></div>
+    </div>
+
+    <label class="field-label">Elegí un color libremente (para sumar a favoritos)</label>
+    ${renderColorPicker()}
+    <div class="swatch-grid" id="base-swatches" style="margin-top:10px;">
+      ${state.paleta.customColores.map(c=>`<div class="swatch" data-n="${c.n}"><div class="sq" style="background:${c.h}"></div><div class="lbl">${c.n}</div></div>`).join('')}
+    </div>
+
+    <div class="field" style="margin-top:22px;"><label class="field-label">Notas sobre color</label><textarea id="i-color-notas" placeholder="Ej: quieren usar el color del logo como acento..."></textarea></div>
+  `;
+}
+
+function renderOfficePaletteBlock(p){
+  const det = ensurePaletteOficinaDetail(p.key);
+  const isCustom = !!p.custom;
+  const isSelected = state.paletaOficina.seleccion.includes(p.key);
+  return `
+    <div class="palette-card office-palette ${isSelected?'selected':''}" data-k="${p.key}">
+      <div class="palette-top" style="align-items:flex-start;">
+        <div class="palette-info" style="flex:1;">
+          <div class="check">✓</div>
+          <div class="palette-name">${p.nombre}${isCustom?' <span class="tab-remove" data-remove-palette="'+p.key+'">×</span>':''}</div>
+          <div class="palette-chips">
+            ${(isCustom ? [0,1,2,3] : p.colores.map((c,i)=>i)).map(i=>{
+              const c = p.colores[i];
+              if(c) return `<div class="c" style="background:${c.h}" title="${c.n}"></div>`;
+              return `<div class="c color-slot-empty" data-addcolor-i="${i}" data-addcolor-k="${p.key}" title="Agregar color">+</div>`;
+            }).join('')}
+          </div>
+          <div class="palette-psych">${p.uso || 'Definí vos la combinación — agregá los colores con el ícono +.'}</div>
+        </div>
+      </div>
+      <label class="field-label" style="margin-top:14px; display:block;">Moodboard — fotos de referencia (hasta 10)</label>
+      <div class="mood-grid" data-moodboard="${p.key}">
+        ${det.fotos.map((f,i)=>`
+          <div class="mood-slot ${f?'filled':''}" data-i="${i}">
+            ${f ? `<img src="${f}" alt="ref ${i+1}"><span class="remove-x" data-remove="${i}">×</span>` : `<span class="num">${i+1}</span>`}
+            <input type="file" accept="image/*" data-i="${i}">
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function bindPaletaOficina(){
+  document.querySelectorAll('#office-palette-list .office-palette').forEach(card=>{
+    const k = card.dataset.k;
+    card.querySelector('.palette-info').onclick=(e)=>{
+      if(e.target.closest('.color-slot-empty') || e.target.closest('.tab-remove')) return;
+      const i = state.paletaOficina.seleccion.indexOf(k);
+      if(i>-1) state.paletaOficina.seleccion.splice(i,1); else state.paletaOficina.seleccion.push(k);
+      renderStep();
+    };
+    const removeBtn = card.querySelector('.tab-remove');
+    if(removeBtn) removeBtn.onclick=(e)=>{
+      e.stopPropagation();
+      state.paletaOficina.personalizadas = state.paletaOficina.personalizadas.filter(p=>p.key!==k);
+      renderStep();
+    };
+    card.querySelectorAll('.color-slot-empty').forEach(slot=>{
+      slot.onclick=(e)=>{
+        e.stopPropagation();
+        const idx = parseInt(slot.dataset.addcolorI);
+        const pk = slot.dataset.addcolorK;
+        const input = document.createElement('input');
+        input.type='color'; input.style.position='fixed'; input.style.opacity='0';
+        document.body.appendChild(input);
+        input.click();
+        input.onchange=()=>{
+          const palette = getOfficePalettes().find(p=>p.key===pk);
+          palette.colores[idx] = {n:input.value.toUpperCase(), h:input.value};
+          document.body.removeChild(input);
+          renderStep();
+        };
+      };
+    });
+
+    const det = ensurePaletteOficinaDetail(k);
+    card.querySelectorAll('.mood-slot').forEach(slot=>{
+      const i = parseInt(slot.dataset.i);
+      const input = slot.querySelector('input[type=file]');
+      const removeX = slot.querySelector('.remove-x');
+      slot.onclick=(e)=>{
+        if(e.target===removeX) return;
+        if(!det.fotos[i]) input.click();
+      };
+      if(removeX) removeX.onclick=(e)=>{ e.stopPropagation(); det.fotos[i]=null; renderStep(); };
+      input.onclick=(e)=> e.stopPropagation();
+      input.onchange=(e)=>{
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload=(ev)=>{ det.fotos[i]=ev.target.result; renderStep(); };
+        reader.readAsDataURL(file);
+      };
+    });
+  });
+
+  document.getElementById('btn-add-office-palette').onclick=()=>{
+    const nombre = window.prompt('Nombre de la nueva paleta:');
+    if(!nombre || !nombre.trim()) return;
+    const key = 'custom-palette-' + Date.now();
+    state.paletaOficina.personalizadas.push({key, nombre:nombre.trim(), colores:[], uso:'', custom:true});
+    renderStep();
+  };
+
+  document.getElementById('i-tono').oninput=(e)=> state.paleta.calidoFrio=e.target.value;
+  bindColorPicker((hex)=>{
+    if(!state.paleta.customColores.find(c=>c.h.toUpperCase()===hex)){
+      state.paleta.customColores.push({n:hex, h:hex});
+    }
+    renderStep();
+  });
+  const notas=document.getElementById('i-color-notas'); notas.value=state.paleta.notas;
+  notas.oninput=()=> state.paleta.notas=notas.value;
+}
+
+function bindPaleta(){
+  if(state.proyecto.tipoProyecto==='oficina'){ bindPaletaOficina(); return; }
+  document.querySelectorAll('#palette-list .palette-card').forEach(c=>{
+    if(state.paleta.seleccion.includes(c.dataset.k)) c.classList.add('selected');
+    c.onclick=()=>{
+      const k=c.dataset.k; const i=state.paleta.seleccion.indexOf(k);
+      if(i>-1){state.paleta.seleccion.splice(i,1); c.classList.remove('selected');}
+      else{state.paleta.seleccion.push(k); c.classList.add('selected');}
+    };
+  });
+  document.getElementById('i-tono').oninput=(e)=> state.paleta.calidoFrio=e.target.value;
+  bindColorPicker((hex)=>{
+    if(!state.paleta.customColores.find(c=>c.h.toUpperCase()===hex)){
+      state.paleta.customColores.push({n:hex, h:hex});
+    }
+    renderStep();
+  });
+  document.querySelectorAll('#base-swatches .swatch').forEach(s=>{
+    if(state.paleta.base.includes(s.dataset.n)) s.classList.add('selected');
+    s.onclick=()=>{ const n=s.dataset.n; const i=state.paleta.base.indexOf(n);
+      if(i>-1){state.paleta.base.splice(i,1); s.classList.remove('selected');} else{state.paleta.base.push(n); s.classList.add('selected');} };
+  });
+  document.querySelectorAll('#avoid-swatches .swatch').forEach(s=>{
+    if(state.paleta.evitar.includes(s.dataset.n)) s.classList.add('selected');
+    s.onclick=()=>{ const n=s.dataset.n; const i=state.paleta.evitar.indexOf(n);
+      if(i>-1){state.paleta.evitar.splice(i,1); s.classList.remove('selected');} else{state.paleta.evitar.push(n); s.classList.add('selected');} };
+  });
+  const notas=document.getElementById('i-color-notas'); notas.value=state.paleta.notas;
+  notas.oninput=()=> state.paleta.notas=notas.value;
+}
+
+/* ---------- 04 MATERIALES ---------- */
+function renderMateriales(){
+  return `
+    <div class="step-title">Materiales</div>
+    <div class="step-desc">Usá esta grilla como disparador visual; complementá con muestras físicas si las tenés a mano.</div>
+    <div class="mat-grid" id="mat-grid">
+      ${materialCards.map(m=>`
+        <div class="mat" data-n="${m.n}">
+          <div class="check">✓</div>
+          <div class="tex" style="background:${m.css}"></div>
+          <div class="lbl">${m.n}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="field" style="margin-top:24px;"><label class="field-label">Notas de materiales (pisos, cocina, baños)</label><textarea id="i-mat-notas"></textarea></div>
+  `;
+}
+function bindMateriales(){
+  document.querySelectorAll('#mat-grid .mat').forEach(m=>{
+    if(state.materiales.seleccion.includes(m.dataset.n)) m.classList.add('selected');
+    m.onclick=()=>{ const n=m.dataset.n; const i=state.materiales.seleccion.indexOf(n);
+      if(i>-1){state.materiales.seleccion.splice(i,1); m.classList.remove('selected');} else{state.materiales.seleccion.push(n); m.classList.add('selected');} };
+  });
+  const notas=document.getElementById('i-mat-notas'); notas.value=state.materiales.notas;
+  notas.oninput=()=> state.materiales.notas=notas.value;
+}
+
+/* ---------- 05 DETALLE POR AMBIENTE ---------- */
+/* ---------- PERFILES DE PREGUNTAS POR TIPO DE AMBIENTE ---------- */
+const roomProfiles = {
+  cocina: {
+    tips:[
+      'Preguntá primero cómo cocinan realmente día a día — eso define el layout más que el gusto estético.',
+      'Una isla necesita al menos 90cm de circulación libre alrededor.',
+      'La ventilación / extracción de olores es crítica si la cocina está integrada al living.'
+    ],
+    mobiliario:['Isla central','Mesón / barra desayunador','Alacena / despensa','Campana extractora vista','Electrodomésticos empotrados','Carro auxiliar','Mesa de comedor diario'],
+    iluminacion:['Luz general (techo)','Luz bajo alacena (sobre mesón)','Foco sobre isla','Luz natural suficiente','Necesita reforzar luz natural'],
+    preguntas:[
+      {id:'uso', label:'¿Cuánto cocinan y qué tipo de cocina hacen?', placeholder:'Ej: cocinan todos los días, comida casera, a veces reciben...'},
+      {id:'electro', label:'Electrodomésticos que ya tienen o van a comprar', placeholder:'Heladera, horno, microondas, lavavajillas...'},
+      {id:'isla', label:'¿Isla o barra? ¿Para cuántas personas debe tener asientos?', placeholder:'Ej: barra para 2, uso rápido de desayuno...'}
+    ],
+    funcional:[
+      { categoria:'Triángulo de trabajo y circulación', items:[
+        'Triángulo heladera-cocina-lavaplatos sin cruces','Distancia mesón-isla 90-120cm','Circulación mínima 120cm en cocinas de un mesón','Zona de "aterrizaje" caliente junto a horno'
+      ]},
+      { categoria:'Alturas ergonómicas', items:[
+        'Altura de mesón según quién cocina (85-95cm)','Alacena alta accesible sin escalón','Cajones con organizadores en vez de puertas bajas'
+      ]},
+      { categoria:'Instalaciones y seguridad', items:[
+        'Ventilación mecánica con salida al exterior','Tomas eléctricas en mesón (mín. 4, con norma cerca de agua)','Acceso a gas con norma de seguridad','Piso antideslizante','Punto de basura/reciclaje accesible'
+      ]},
+      { categoria:'Almacenamiento y detalle', items:[
+        'Espacio accesible para electrodomésticos pequeños','Punto de agua adicional (filtro/hervidor)','Materiales de mesón resistentes a calor/manchas','Iluminación de tarea sin sombra propia','Puerta/vano amplio para transporte de compras'
+      ]},
+      { categoria:'Accesibilidad y seguridad avanzada', items:[
+        'Mesón a doble altura si hay usuario en silla de ruedas','Esquinas redondeadas si hay niños chicos','Traba de seguridad en gas/electricidad si aplica'
+      ]}
+    ]
+  },
+  dormitorio: {
+    tips:[
+      'Confirmá de quién es el dormitorio — principal, infantil, huéspedes cambia todo el enfoque.',
+      'El tamaño de la cama define el layout completo del closet y la circulación.',
+      'Luz cálida y regulable ayuda a que el dormitorio se sienta descanso, no oficina.'
+    ],
+    mobiliario:['Cama king/queen','Clóset walk-in','Placard tradicional','Escritorio / rincón de trabajo','Veladores','Tocador / espejo','Sillón de lectura'],
+    iluminacion:['Luz general regulable','Veladores con luz de lectura','Luz interior de closet','Blackout / cortina especial'],
+    preguntas:[
+      {id:'quien', label:'¿De quién es este dormitorio y qué necesita guardar?', placeholder:'Ej: dormitorio principal, ropa de trabajo + casual...'},
+      {id:'trabajo', label:'¿Necesita zona de trabajo o solo es para descansar?', placeholder:'...'},
+      {id:'ropa', label:'Ropa de cama / colores que ya tienen y quieren mantener', placeholder:'...'}
+    ],
+    funcional:[
+      { categoria:'Circulación y ergonomía', items:[
+        'Circulación mínima 60-70cm a cada lado de la cama','Veladores accesibles sin levantarse de más','Control de luz accesible desde la cama','Enchufes/cargadores accesibles desde la cama'
+      ]},
+      { categoria:'Closet y almacenamiento', items:[
+        'Altura de barral según usuario','Cajones bajos vs. altos según movilidad','Vestidor con iluminación frontal (no cenital)','Almacenamiento de temporada previsto','Espejo con luz adecuada'
+      ]},
+      { categoria:'Confort ambiental', items:[
+        'Aislación acústica si da a la calle','Blackout si hay mucha luz de mañana','Ventilación cruzada (ventana operable)','Temperatura estable durante la noche'
+      ]},
+      { categoria:'Seguridad', items:[
+        'Ventana practicable como salida de emergencia','Distancia segura de enchufes respecto a la cama','Puerta con sello acústico / privacidad'
+      ]},
+      { categoria:'Accesibilidad', items:[
+        'Espacio de circulación para andador/silla de ruedas si aplica','Interruptor a altura accesible','Cama a altura de transferencia segura si es necesario','Toma de corriente con altura accesible desde silla de ruedas'
+      ]}
+    ]
+  },
+  bano: {
+    tips:[
+      'Definí si es baño social (lo ven las visitas) o privado — cambia el nivel de formalidad.',
+      'La ventilación (natural o extractor) es un dato técnico crítico, no solo estético.',
+      'El guardado de toallas y productos suele subestimarse — preguntalo siempre.'
+    ],
+    mobiliario:['Mueble bajo lavamanos con guardado','Ducha','Tina','Inodoro suspendido','Espejo con luz integrada','Toallero calefaccionado'],
+    iluminacion:['Luz general','Luz en espejo (frontal, sin sombras)','Luz cálida relajante','Necesita ventilación / extractor'],
+    preguntas:[
+      {id:'tipo', label:'¿Es baño social o de uso privado?', placeholder:'...'},
+      {id:'griferia', label:'Grifería y sanitarios: ¿ya definidos o a elegir?', placeholder:'...'},
+      {id:'guardado', label:'¿Cuánto guardado necesitan (toallas, productos, botiquín)?', placeholder:'...'}
+    ],
+    funcional:[
+      { categoria:'Circulación y accesibilidad', items:[
+        'Circulación mínima 60cm frente al lavamanos','Espacio de giro 150cm (accesibilidad universal)','Puerta que abra hacia afuera (seguridad)','Altura de lavamanos según usuarios'
+      ]},
+      { categoria:'Seguridad e higiene', items:[
+        'Barra de apoyo prevista en ducha','Piso antideslizante certificado','Guardado cerrado para productos de limpieza','Enchufe con protección diferencial cerca del lavamanos'
+      ]},
+      { categoria:'Instalaciones', items:[
+        'Desagüe de ducha correctamente pendientado','Ventilación mecánica si no hay ventana','Impermeabilización antes de terminaciones','Sifón de piso accesible para mantenimiento'
+      ]},
+      { categoria:'Confort', items:[
+        'Iluminación cálida vs. fría según uso','Luz de espejo sin sombras para maquillarse/afeitarse','Toallero calefaccionado en climas fríos'
+      ]},
+      { categoria:'Accesibilidad avanzada', items:[
+        'Ducha a ras de piso (sin resalte)','Inodoro a altura de transferencia si es necesario','Grifería de palanca fácil de accionar','Espacio libre bajo lavamanos para silla de ruedas','Timbre de emergencia si hay usuario de riesgo'
+      ]}
+    ]
+  },
+  comedor: {
+    tips:[
+      'Preguntá la cantidad real de comensales del día a día vs. la que quieren para eventos grandes.',
+      'La luz colgante sobre la mesa es el elemento que más define el carácter del comedor.',
+      'Si está integrado al living, conviene marcar un quiebre visual (alfombra, cielo, color).'
+    ],
+    mobiliario:['Mesa para 4','Mesa para 6-8','Mesa extensible','Sillas','Vajillero / aparador','Carro bar','Lámpara colgante sobre mesa'],
+    iluminacion:['Colgante sobre mesa (foco fuerte)','Luz general regulable','Ambiente cálido para cenas'],
+    preguntas:[
+      {id:'comensales', label:'¿Cuántas personas comen ahí normalmente, y cuántas en ocasiones especiales?', placeholder:'...'},
+      {id:'formal', label:'¿Es un comedor formal o de uso diario informal?', placeholder:'...'},
+      {id:'vajilla', label:'Vajilla / cristalería que quieran exhibir', placeholder:'Define si necesitan vajillero con vidrio...'}
+    ],
+    funcional:[
+      { categoria:'Circulación', items:[
+        'Circulación mínima 90cm alrededor de la mesa','Distancia mesa-pared mínima 90cm (sillas afuera)','Acceso directo o cercano a la cocina','Ancho de paso libre hacia el resto de la casa'
+      ]},
+      { categoria:'Iluminación técnica', items:[
+        'Altura de lámpara colgante 75-90cm sobre mesa','Dimmer para pasar de uso diario a cena especial','Luz cálida (2700-3000K) para ambiente de cena'
+      ]},
+      { categoria:'Materiales y mantenimiento', items:[
+        'Superficie de mesa resistente a manchas/calor','Aparador con acceso sin obstruir circulación','Ventilación si se usa para reuniones largas','Silla apilable/plegable si el espacio es reducido'
+      ]},
+      { categoria:'Ergonomía de mesa', items:[
+        'Ancho mínimo 60cm de mesa por comensal','Altura estándar de mesa 75cm con sillas','Espacio libre bajo mesa para piernas (mín. 60cm)'
+      ]},
+      { categoria:'Acústica y confort', items:[
+        'Absorción acústica si el comedor es muy reflejante (piso duro, techo alto)','Climatización que no incomode en la zona de asientos fijos'
+      ]},
+      { categoria:'Accesibilidad', items:[
+        'Silla con reposabrazos removible para adultos mayores','Espacio de giro si hay usuario con silla de ruedas','Mesa con altura libre para silla de ruedas (mín. 70cm)','Camino de circulación sin alfombras sueltas (riesgo de tropiezo)'
+      ]}
+    ]
+  },
+  living: {
+    tips:[
+      'El tamaño y ubicación del sofá define toda la circulación del ambiente.',
+      'Preguntá el tamaño de TV con anticipación — condiciona distancia y mueble.',
+      'Si hay mascotas o niños chicos, eso cambia la elección de telas.'
+    ],
+    mobiliario:['Sofá 3 cuerpos','Sofá seccional / módulos','Mesa de centro','Rack / mueble TV','Sillón individual','Estantería / biblioteca','Alfombra'],
+    iluminacion:['Luz general','Lámparas de pie/mesa (ambiente)','Foco sobre arte o decoración','Ya tiene mucha luz natural'],
+    preguntas:[
+      {id:'uso', label:'¿Cómo usan el living — ver TV, recibir visitas, ambos?', placeholder:'...'},
+      {id:'tv', label:'Tamaño de TV y si necesitan sistema de audio', placeholder:'...'},
+      {id:'mascotas', label:'¿Tienen mascotas o niños chicos?', placeholder:'Define telas y alturas...'}
+    ],
+    funcional:[
+      { categoria:'Ergonomía visual', items:[
+        'Distancia sofá-TV proporcional al tamaño de pantalla','Orientación del sofá evitando contraluz en TV','Altura de mesa de centro proporcional al sofá','Altura de asiento de sofá ergonómica (42-45cm)'
+      ]},
+      { categoria:'Circulación', items:[
+        'Circulación mínima 90cm entre sofá y mesa de centro','Paso hacia otros ambientes sin interrumpir la zona de estar','Espacio libre frente al sofá para levantarse cómodo'
+      ]},
+      { categoria:'Instalaciones', items:[
+        'Enchufes para lámparas sin cables cruzando el paso','Control de iluminación por escenas (TV / visitas)','Aislación acústica si hay home theater','Punto de red/cable para consolas o streaming'
+      ]},
+      { categoria:'Materiales y mantenimiento', items:[
+        'Tela de sofá resistente si hay mascotas/niños','Alfombra de pelo corto en zonas de mucho tránsito','Superficies fáciles de limpiar en mesa de centro'
+      ]},
+      { categoria:'Acústica', items:[
+        'Materiales blandos (cortinas, alfombra) para bajar reverberación','Aislación de ruido de calle si hay ventanales grandes'
+      ]},
+      { categoria:'Accesibilidad', items:[
+        'Altura de sofá cómoda para adultos mayores','Circulación amplia si hay silla de ruedas o andador','Mando/control de TV accesible sin estirarse','Bordes redondeados en mesa de centro si hay niños'
+      ]}
+    ]
+  },
+  homeoffice: {
+    tips:[
+      'La ergonomía de la silla y la altura del escritorio son la base — no es solo estética.',
+      'Preguntá sobre videollamadas: define qué pared/fondo va a verse en cámara.',
+      'El cableado y la cantidad de enchufes se planifican ahora, no después de instalado el piso.'
+    ],
+    mobiliario:['Escritorio individual','Escritorio doble/compartido','Silla ergonómica','Estantería / archivo','Fondo para videollamadas','Pizarra / corcho'],
+    iluminacion:['Luz natural de frente (no a contraluz en cámara)','Luz de tarea sobre escritorio','Luz general'],
+    preguntas:[
+      {id:'horas', label:'¿Cuántas horas al día se usa y para qué tipo de trabajo?', placeholder:'...'},
+      {id:'video', label:'¿Hacen videollamadas seguido?', placeholder:'Define fondo y luz...'},
+      {id:'equipos', label:'Equipos que ya tienen y necesidades de cableado', placeholder:'Monitores, impresora...'}
+    ],
+    funcional:[
+      { categoria:'Ergonomía', items:[
+        'Altura de escritorio ergonómica (72-75cm o ajustable)','Silla con soporte lumbar y reposabrazos','Monitor a la altura de los ojos','Distancia ojo-pantalla 50-70cm','Espacio para piernas mínimo 60cm de profundidad'
+      ]},
+      { categoria:'Instalaciones', items:[
+        'Tomas eléctricas y de red cerca del escritorio','Cableado organizado y oculto','Iluminación sin reflejos en pantalla','Suficientes tomas para múltiples dispositivos'
+      ]},
+      { categoria:'Confort de uso prolongado', items:[
+        'Aislación acústica si hay llamadas frecuentes','Ventilación / circulación de aire adecuada','Almacenamiento accesible sin levantarse mucho','Temperatura estable durante jornadas largas'
+      ]},
+      { categoria:'Videollamadas y presencia digital', items:[
+        'Fondo neutro y ordenado en cámara','Luz de frente sin contraluz de ventana','Reducción de eco/reverberación en la sala'
+      ]},
+      { categoria:'Seguridad postural', items:[
+        'Posibilidad de alternar sentado/parado','Silla con altura de asiento regulable','Espacio de aproximación frontal libre para silla de ruedas','Altura de estantería de uso frecuente al alcance'
+      ]}
+    ]
+  },
+  balcon: {
+    tips:[
+      'Definí si es para comer, relajarse o solo decorativo — cambia todo el mobiliario.',
+      'Los materiales deben resistir sol y humedad — no todo mueble de interior sirve afuera.',
+      'Las plantas necesitan que definan mantenimiento real disponible, no el ideal.'
+    ],
+    mobiliario:['Mesa y sillas exterior','Reposera / sillón','Macetas / jardinera','Toldo o cobertor','Iluminación exterior','Parrilla pequeña'],
+    iluminacion:['Luz cálida para la noche','Solo luz natural de día','Guirnaldas / ambiente decorativo'],
+    preguntas:[
+      {id:'uso', label:'¿Para qué lo van a usar principalmente?', placeholder:'Comer, relajarse, plantas...'},
+      {id:'clima', label:'¿Cuánto sol/viento recibe?', placeholder:'Condiciona materiales...'},
+      {id:'mantenimiento', label:'¿Cuánto tiempo real tienen para mantenimiento de plantas?', placeholder:'...'}
+    ],
+    funcional:[
+      { categoria:'Seguridad estructural', items:[
+        'Baranda con altura de seguridad (mín. 90-100cm)','Separación entre barrotes máx. 10-12cm (niños)','Resistencia estructural para mobiliario pesado (jardineras)','Carga máxima permitida verificada (norma del edificio)'
+      ]},
+      { categoria:'Instalaciones exteriores', items:[
+        'Piso antideslizante apto exterior','Desagüe de piso para evitar encharque','Punto eléctrico con protección IP para exterior','Grifo o toma de agua si hay muchas plantas'
+      ]},
+      { categoria:'Confort climático', items:[
+        'Protección solar según orientación (toldo/pérgola)','Circulación mínima para mesa y sillas sin quedar contra la baranda','Protección contra viento si el piso es alto'
+      ]},
+      { categoria:'Materiales', items:[
+        'Mobiliario con resistencia UV (no se decolora)','Textiles de secado rápido / repelentes al agua','Macetas con buen drenaje para no dañar el piso'
+      ]},
+      { categoria:'Uso nocturno', items:[
+        'Iluminación cálida regulable para la noche','Enchufe exterior para luces decorativas'
+      ]},
+      { categoria:'Accesibilidad y practicidad', items:[
+        'Umbral sin desnivel para silla de ruedas/andador','Altura de baranda que permita ver sentado','Espacio de giro para maceteros grandes','Mobiliario liviano y fácil de mover para limpieza'
+      ]}
+    ]
+  },
+  oficinaEspacio: {
+    tips:[
+      'Cada espacio de oficina debería reforzar la marca — no ser un living genérico.',
+      'Definí capacidad real de uso simultáneo, no la capacidad ideal.',
+      'Acústica y privacidad visual suelen ser el problema #1 en oficinas abiertas.'
+    ],
+    mobiliario:['Mobiliario modular','Puestos individuales','Mesa de reuniones','Sillón de espera','Estantería / archivo','Cabina fonoabsorbente'],
+    iluminacion:['Luz general uniforme','Luz de tarea en puestos','Iluminación de marca / acento'],
+    preguntas:[
+      {id:'capacidad', label:'Capacidad real de uso simultáneo de este espacio', placeholder:'...'},
+      {id:'privacidad', label:'¿Necesita privacidad visual o acústica particular?', placeholder:'...'},
+      {id:'marca', label:'Elementos de marca a incorporar acá', placeholder:'Logo, colores, señalética...'}
+    ],
+    funcional:[
+      { categoria:'Circulación y accesibilidad', items:[
+        'Pasillos con mínimo 90cm de ancho','Accesibilidad para movilidad reducida','Ruta de evacuación despejada','Puerta con ancho reglamentario de acceso'
+      ]},
+      { categoria:'Acústica y privacidad', items:[
+        'Aislación acústica respecto a espacios abiertos','Privacidad visual donde se requiera','Materiales que absorban ruido','Cabina o sala para llamadas privadas'
+      ]},
+      { categoria:'Instalaciones', items:[
+        'Tomas eléctricas y de red suficientes','Climatización adecuada al uso del espacio','Iluminación acorde a la tarea que se realiza ahí','Puntos de carga accesibles para visitas'
+      ]},
+      { categoria:'Ergonomía y confort', items:[
+        'Mobiliario ergonómico según tiempo de uso','Altura de mesa/mostrador acorde a la función','Asientos de espera cómodos para más de 15 min'
+      ]},
+      { categoria:'Seguridad y normativa', items:[
+        'Señalética de seguridad visible','Extintor accesible','Cumplimiento de normativa de accesibilidad universal','Ruta de acceso sin escalones o con rampa alternativa','Botón de pánico o contacto de emergencia visible'
+      ]}
+    ]
+  },
+  otro: {
+    tips:[
+      'Preguntá el uso real del espacio antes que nada — no asumas por el nombre.',
+      'Definí qué mobiliario ya existe y qué falta.',
+      'La iluminación y el mantenimiento real disponible siempre condicionan la propuesta.'
+    ],
+    mobiliario:['Mobiliario a definir','Almacenamiento','Iluminación exterior','Mobiliario existente a reubicar'],
+    iluminacion:['Luz general','Luz natural suficiente','A definir'],
+    preguntas:[
+      {id:'uso', label:'¿Cuál es el uso principal de este espacio?', placeholder:'...'},
+      {id:'existente', label:'¿Qué mobiliario ya tienen ahí y quieren mantener?', placeholder:'...'},
+      {id:'puntual', label:'Algo puntual que quieran resolver o mejorar acá', placeholder:'...'}
+    ],
+    funcional:[
+      { categoria:'Circulación y seguridad', items:[
+        'Circulación mínima adecuada al uso','Piso apto para el tipo de tránsito esperado','Iluminación suficiente para uso seguro'
+      ]},
+      { categoria:'Instalaciones', items:[
+        'Tomas eléctricas suficientes','Ventilación adecuada','Punto de agua si el uso lo requiere'
+      ]}
+    ]
+  }
+};
+
+function matchRoomProfile(room){
+  const n = room.toLowerCase();
+  if(n.includes('cocina') && !n.includes('kitchenette')) return roomProfiles.cocina;
+  if(n.includes('dormitorio')) return roomProfiles.dormitorio;
+  if(n.includes('baño') || n.includes('bano')) return roomProfiles.bano;
+  if(n.includes('comedor')) return roomProfiles.comedor;
+  if(n.includes('living') || n.includes('estar')) return roomProfiles.living;
+  if(n.includes('home office')) return roomProfiles.homeoffice;
+  if(n.includes('balcón') || n.includes('balcon') || n.includes('terraza')) return roomProfiles.balcon;
+  if(n.includes('recepción')||n.includes('recepcion')||n.includes('puestos')||n.includes('reunion')||n.includes('gerencia')||n.includes('kitchenette')||n.includes('espera')||n.includes('break room')||n.includes('depósito')||n.includes('deposito')||n.includes('archivo')) return roomProfiles.oficinaEspacio;
+  return roomProfiles.otro;
+}
+
+function ensureRoomDetail(room){
+  if(!state.ambientesDetalle[room]) state.ambientesDetalle[room] = { mobiliario:[], iluminacion:[], comprarNotas:"", respuestas:{}, funcional:[] };
+  return state.ambientesDetalle[room];
+}
+
+function renderDetalleAmbientes(){
+  const rooms = state.ambientesSeleccion.length ? state.ambientesSeleccion : [];
+  const esUnico = state.proyecto.tipoProyecto==='ambiente-unico';
+  return `
+    <div class="step-title">${esUnico ? 'Preguntas clave del ambiente' : 'Funcionalidad por ambiente'}</div>
+    <div class="step-desc">Cada ambiente tiene su propio set de preguntas — mobiliario, iluminación, colorimetría, auditoría ergonómica/técnica y detalles específicos de ese espacio en particular.</div>
+    <div id="rooms">
+      ${rooms.length ? rooms.map(r=>renderRoomBlock(r, esUnico)).join('') : '<div class="note">Volvé al paso anterior y seleccioná al menos un ambiente.</div>'}
+    </div>
+  `;
+}
+
+function renderRoomBlock(room, openByDefault){
+  const profile = matchRoomProfile(room);
+  const det = ensureRoomDetail(room);
+  return `
+    <div class="room ${openByDefault?'open':''}" data-r="${room}">
+      <div class="room-head"><span>${room}</span><span class="arrow">›</span></div>
+      <div class="room-body"><div class="room-body-inner">
+        <div class="fact-grid" style="margin-top:14px;">
+          ${profile.tips.map(t=>`<div class="fact"><div class="fv">${t}</div></div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Mobiliario necesario</label>
+        <div class="chip-grid rd-mobiliario">
+          ${profile.mobiliario.map(m=>`<div class="chip ${det.mobiliario.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:16px; display:block;">Iluminación</label>
+        <div class="chip-grid rd-iluminacion">
+          ${profile.iluminacion.map(m=>`<div class="chip ${det.iluminacion.includes(m)?'selected':''}" data-v="${m}">${m}</div>`).join('')}
+        </div>
+
+        <label class="field-label" style="margin-top:16px; display:block;">¿Qué compran nuevo y qué reutilizan en este ambiente?</label>
+        <textarea class="rd-comprar" placeholder="Ej: quieren comprar sofá nuevo pero mantener la mesa de centro...">${det.comprarNotas}</textarea>
+
+        <div class="note" style="margin-top:16px;">Colorimetría: revisá con la paleta elegida en el paso "Paleta de color" — acá solo anotá si este ambiente puntual necesita un tratamiento de color distinto al resto (ej. dormitorio más oscuro, baño más claro por ser chico).</div>
+
+        ${profile.preguntas.map(q=>`
+          <label class="field-label" style="margin-top:16px; display:block;">${q.label}</label>
+          <textarea class="rd-q" data-qid="${q.id}" placeholder="${q.placeholder}">${det.respuestas[q.id]||''}</textarea>
+        `).join('')}
+
+        <div class="func-audit-title">Auditoría funcional y ergonómica</div>
+        <div class="func-audit-sub">Puntos técnicos que definen si el ambiente funciona bien, más allá del gusto. Marcá los relevantes.</div>
+        <div class="rd-funcional">${renderFuncionalGroups(profile.funcional, det.funcional)}</div>
+        <div class="func-count">${det.funcional.length} ítems marcados como relevantes para este ambiente</div>
+      </div></div>
+    </div>
+  `;
+}
+
+function bindDetalleAmbientes(){
+  document.querySelectorAll('#rooms .room').forEach(roomEl=>{
+    const room = roomEl.dataset.r;
+    const det = ensureRoomDetail(room);
+    roomEl.querySelector('.room-head').onclick=()=> roomEl.classList.toggle('open');
+
+    const comprarTa = roomEl.querySelector('.rd-comprar');
+    if(comprarTa) comprarTa.oninput=()=> det.comprarNotas = comprarTa.value;
+
+    roomEl.querySelectorAll('.rd-mobiliario .chip').forEach(ch=>{
+      ch.onclick=()=>{
+        const v=ch.dataset.v; const i=det.mobiliario.indexOf(v);
+        if(i>-1){det.mobiliario.splice(i,1); ch.classList.remove('selected');}
+        else{det.mobiliario.push(v); ch.classList.add('selected');}
+      };
+    });
+    roomEl.querySelectorAll('.rd-iluminacion .chip').forEach(ch=>{
+      ch.onclick=()=>{
+        const v=ch.dataset.v; const i=det.iluminacion.indexOf(v);
+        if(i>-1){det.iluminacion.splice(i,1); ch.classList.remove('selected');}
+        else{det.iluminacion.push(v); ch.classList.add('selected');}
+      };
+    });
+    roomEl.querySelectorAll('.rd-q').forEach(ta=>{
+      const qid = ta.dataset.qid;
+      ta.oninput=()=>{ det.respuestas[qid]=ta.value; };
+    });
+    const funcContainer = roomEl.querySelector('.rd-funcional');
+    if(funcContainer) bindFuncionalGroups(funcContainer, det.funcional);
+  });
+}
+
+/* ---------- 06 MOBILIARIO ---------- */
+function renderMobiliario(){
+  return `
+    <div class="step-title">Mobiliario existente</div>
+    <div class="step-desc">Definir qué se muda con ellos condiciona las medidas de todo el proyecto nuevo.</div>
+    <div class="grid2">
+      <div class="field" style="grid-column:1/-1"><label class="field-label">Muebles actuales que quieren reutilizar</label><textarea id="m-reutilizar"></textarea></div>
+      <div class="field" style="grid-column:1/-1"><label class="field-label">Piezas "no negociables"</label><textarea id="m-noneg"></textarea></div>
+      <div class="field"><label class="field-label">Electrodomésticos ya definidos</label><textarea id="m-electro"></textarea></div>
+      <div class="field"><label class="field-label">Obras de arte / objetos especiales</label><textarea id="m-arte"></textarea></div>
+    </div>
+  `;
+}
+function bindMobiliario(){
+  const map={'m-reutilizar':'reutilizar','m-noneg':'noNegociables','m-electro':'electrodomesticos','m-arte':'arte'};
+  Object.entries(map).forEach(([id,key])=>{ const el=document.getElementById(id); el.value=state.mobiliario[key]||''; el.oninput=()=> state.mobiliario[key]=el.value; });
+}
+
+/* ---------- 07 PRESUPUESTO ---------- */
+function renderPresupuesto(){
+  return `
+    <div class="step-title">Presupuesto</div>
+    <div class="step-desc">Preguntalo con naturalidad, después de haber generado confianza con los pasos anteriores.</div>
+    <div class="field"><label class="field-label">Presupuesto total aproximado</label><input type="text" id="p-monto" placeholder="Ej: USD 25.000 — 30.000"></div>
+    <div class="field"><label class="field-label">¿Dónde priorizan la inversión?</label>
+      <div class="chip-grid" id="p-distrib">${['Cocina','Living','Dormitorios','Baños','Equilibrado en todo'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+    </div>
+    <div class="field"><label class="field-label">¿Incluye obra (tabiques, instalaciones, pisos)?</label>
+      <div class="chip-grid" id="p-obra">${['Sí, todo incluido','Solo mobiliario/decoración','A definir'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+    </div>
+    <div class="field"><label class="field-label">Flexibilidad si una propuesta superior cuesta más</label>
+      <div class="chip-grid" id="p-flex">${['Número fijo','Algo de flexibilidad','Bastante flexible'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+    </div>
+  `;
+}
+function bindPresupuesto(){
+  const monto=document.getElementById('p-monto'); monto.value=state.presupuesto.monto; monto.oninput=()=> state.presupuesto.monto=monto.value;
+  bindChipGroup('p-distrib', v=>state.presupuesto.distribucion=v, state.presupuesto.distribucion);
+  bindChipGroup('p-obra', v=>state.presupuesto.incluyeObra=v, state.presupuesto.incluyeObra);
+  bindChipGroup('p-flex', v=>state.presupuesto.flexible=v, state.presupuesto.flexible);
+}
+function bindChipGroup(containerId, setter, current){
+  document.querySelectorAll('#'+containerId+' .chip').forEach(ch=>{
+    if(ch.dataset.v===current) ch.classList.add('selected');
+    ch.onclick=()=>{ document.querySelectorAll('#'+containerId+' .chip').forEach(x=>x.classList.remove('selected')); ch.classList.add('selected'); setter(ch.dataset.v); };
+  });
+}
+
+/* ---------- 08 PLAZOS ---------- */
+function renderPlazos(){
+  return `
+    <div class="step-title">Plazos</div>
+    <div class="step-desc">Fechas reales, no aspiracionales — preguntá si hay algo que las condicione.</div>
+    <div class="grid2">
+      <div class="field"><label class="field-label">Fecha en que necesitan el espacio habitable</label><input type="date" id="pl-fecha"></div>
+      <div class="field"><label class="field-label">Motivo de esa fecha (si aplica)</label><input type="text" id="pl-motivo" placeholder="Mudanza, evento, nacimiento..."></div>
+    </div>
+    <div class="field"><label class="field-label">¿Proyecto por etapas o todo en simultáneo?</label>
+      <div class="chip-grid" id="pl-etapas">${['Todo en simultáneo','Por etapas (sociales primero)','Por etapas (a definir)'].map(o=>`<div class="chip" data-v="${o}">${o}</div>`).join('')}</div>
+    </div>
+  `;
+}
+function bindPlazos(){
+  const fecha=document.getElementById('pl-fecha'); fecha.value=state.plazos.fecha; fecha.oninput=()=> state.plazos.fecha=fecha.value;
+  const motivo=document.getElementById('pl-motivo'); motivo.value=state.plazos.motivo; motivo.oninput=()=> state.plazos.motivo=motivo.value;
+  bindChipGroup('pl-etapas', v=>state.plazos.etapas=v, state.plazos.etapas);
+}
+
+/* ---------- 09 CIERRE ---------- */
+function renderCierre(){
+  return `
+    <div class="step-title">Cierre del relevamiento</div>
+    <div class="step-desc">Las tres últimas preguntas suelen sacar la información más honesta de toda la entrevista.</div>
+    <div class="field"><label class="field-label">Algo que NO quieran en el espacio</label><textarea id="c-evitar"></textarea></div>
+    <div class="field"><label class="field-label">Una palabra para cómo quieren sentirse ahí</label><input type="text" id="c-palabra" placeholder="Ej: calma, orgullo, luz..."></div>
+    <div class="field"><label class="field-label">Temas o preocupaciones pendientes</label><textarea id="c-pendientes"></textarea></div>
+  `;
+}
+function bindCierre(){
+  const evitar=document.getElementById('c-evitar'); evitar.value=state.cierre.evitar; evitar.oninput=()=> state.cierre.evitar=evitar.value;
+  const palabra=document.getElementById('c-palabra'); palabra.value=state.cierre.palabra; palabra.oninput=()=> state.cierre.palabra=palabra.value;
+  const pend=document.getElementById('c-pendientes'); pend.value=state.cierre.pendientes; pend.oninput=()=> state.cierre.pendientes=pend.value;
+}
+
+/* ---------- 10 RESUMEN ---------- */
+function renderResumen(){
+  const s=state;
+  const allStyleSources = [...styleCards, ...officeStyleCards, ...Object.values(s.estilosPersonalizados).flat()];
+  const styleNames=Object.fromEntries(allStyleSources.map(c=>[c.k,c.t]));
+  const allMobSources = [...mobiliarioCardsBase, ...Object.values(s.mobiliarioTiposPersonalizados).flat()];
+  const mobNames=Object.fromEntries(allMobSources.map(c=>[c.k,c.t]));
+  const paletteNames=Object.fromEntries(paletteDefs.map(p=>[p.key,p.nombre]));
+  const roomLines = s.ambientesSeleccion.map(r=>{
+    const det = s.ambientesDetalle[r]; if(!det) return '';
+    const profile = matchRoomProfile(r);
+    let block = `<div style="font-weight:600; font-size:13px; margin:12px 0 4px;">${r}</div><div class="sum-grid">`;
+    block += `<div class="k">Mobiliario</div><div class="v">${det.mobiliario.join(', ')||'—'}</div>`;
+    block += `<div class="k">Iluminación</div><div class="v">${det.iluminacion.join(', ')||'—'}</div>`;
+    block += `<div class="k">Comprar / reutilizar</div><div class="v">${det.comprarNotas||'—'}</div>`;
+    profile.preguntas.forEach(q=>{ block += `<div class="k">${q.label}</div><div class="v">${(det.respuestas&&det.respuestas[q.id])||'—'}</div>`; });
+    block += `<div class="k">Auditoría funcional/ergonómica</div><div class="v">${(det.funcional||[]).join(' · ')||'—'}</div>`;
+    block += `</div>`;
+    return block;
+  }).join('');
+  const tipoLabel = {vivienda:'Vivienda completa', oficina:'Oficina / local comercial', 'ambiente-unico':'Un solo ambiente'}[s.proyecto.tipoProyecto] || '—';
+  return `
+    <div class="step-title">Resumen de la entrevista</div>
+    <div class="step-desc">Listo para imprimir o exportar como PDF (Ctrl/Cmd + P) y anexar a la ficha del proyecto.</div>
+
+    <div class="summary-block"><h3>Proyecto</h3><div class="sum-grid">
+      <div class="k">Tipo de proyecto</div><div class="v">${tipoLabel}</div>
+      <div class="k">Cliente</div><div class="v">${s.proyecto.cliente||'—'}</div>
+      ${s.proyecto.tipoProyecto==='vivienda' ? `<div class="k">Tipo de propiedad</div><div class="v">${s.proyecto.tipo||'—'}</div>` : ''}
+      <div class="k">Dirección</div><div class="v">${s.proyecto.direccion||'—'}</div>
+      <div class="k">Superficie</div><div class="v">${s.proyecto.m2||'—'}</div>
+      <div class="k">Integrantes / usuarios</div><div class="v">${s.proyecto.integrantes||'—'}</div>
+      <div class="k">Contacto</div><div class="v">${s.proyecto.contacto||'—'}</div>
+      <div class="k">Ambientes a intervenir</div><div class="v">${s.ambientesSeleccion.join(', ')||'—'}</div>
+    </div></div>
+
+    ${s.proyecto.tipoProyecto==='oficina' ? `
+    <div class="summary-block"><h3>Datos de la oficina</h3><div class="sum-grid">
+      <div class="k">Personas / puestos</div><div class="v">${s.oficina.personas||'—'}</div>
+      <div class="k">Horario de uso</div><div class="v">${s.oficina.horario||'—'}</div>
+      <div class="k">Modalidad</div><div class="v">${s.oficina.modalidad||'—'}</div>
+      <div class="k">Sala de reuniones</div><div class="v">${s.oficina.salaReuniones||'—'}</div>
+      <div class="k">Recibe visitas/clientes</div><div class="v">${s.oficina.visitas||'—'}</div>
+      <div class="k">Prioridad acústica</div><div class="v">${s.oficina.acustica||'—'}</div>
+      <div class="k">Identidad de marca</div><div class="v">${s.oficina.identidadMarca||'—'}</div>
+      <div class="k">Tecnología</div><div class="v">${s.oficina.tecnologia||'—'}</div>
+      <div class="k">Auditoría funcional/ergonómica</div><div class="v">${s.oficina.funcional.join(' · ')||'—'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Roles y flujo de trabajo</h3>
+      ${s.roles.length ? s.roles.map(r=>`
+        <div style="margin-bottom:14px;">
+          <div style="font-weight:600; font-size:13px; margin-bottom:4px;">${r.nombre || '(sin nombre)'}</div>
+          <div class="sum-grid">
+            <div class="k">Función</div><div class="v">${r.funcion||'—'}</div>
+            <div class="k">Recibe clientes</div><div class="v">${r.recibeClientes||'—'}</div>
+            <div class="k">Recorrido del cliente</div><div class="v">${r.recorrido||'—'}</div>
+            <div class="k">Mobiliario</div><div class="v">${r.mobiliario.join(', ')||'—'}</div>
+            <div class="k">Equipo</div><div class="v">${(r.equipo||[]).join(', ')||'—'}</div>
+            <div class="k">Instalaciones</div><div class="v">${(r.instalaciones||[]).join(', ')||'—'}</div>
+            <div class="k">Almacenamiento</div><div class="v">${r.almacenamiento.join(', ')||'—'}</div>
+            <div class="k">Organización</div><div class="v">${r.organizacion||'—'}</div>
+            <div class="k">Tecnología</div><div class="v">${r.tecnologia.join(', ')||'—'}</div>
+            <div class="k">Conecta con</div><div class="v">${(r.conectaCon||[]).map(id=>{const o=s.roles.find(x=>x.id===id); return o?o.nombre:null;}).filter(Boolean).join(', ')||'—'}</div>
+            <div class="k">Detalle de la conexión</div><div class="v">${r.conexionDetalle||'—'}</div>
+            <div class="k">Cruces de circulación</div><div class="v">${r.cruces||'—'}</div>
+            <div class="k">Confort</div><div class="v">${r.confort.join(', ')||'—'}</div>
+            <div class="k">Notas</div><div class="v">${r.notas||'—'}</div>
+          </div>
+        </div>
+      `).join('') : '<div class="sum-grid"><div class="v">No se agregaron roles.</div></div>'}
+    </div>` : ''}
+
+    <div class="summary-block"><h3>Estilo arquitectónico</h3><div class="sum-grid">
+      <div class="k">Dirección elegida</div><div class="v">${s.estilo.seleccion.map(k=>styleNames[k]).join(', ')||'—'}</div>
+      <div class="k">Atemporal / tendencia</div><div class="v">${s.estilo.atemporalidad}/10</div>
+      <div class="k">Densidad</div><div class="v">${s.estilo.densidad}</div>
+      <div class="k">Referencias</div><div class="v">${s.estilo.refs||'—'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Detalle por estilo (por espacio)</h3>
+      ${Object.keys(s.estiloDetalle).filter(fk=>{const d=s.estiloDetalle[fk]; return d && (d.notas || d.audios.length || (d.fotos||[]).some(f=>f&&f.reaction));}).map(fullKey=>{
+        const [ctx, styleKey] = fullKey.split('::');
+        const d = s.estiloDetalle[fullKey];
+        const rated = (d.fotos||[]).filter(f=>f && (f.reaction==='like'||f.reaction==='super'));
+        const discarded = (d.fotos||[]).filter(f=>f && f.reaction==='dislike').length;
+        const fotoLines = rated.map((f)=>`<div class="k">${f.reaction==='super'?'★ Le encantó':'♥ Le gustó'} (${f.rating}/10)</div><div class="v">${f.comment||'sin comentario'}</div>`).join('');
+        return `<div style="margin-bottom:14px;">
+          <div style="font-weight:600; font-size:13px; margin-bottom:4px;">${ctx} — ${styleNames[styleKey]||styleKey} ${state.estilo.seleccion.includes(styleKey)?'★ elegido':''}</div>
+          <div class="sum-grid">
+            <div class="k">Fotos revisadas</div><div class="v">${rated.length} bien calificadas, ${discarded} descartadas, de ${(d.fotos||[]).filter(f=>f).length} subidas</div>
+            ${fotoLines}
+            <div class="k">Notas generales</div><div class="v">${d.notas||'—'}</div>
+            <div class="k">Audios</div><div class="v">${d.audios.length ? d.audios.map(a=>`<a href="${a.url}" download="${a.name}">${a.name}</a>`).join(', ') : '—'}</div>
+          </div>
+        </div>`;
+      }).join('') || '<div class="sum-grid"><div class="v">—</div></div>'}
+    </div>
+
+    <div class="summary-block"><h3>Mobiliario preferido (por espacio)</h3><div class="sum-grid">
+      <div class="k">Tipos elegidos</div><div class="v">${s.mobiliarioGaleria.seleccion.map(k=>mobNames[k]).join(', ')||'—'}</div>
+    </div>
+      ${Object.keys(s.mobiliarioGaleria.detalle).filter(fk=>{const d=s.mobiliarioGaleria.detalle[fk]; return d && (d.notas || d.audios.length || (d.fotos||[]).some(f=>f&&f.reaction));}).map(fullKey=>{
+        const [ctx, mobKey] = fullKey.split('::');
+        const d = s.mobiliarioGaleria.detalle[fullKey];
+        const rated = (d.fotos||[]).filter(f=>f && (f.reaction==='like'||f.reaction==='super'));
+        const fotoLines = rated.map((f)=>`<div class="k">${f.reaction==='super'?'★ Le encantó':'♥ Le gustó'} (${f.rating}/10)</div><div class="v">${f.comment||'sin comentario'}</div>`).join('');
+        return `<div style="margin-bottom:14px;">
+          <div style="font-weight:600; font-size:13px; margin-bottom:4px;">${ctx} — ${mobNames[mobKey]||mobKey}</div>
+          <div class="sum-grid">
+            ${fotoLines}
+            <div class="k">Notas</div><div class="v">${d.notas||'—'}</div>
+          </div>
+        </div>`;
+      }).join('') || ''}
+    </div>
+
+    <div class="summary-block"><h3>Ranking automático & duelo</h3><div class="sum-grid">
+      <div class="k">Ranking de estilos</div><div class="v">${computeRanking().map((r,i)=>`${i+1}. ${r.name} (${r.avg.toFixed(1)}/10)`).join(' · ')||'—'}</div>
+      <div class="k">Favorita absoluta (duelo)</div><div class="v">${duelState && duelState.champion ? `${duelState.champion.styleName} — ${duelState.champion.rating}/10` : 'aún no se jugó el duelo'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Paleta de color</h3><div class="sum-grid">
+      <div class="k">Paleta(s) elegida(s)</div><div class="v">${s.paleta.seleccion.map(k=>paletteNames[k]).join(', ')||'—'}</div>
+      <div class="k">Frío / cálido</div><div class="v">${s.paleta.calidoFrio}/10</div>
+      <div class="k">Colores puntuales que gustan</div><div class="v">${s.paleta.base.join(', ')||'—'}</div>
+      <div class="k">Colores a evitar</div><div class="v">${s.paleta.evitar.join(', ')||'—'}</div>
+      <div class="k">Colores elegidos libremente</div><div class="v">${s.paleta.customColores.map(c=>c.h).join(', ')||'—'}</div>
+      <div class="k">Notas</div><div class="v">${s.paleta.notas||'—'}</div>
+    </div>
+    ${s.proyecto.tipoProyecto==='oficina' ? `
+      <div style="margin-top:14px;">
+        <div class="k" style="margin-bottom:6px;">Paletas de oficina elegidas</div>
+        ${getOfficePalettes().filter(p=>s.paletaOficina.seleccion.includes(p.key) || (s.paletaOficina.detalle[p.key]&&s.paletaOficina.detalle[p.key].fotos.some(f=>f))).map(p=>{
+          const det = s.paletaOficina.detalle[p.key];
+          const fotosCount = det ? det.fotos.filter(f=>f).length : 0;
+          return `<div class="sum-grid" style="margin-bottom:8px;">
+            <div class="k">${p.nombre}${s.paletaOficina.seleccion.includes(p.key)?' ★':''}</div>
+            <div class="v">${p.colores.map(c=>c?c.h:'').filter(Boolean).join(', ')||'sin colores definidos'} — ${fotosCount} foto(s) en el moodboard</div>
+          </div>`;
+        }).join('') || '<div class="sum-grid"><div class="v">—</div></div>'}
+      </div>
+    ` : ''}
+    </div>
+
+    <div class="summary-block"><h3>Materiales</h3><div class="sum-grid">
+      <div class="k">Seleccionados</div><div class="v">${s.materiales.seleccion.join(', ')||'—'}</div>
+      <div class="k">Notas</div><div class="v">${s.materiales.notas||'—'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Ambientes</h3>${roomLines || '<div class="sum-grid"><div class="v">—</div></div>'}</div>
+
+    <div class="summary-block"><h3>Mobiliario existente</h3><div class="sum-grid">
+      <div class="k">Reutilizar</div><div class="v">${s.mobiliario.reutilizar||'—'}</div>
+      <div class="k">No negociables</div><div class="v">${s.mobiliario.noNegociables||'—'}</div>
+      <div class="k">Electrodomésticos</div><div class="v">${s.mobiliario.electrodomesticos||'—'}</div>
+      <div class="k">Arte / objetos</div><div class="v">${s.mobiliario.arte||'—'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Presupuesto y plazos</h3><div class="sum-grid">
+      <div class="k">Monto</div><div class="v">${s.presupuesto.monto||'—'}</div>
+      <div class="k">Prioridad</div><div class="v">${s.presupuesto.distribucion||'—'}</div>
+      <div class="k">Incluye obra</div><div class="v">${s.presupuesto.incluyeObra||'—'}</div>
+      <div class="k">Flexibilidad</div><div class="v">${s.presupuesto.flexible||'—'}</div>
+      <div class="k">Fecha límite</div><div class="v">${s.plazos.fecha||'—'}</div>
+      <div class="k">Motivo</div><div class="v">${s.plazos.motivo||'—'}</div>
+      <div class="k">Etapas</div><div class="v">${s.plazos.etapas||'—'}</div>
+    </div></div>
+
+    <div class="summary-block"><h3>Cierre</h3><div class="sum-grid">
+      <div class="k">A evitar</div><div class="v">${s.cierre.evitar||'—'}</div>
+      <div class="k">Palabra clave</div><div class="v">${s.cierre.palabra||'—'}</div>
+      <div class="k">Pendientes</div><div class="v">${s.cierre.pendientes||'—'}</div>
+    </div></div>
+  `;
+}
+
+renderStep();
+</script>
+</body>
+</html>

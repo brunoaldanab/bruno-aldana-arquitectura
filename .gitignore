@@ -1,0 +1,22 @@
+# Claude Code local
+.claude/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+
+# Env
+.env
+.env*.local
+
+# Prisma generated client (se regenera con postinstall)
+src/generated/prisma/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
