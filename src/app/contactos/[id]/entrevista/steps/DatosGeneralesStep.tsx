@@ -1,0 +1,122 @@
+"use client";
+
+import type { EntrevistaState } from "@/lib/entrevista/types";
+
+const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
+
+export function DatosGeneralesStep({
+  state,
+  setState,
+}: {
+  state: EntrevistaState;
+  setState: React.Dispatch<React.SetStateAction<EntrevistaState>>;
+}) {
+  const tipo = state.proyecto.tipoProyecto;
+  const esVivienda = tipo === "vivienda";
+
+  function set(key: keyof EntrevistaState["proyecto"], value: string) {
+    setState((s) => ({ ...s, proyecto: { ...s.proyecto, [key]: value } }));
+  }
+
+  const integrantesLabel = esVivienda
+    ? "¿Quiénes van a vivir ahí?"
+    : tipo === "oficina"
+      ? "¿Cuántas personas trabajan ahí?"
+      : "¿Quién va a usar este ambiente?";
+  const integrantesPlaceholder = esVivienda
+    ? "Ej: pareja + 2 hijos + mascota"
+    : tipo === "oficina"
+      ? "Ej: 12 personas"
+      : "Ej: uso personal / toda la familia";
+
+  return (
+    <div>
+      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Datos generales</h2>
+      <p className="mb-6 text-sm text-neutral-500">
+        {esVivienda
+          ? "Definí el tipo de propiedad — de eso depende qué ambientes van a aparecer después."
+          : "Estos datos van a encabezar la ficha final del proyecto."}
+      </p>
+
+      {esVivienda && (
+        <div className="mb-5">
+          <span className={labelClass}>Tipo de propiedad</span>
+          <div className="flex gap-2">
+            {["Departamento", "Casa"].map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => set("tipo", opt)}
+                className={`rounded-md border px-4 py-2 text-sm ${
+                  state.proyecto.tipo === opt
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className={labelClass}>Nombre del/los cliente/s</span>
+          <input
+            type="text"
+            value={state.proyecto.cliente}
+            onChange={(e) => set("cliente", e.target.value)}
+            placeholder="Ej: Familia Rodríguez / Empresa XYZ"
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Dirección / referencia</span>
+          <input
+            type="text"
+            value={state.proyecto.direccion}
+            onChange={(e) => set("direccion", e.target.value)}
+            placeholder="Barrio, torre, calle..."
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Fecha de la reunión</span>
+          <input type="date" value={state.proyecto.fecha} onChange={(e) => set("fecha", e.target.value)} className={inputClass} />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Superficie aproximada (m²)</span>
+          <input
+            type="text"
+            value={state.proyecto.m2}
+            onChange={(e) => set("m2", e.target.value)}
+            placeholder="Ej: 120 m²"
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <span className={labelClass}>{integrantesLabel}</span>
+          <input
+            type="text"
+            value={state.proyecto.integrantes}
+            onChange={(e) => set("integrantes", e.target.value)}
+            placeholder={integrantesPlaceholder}
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Contacto / quién decide</span>
+          <input
+            type="text"
+            value={state.proyecto.contacto}
+            onChange={(e) => set("contacto", e.target.value)}
+            placeholder="Nombre, teléfono"
+            className={inputClass}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
