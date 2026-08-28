@@ -8,7 +8,7 @@ export interface FotoRef {
 }
 
 export interface EstiloDetalle {
-  fotos: FotoRef[];
+  fotos: (FotoRef | null)[];
   notas: string;
   audios: { url: string; name: string }[];
 }
@@ -51,6 +51,14 @@ export interface AmbienteDetalle {
 
 export interface OfficePaletteDetalle {
   fotos: (string | null)[];
+}
+
+export interface OfficePaletteCustom {
+  key: string;
+  nombre: string;
+  colores: { n: string; h: string }[];
+  uso: string;
+  custom: true;
 }
 
 export interface EntrevistaState {
@@ -101,7 +109,7 @@ export interface EntrevistaState {
   paletaOficina: {
     seleccion: string[];
     detalle: Record<string, OfficePaletteDetalle>;
-    personalizadas: unknown[];
+    personalizadas: OfficePaletteCustom[];
   };
   materiales: {
     seleccion: string[];

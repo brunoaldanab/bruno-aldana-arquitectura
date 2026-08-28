@@ -16,7 +16,12 @@ import { PresupuestoStep } from "./steps/PresupuestoStep";
 import { PlazosStep } from "./steps/PlazosStep";
 import { CierreStep } from "./steps/CierreStep";
 import { ResumenStep } from "./steps/ResumenStep";
-import { PlaceholderStep } from "./steps/PlaceholderStep";
+import { EstiloStep } from "./steps/EstiloStep";
+import { MobiliarioGaleriaStep } from "./steps/MobiliarioGaleriaStep";
+import { DueloStep } from "./steps/DueloStep";
+import { PaletaStep } from "./steps/PaletaStep";
+import { MaterialesStep } from "./steps/MaterialesStep";
+import { DetalleAmbientesStep } from "./steps/DetalleAmbientesStep";
 
 type StepComponentProps = {
   state: EntrevistaState;
@@ -30,12 +35,12 @@ const STEP_COMPONENTS: Record<StepId, React.ComponentType<StepComponentProps>> =
   ambientes: SeleccionAmbientesStep,
   oficina: OficinaStep,
   roles: RolesStep,
-  estilo: PlaceholderStep,
-  duelo: PlaceholderStep,
-  "mobiliario-galeria": PlaceholderStep,
-  paleta: PlaceholderStep,
-  materiales: PlaceholderStep,
-  "detalle-ambientes": PlaceholderStep,
+  estilo: EstiloStep,
+  duelo: DueloStep,
+  "mobiliario-galeria": MobiliarioGaleriaStep,
+  paleta: PaletaStep,
+  materiales: MaterialesStep,
+  "detalle-ambientes": DetalleAmbientesStep,
   "mobiliario-existente": MobiliarioExistenteStep,
   presupuesto: PresupuestoStep,
   plazos: PlazosStep,
