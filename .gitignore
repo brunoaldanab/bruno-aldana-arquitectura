@@ -2,17 +2,20 @@
 .claude/
 
 # Node / Next.js
-node_modules/
-.next/
-out/
-build/
+/node_modules
+/.next/
+/out/
+/build
+*.tsbuildinfo
 
-# Env
-.env
-.env*.local
+# Env (se pueden versionar .env.example si hace falta)
+.env*
+
+# Vercel
+.vercel
 
 # Prisma generated client (se regenera con postinstall)
-src/generated/prisma/
+/src/generated/prisma/
 
 # OS
 .DS_Store
