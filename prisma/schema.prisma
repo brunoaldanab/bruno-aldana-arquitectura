@@ -6,3 +6,65 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Contacto {
+  id                String   @id @default(cuid())
+  nombre            String
+  telefono          String?
+  email             String?
+  direccionProyecto String?
+  notas             String?
+  origen            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  cotizaciones Cotizacion[]
+  entrevistas  Entrevista[]
+}
+
+enum MonedaCotizacion {
+  BOB
+  USD
+}
+
+enum EstadoCotizacion {
+  BORRADOR
+  ENVIADA
+  APROBADA
+  RECHAZADA
+}
+
+model Cotizacion {
+  id         String           @id @default(cuid())
+  contactoId String
+  contacto   Contacto         @relation(fields: [contactoId], references: [id])
+  titulo     String
+  montoTotal Decimal?
+  moneda     MonedaCotizacion @default(BOB)
+  estado     EstadoCotizacion @default(BORRADOR)
+  notas      String?
+  sentAt     DateTime?
+  decidedAt  DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([contactoId])
+}
+
+model Entrevista {
+  id         String   @id @default(cuid())
+  contactoId String
+  contacto   Contacto @relation(fields: [contactoId], references: [id])
+  data       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([contactoId])
+}
