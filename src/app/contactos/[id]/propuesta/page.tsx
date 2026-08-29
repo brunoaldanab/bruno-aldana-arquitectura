@@ -17,27 +17,38 @@ export default async function PropuestaPage({ params }: { params: Promise<{ id: 
     orderBy: { createdAt: "desc" },
   });
 
-  const [estiloFotos, estiloCustom] = await Promise.all([
+  // Solo se traen las fotos de estilo: son las únicas que el documento usa (la
+  // portada). Las de mobiliario y paleta pesan megas en base64 y el resumen las
+  // nombra por texto, así que traerlas sería mandar el peso al navegador para nada.
+  const [estiloFotos, estiloCustom, mobiliarioCustom, paletaOficinaCustom] = await Promise.all([
     prisma.galeriaFoto.findMany({ where: { tipo: "ESTILO" }, orderBy: { orden: "asc" } }),
     prisma.galeriaCardCustom.findMany({ where: { tipo: "ESTILO" }, orderBy: { createdAt: "asc" } }),
+    prisma.galeriaCardCustom.findMany({ where: { tipo: "MOBILIARIO" }, orderBy: { createdAt: "asc" } }),
+    prisma.paletaOficinaCustom.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
-  // Solo hace falta la galería de estilo: es de donde salen la portada y los
-  // nombres de los estilos elegidos.
+  const aCard = (c: { id: string; key: string; titulo: string; mood: string; descripcion: string; facts: unknown }) => ({
+    id: c.id,
+    key: c.key,
+    titulo: c.titulo,
+    mood: c.mood,
+    descripcion: c.descripcion,
+    facts: c.facts as { k: string; v: string }[],
+  });
+
   const galeria: GaleriaData = {
     estiloFotos: estiloFotos.map((f) => ({ id: f.id, cardKey: f.cardKey, dataUrl: f.dataUrl, orden: f.orden })),
-    estiloCustom: estiloCustom.map((c) => ({
+    estiloCustom: estiloCustom.map(aCard),
+    mobiliarioFotos: [],
+    mobiliarioCustom: mobiliarioCustom.map(aCard),
+    paletaOficinaFotos: [],
+    paletaOficinaCustom: paletaOficinaCustom.map((c) => ({
       id: c.id,
       key: c.key,
-      titulo: c.titulo,
-      mood: c.mood,
-      descripcion: c.descripcion,
-      facts: c.facts as unknown as { k: string; v: string }[],
+      nombre: c.nombre,
+      colores: c.colores as { n: string; h: string }[],
+      uso: c.uso,
     })),
-    mobiliarioFotos: [],
-    mobiliarioCustom: [],
-    paletaOficinaFotos: [],
-    paletaOficinaCustom: [],
   };
 
   const state = (entrevista?.data as unknown as EntrevistaState) ?? createInitialEntrevistaState();
@@ -68,5 +79,5 @@ export default async function PropuestaPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  return <Propuesta datos={datos} />;
+  return <Propuesta datos={datos} state={state} galeria={galeria} />;
 }

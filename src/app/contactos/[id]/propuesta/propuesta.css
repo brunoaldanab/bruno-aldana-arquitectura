@@ -182,10 +182,10 @@
 .color-nombre { font-size: 7.5pt; color: var(--tinta-suave); margin-top: 1.5mm; display: block; }
 
 .pie-hoja {
-  position: absolute;
-  left: var(--margen);
-  right: var(--margen);
-  bottom: 10mm;
+  /* En columna y empujado al fondo, no posicionado en absoluto: una hoja de
+     resumen larga desbordaba por debajo de un pie clavado a 10mm del borde. */
+  margin-top: auto;
+  padding-top: 6mm;
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono), monospace;
@@ -235,6 +235,87 @@
 .ejemplo { background: #f7f8f9; padding: 4mm 5mm; border-radius: 2mm; font-size: 9.5pt; }
 
 /* --- Impresión --- */
+
+/* --- Identidad en cada hoja --- */
+
+/* La hoja es una columna para que el pie caiga al fondo sin posicionarlo. */
+.hoja { display: flex; flex-direction: column; }
+
+.marca-hoja { display: flex; align-items: center; gap: 2.5mm; }
+
+.logo-hoja {
+  width: 7mm;
+  height: 7mm;
+  object-fit: contain;
+  border-radius: 1mm;
+}
+
+.marca-nombre {
+  font-family: var(--font-display), sans-serif;
+  font-size: 8pt;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+}
+
+.marca-nombre em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 6.5pt;
+  letter-spacing: 0.14em;
+  color: var(--tinta-suave);
+}
+
+.entradilla {
+  font-size: 10.5pt;
+  color: var(--tinta-suave);
+  max-width: 120mm;
+  margin-bottom: 7mm;
+}
+
+/* --- Filas del resumen de reunión --- */
+
+/* Un bloque no se parte entre dos páginas: cortar "Detalle — Cocina" a la mitad
+   hace que el documento se lea como un volcado y no como un resumen. */
+.bloque {
+  break-inside: avoid;
+  margin-bottom: 6mm;
+  padding-top: 4mm;
+  border-top: 1px dashed var(--linea);
+}
+
+.bloque:first-of-type { border-top: 0; padding-top: 0; }
+
+.grilla-resumen {
+  display: grid;
+  grid-template-columns: 52mm 1fr;
+  gap: 0;
+}
+
+.fila-k {
+  font-family: var(--font-mono), monospace;
+  font-size: 7pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  padding: 1.6mm 4mm 1.6mm 0;
+  line-height: 1.4;
+}
+
+.fila-v {
+  font-size: 9.5pt;
+  line-height: 1.45;
+  padding: 1.4mm 0;
+  color: var(--tinta);
+}
+
+@media print {
+  /* Sin esto el navegador descarta el logo y las muestras de color. */
+  .logo-hoja { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 
 @page { size: A4; margin: 0; }
 

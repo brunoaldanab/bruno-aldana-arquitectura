@@ -2,6 +2,14 @@
 
 import { TEXTOS } from "@/lib/propuesta/textos";
 import type { PropuestaData } from "@/lib/propuesta/tipos";
+import type { GaleriaData } from "@/lib/entrevista/galeria";
+import type { EntrevistaState } from "@/lib/entrevista/types";
+import {
+  ResumenAcuerdos,
+  ResumenAmbientes,
+  ResumenGustos,
+  ResumenProyecto,
+} from "./ResumenReunion";
 import "./propuesta.css";
 
 function PieHoja({ n }: { n: string }) {
@@ -14,18 +22,35 @@ function PieHoja({ n }: { n: string }) {
 }
 
 /**
- * El encabezado lleva solo la sección. La marca va una vez por hoja, en el pie:
- * en el PDF anterior aparecía tres veces en la misma página.
+ * El encabezado de cada hoja: el logo del estudio a la izquierda y la sección a
+ * la derecha. El logo va en todas las hojas y no solo en la portada — sin él las
+ * páginas interiores no se leen como parte del mismo documento.
  */
 function CabeceraHoja({ seccion }: { seccion: string }) {
   return (
     <div className="cabecera-hoja">
+      <div className="marca-hoja">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="logo-hoja" src="/logo-ab.png" alt="" />
+        <span className="marca-nombre">
+          Bruno Aldana
+          <em>Arquitectura</em>
+        </span>
+      </div>
       <span className="rotulo">{seccion}</span>
     </div>
   );
 }
 
-export function Propuesta({ datos }: { datos: PropuestaData }) {
+export function Propuesta({
+  datos,
+  state,
+  galeria,
+}: {
+  datos: PropuestaData;
+  state: EntrevistaState;
+  galeria: GaleriaData;
+}) {
   return (
     <div className="propuesta-raiz">
       <div className="no-imprimir mx-auto flex max-w-3xl items-center justify-between px-4 pt-6">
@@ -75,70 +100,40 @@ export function Propuesta({ datos }: { datos: PropuestaData }) {
           </div>
         </section>
 
-        {/* ---------- 02 · Lo que nos dijiste ---------- */}
+        {/* ---------- Resumen de reunión: la entrevista completa ----------
+            Son cuatro hojas y no una: la entrevista entera no entra en una
+            página, y partirla en secciones con nombre deja que cada hoja lleve
+            su encabezado con el logo en vez de quedar sin identidad. */}
         <section className="hoja">
-          <CabeceraHoja seccion="Lo que nos dijiste" />
-          <h2 className="titulo-seccion">Lo que nos dijiste</h2>
-
-          {datos.palabra && (
-            <p className="cita">«Buscás un espacio {datos.palabra}.»</p>
-          )}
-
-          {datos.evitar && (
-            <>
-              <h3>Lo que querés evitar</h3>
-              <p>{datos.evitar}</p>
-            </>
-          )}
-
-          {datos.estilos.length > 0 && (
-            <>
-              <h3>Tu estilo</h3>
-              <div className="etiquetas">
-                {datos.estilos.map((e) => (
-                  <span key={e} className="etiqueta">{e}</span>
-                ))}
-              </div>
-            </>
-          )}
-
-          {datos.paleta.length > 0 && (
-            <>
-              <h3>Tu paleta</h3>
-              <div className="paleta">
-                {datos.paleta.map((c) => (
-                  <div key={c.hex} className="color">
-                    <div className="color-muestra" style={{ background: c.hex }} />
-                    <span className="color-nombre">{c.nombre}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {datos.materiales.length > 0 && (
-            <>
-              <h3>Materiales que te gustaron</h3>
-              <div className="etiquetas">
-                {datos.materiales.map((m) => (
-                  <span key={m} className="etiqueta">{m}</span>
-                ))}
-              </div>
-            </>
-          )}
-
-          {datos.ambientes.length > 0 && (
-            <>
-              <h3>Ambientes a intervenir</h3>
-              <div className="etiquetas">
-                {datos.ambientes.map((a) => (
-                  <span key={a} className="etiqueta">{a}</span>
-                ))}
-              </div>
-            </>
-          )}
-
+          <CabeceraHoja seccion="Resumen de reunión · 1 de 4" />
+          <h2 className="titulo-seccion">Resumen de reunión</h2>
+          <p className="entradilla">
+            Esto es lo que hablamos en la visita, tal como quedó registrado. Antes de
+            dibujar una sola línea queremos estar de acuerdo en esto.
+          </p>
+          <ResumenProyecto state={state} galeria={galeria} />
           <PieHoja n="02" />
+        </section>
+
+        <section className="hoja">
+          <CabeceraHoja seccion="Resumen de reunión · 2 de 4" />
+          <h2 className="titulo-seccion">Su gusto</h2>
+          <ResumenGustos state={state} galeria={galeria} />
+          <PieHoja n="03" />
+        </section>
+
+        <section className="hoja">
+          <CabeceraHoja seccion="Resumen de reunión · 3 de 4" />
+          <h2 className="titulo-seccion">Ambiente por ambiente</h2>
+          <ResumenAmbientes state={state} />
+          <PieHoja n="04" />
+        </section>
+
+        <section className="hoja">
+          <CabeceraHoja seccion="Resumen de reunión · 4 de 4" />
+          <h2 className="titulo-seccion">Presupuesto, plazos y cierre</h2>
+          <ResumenAcuerdos state={state} />
+          <PieHoja n="05" />
         </section>
 
         {/* ---------- 03 · La propuesta ---------- */}
@@ -172,7 +167,7 @@ export function Propuesta({ datos }: { datos: PropuestaData }) {
             <li>Entrega en <strong>{datos.plazoDias} días hábiles</strong>.</li>
           </ul>
 
-          <PieHoja n="03" />
+          <PieHoja n="06" />
         </section>
 
         {/* ---------- 04 · Inversión ---------- */}
@@ -232,7 +227,7 @@ export function Propuesta({ datos }: { datos: PropuestaData }) {
           <h3>Inicio</h3>
           <p>{TEXTOS.inicio}</p>
 
-          <PieHoja n="04" />
+          <PieHoja n="07" />
         </section>
       </div>
     </div>
