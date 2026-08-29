@@ -6,13 +6,13 @@ import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 
 const sumGrid = "grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2";
-const k = "font-mono text-[10px] uppercase tracking-wide text-neutral-400 pt-2";
+const k = "font-mono text-[10px] uppercase tracking-wide text-neutral-500 pt-2";
 const v = "pb-1 text-neutral-900";
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border-t border-dashed border-neutral-200 pt-4 first:border-t-0 first:pt-0">
-      <h3 className="mb-2 text-sm font-semibold text-neutral-900">{title}</h3>
+      <h3 className="font-display mb-2 text-sm font-semibold text-neutral-900">{title}</h3>
       <div className={sumGrid}>{children}</div>
     </div>
   );
@@ -63,8 +63,8 @@ export function ResumenStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Resumen de la entrevista</h2>
-      <p className="mb-6 text-sm text-neutral-500">Esto es lo que se guardó hasta ahora en toda la entrevista.</p>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Resumen de la entrevista</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">Esto es lo que se guardó hasta ahora en toda la entrevista.</p>
 
       <div className="space-y-5">
         <Block title="Proyecto">

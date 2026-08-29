@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ambientesCasa, ambientesDepto, ambientesOficina, ambientesUnico } from "@/lib/entrevista/data";
 import type { EntrevistaState } from "@/lib/entrevista/types";
+import { inputClass } from "@/components/ui/field";
 
 export function SeleccionAmbientesStep({
   state,
@@ -50,8 +51,8 @@ export function SeleccionAmbientesStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">{titulo}</h2>
-      <p className="mb-6 text-sm text-neutral-500">{desc}</p>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{titulo}</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">{desc}</p>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {lista.map((r) => (
@@ -59,10 +60,9 @@ export function SeleccionAmbientesStep({
             key={r}
             type="button"
             onClick={() => toggle(r)}
-            className={`flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm ${
-              state.ambientesSeleccion.includes(r)
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            aria-pressed={state.ambientesSeleccion.includes(r)}
+            className={`chip flex items-center gap-2 px-4 py-2.5 text-left text-sm ${
+              state.ambientesSeleccion.includes(r) ? "chip-activo" : ""
             }`}
           >
             {r}
@@ -87,7 +87,7 @@ export function SeleccionAmbientesStep({
               }
             }}
             placeholder="Escribir y presionar Enter"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            className={inputClass}
           />
         </label>
       )}

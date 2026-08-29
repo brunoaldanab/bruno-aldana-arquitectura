@@ -2,10 +2,16 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { getSteps, type StepId } from "@/lib/entrevista/steps";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { saveEntrevista } from "./actions";
+import { ProgresoCapitulos } from "@/components/entrevista/ProgresoCapitulos";
+import { NavegadorPasos } from "@/components/entrevista/NavegadorPasos";
+import { SALIDA, proyectar } from "@/lib/movimiento";
+import { EscenaCinematica } from "@/components/EscenaCinematica";
+import { escenaDePaso } from "@/lib/images";
 
 import { TipoProyectoStep } from "./steps/TipoProyectoStep";
 import { DatosGeneralesStep } from "./steps/DatosGeneralesStep";
@@ -23,6 +29,15 @@ import { DueloStep } from "./steps/DueloStep";
 import { PaletaStep } from "./steps/PaletaStep";
 import { MaterialesStep } from "./steps/MaterialesStep";
 import { DetalleAmbientesStep } from "./steps/DetalleAmbientesStep";
+
+/** Pasos que se muestran a pantalla ancha porque su contenido es visual. */
+const PASOS_VISUALES = new Set<StepId>([
+  "estilo",
+  "mobiliario-galeria",
+  "duelo",
+  "paleta",
+  "materiales",
+]);
 
 type StepComponentProps = {
   state: EntrevistaState;
@@ -53,6 +68,7 @@ const STEP_COMPONENTS: Record<StepId, React.ComponentType<StepComponentProps>> =
 
 type SaveStatus = "idle" | "saving" | "saved";
 
+
 export function EntrevistaWizard({
   entrevistaId,
   contactoId,
@@ -69,18 +85,21 @@ export function EntrevistaWizard({
   const [state, setState] = useState<EntrevistaState>(initialData);
   const [galeria, setGaleria] = useState<GaleriaData>(initialGaleria);
   const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [navegadorAbierto, setNavegadorAbierto] = useState(false);
   const [, startTransition] = useTransition();
+  const reduceMotion = useReducedMotion();
 
   const isFirstRender = useRef(true);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const steps = getSteps(state.proyecto.tipoProyecto);
+  const cantidadPasos = steps.length;
 
-  useEffect(() => {
-    if (current > steps.length - 1) setCurrent(steps.length - 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps.length]);
+  // Si cambia el tipo de proyecto y quedan menos pasos, no hace falta corregir
+  // el estado desde un efecto: `safeCurrent` ya recorta el índice al renderizar
+  // y `goTo` lo recorta al navegar.
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -102,73 +121,179 @@ export function EntrevistaWizard({
 
   const safeCurrent = Math.min(current, steps.length - 1);
   const step = steps[safeCurrent];
+  // Los pasos donde el material visual es el contenido — fotos, paletas,
+  // materiales — necesitan todo el ancho: ahí la imagen es la pregunta, no un
+  // adorno al lado del formulario.
+  const esPasoVisual = PASOS_VISUALES.has(step.id);
+  // La foto de la franja sigue de qué se está hablando: el paso actual, y dentro
+  // del paso la variante que corresponde al tipo de proyecto (una oficina no se
+  // ilustra con el living de un departamento).
+  const escena = escenaDePaso(step.id, state.proyecto.tipoProyecto);
   const StepComponent = STEP_COMPONENTS[step.id];
   const isFirstStep = safeCurrent === 0;
   const isLastStep = safeCurrent === steps.length - 1;
   const nextDisabled = step.id === "tipo-proyecto" && !state.proyecto.tipoProyecto;
+  // En los pasos visuales el contenido ya usa el arrastre horizontal (el visor
+  // de fotos), así que ahí el gesto de cambiar de paso cedería el paso: dos
+  // reconocedores peleando por el mismo eje se sienten rotos.
+  const puedeArrastrar = !reduceMotion && !esPasoVisual;
+
+  // ⌘K abre el salto rápido; las flechas recorren pasos salvo que se esté
+  // escribiendo. Ninguna de las dos lleva animación extra: son acciones de
+  // teclado y se usan muchas veces.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      const escribiendo =
+        t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setNavegadorAbierto((v) => !v);
+        return;
+      }
+      if (escribiendo || navegadorAbierto) return;
+      if (e.key === "ArrowRight") setCurrent((c) => Math.min(c + 1, cantidadPasos - 1));
+      if (e.key === "ArrowLeft") setCurrent((c) => Math.max(c - 1, 0));
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navegadorAbierto, cantidadPasos]);
+
+  function goTo(index: number) {
+    const clamped = Math.max(0, Math.min(index, steps.length - 1));
+    setDirection(clamped >= safeCurrent ? 1 : -1);
+    setCurrent(clamped);
+  }
+
+  const offset = reduceMotion ? 0 : 22;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-1">
-        <Link href={`/contactos/${contactoId}`} className="text-sm text-neutral-500 hover:underline">
-          ← {contactoNombre}
-        </Link>
-      </div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">Ficha de entrevista</h1>
-        <span className="text-xs text-neutral-400">
-          {saveStatus === "saving" ? "Guardando…" : saveStatus === "saved" ? "Guardado ✓" : ""}
-        </span>
-      </div>
+    <>
+      <NavegadorPasos
+        abierto={navegadorAbierto}
+        steps={steps}
+        actual={safeCurrent}
+        onIr={goTo}
+        onCerrar={() => setNavegadorAbierto(false)}
+      />
 
-      <div className="mb-2 flex gap-1">
-        {steps.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setCurrent(i)}
-            title={s.label}
-            className={`h-1.5 flex-1 rounded-full transition ${i <= safeCurrent ? "bg-neutral-900" : "bg-neutral-200"}`}
-          />
-        ))}
-      </div>
-      <div className="mb-6 flex justify-between font-mono text-[10px] uppercase tracking-wide text-neutral-400">
-        <span>{steps[0].label}</span>
-        <span className="font-semibold text-neutral-900">{step.label}</span>
-        <span>{steps[steps.length - 1].label}</span>
-      </div>
-
-      <div className="rounded-lg border border-neutral-200 bg-white p-6">
-        <StepComponent
-          state={state}
-          setState={setState}
-          galeria={galeria}
-          setGaleria={setGaleria}
-          onAdvance={() => setCurrent((c) => Math.min(c + 1, steps.length - 1))}
+      <div className="relative min-h-screen pb-28">
+        <EscenaCinematica
+          className="h-[38vh] min-h-[240px] w-full"
+          sizes="100vw"
+          src={escena.foto.src}
+          brillo={escena.foto.brillo}
+          claveEscena={`${step.id}-${state.proyecto.tipoProyecto}`}
+          kicker={escena.kicker}
+          titulo={step.label}
+          barra={
+            <>
+              <Link
+                href={`/contactos/${contactoId}`}
+                className="text-sm text-neutral-300 transition-colors duration-150 hover:text-white"
+              >
+                ← {contactoNombre}
+              </Link>
+              <span className="font-mono text-[11px] text-neutral-300">
+                {saveStatus === "saving" ? "Guardando…" : saveStatus === "saved" ? "Guardado ✓" : ""}
+              </span>
+            </>
+          }
         />
-      </div>
 
-      <div className="mt-6 flex items-center justify-between">
-        <button
-          type="button"
-          disabled={isFirstStep}
-          onClick={() => setCurrent((c) => Math.max(c - 1, 0))}
-          className="rounded-full border border-neutral-900 px-5 py-2.5 text-xs font-medium uppercase tracking-wide text-neutral-900 transition hover:opacity-80 disabled:opacity-25"
+        {/* El progreso vive en un ancho constante: es una pista de arrastre y no
+            puede cambiar de tamaño debajo del dedo al saltar a un paso ancho. */}
+        <div className="mx-auto max-w-3xl px-4 pt-4">
+          <ProgresoCapitulos steps={steps} actual={safeCurrent} onIr={goTo} />
+        </div>
+
+        <div
+          className={`mx-auto px-4 transition-[max-width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+            esPasoVisual ? "max-w-6xl" : "max-w-3xl"
+          }`}
         >
-          ← Anterior
-        </button>
-        <span className="font-mono text-xs text-neutral-400">
-          {safeCurrent + 1} / {steps.length}
-        </span>
-        <button
-          type="button"
-          disabled={isLastStep || nextDisabled}
-          onClick={() => setCurrent((c) => Math.min(c + 1, steps.length - 1))}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-medium uppercase tracking-wide text-white transition hover:opacity-80 disabled:opacity-25"
-        >
-          Siguiente →
-        </button>
+
+          {/* El paso ya no vive dentro de una tarjeta: es la pantalla.
+              El arrastre horizontal cambia de paso, con resistencia en los
+              extremos y decisión por velocidad, no por distancia. */}
+          <AnimatePresence mode="wait" initial={false} custom={direction}>
+            <motion.div
+              key={step.id}
+              custom={direction}
+              initial={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, transform: `translateX(${direction * offset}px)`, filter: "blur(4px)" }
+              }
+              animate={{ opacity: 1, transform: "translateX(0px)", filter: "blur(0px)" }}
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, transform: `translateX(${direction * -offset}px)`, filter: "blur(4px)" }
+              }
+              transition={{ duration: 0.24, ease: SALIDA }}
+              drag={puedeArrastrar ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.16}
+              dragDirectionLock
+              onDragEnd={(_, info) => {
+                // Se proyecta adónde iba el gesto: un envión corto alcanza.
+                const destino = info.offset.x + proyectar(info.velocity.x) * 0.08;
+                if (destino < -90 && !isLastStep && !nextDisabled) goTo(safeCurrent + 1);
+                else if (destino > 90 && !isFirstStep) goTo(safeCurrent - 1);
+              }}
+              className={puedeArrastrar ? "cursor-grab active:cursor-grabbing" : ""}
+            >
+              <div className="py-6">
+                <StepComponent
+                  state={state}
+                  setState={setState}
+                  galeria={galeria}
+                  setGaleria={setGaleria}
+                  onAdvance={() => goTo(safeCurrent + 1)}
+                />
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Chrome flotante: material translúcido con el contenido pasando por
+            debajo, en vez de una franja opaca que se come una tira de pantalla. */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-5">
+          <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 p-1.5 shadow-[0_12px_40px_-8px_rgba(14,15,17,0.35)] backdrop-blur-2xl backdrop-saturate-150">
+            <button
+              type="button"
+              onClick={() => goTo(safeCurrent - 1)}
+              disabled={isFirstStep}
+              aria-label="Paso anterior"
+              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full text-neutral-800 disabled:opacity-30"
+            >
+              ←
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setNavegadorAbierto(true)}
+              className="boton-chrome flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-neutral-900"
+            >
+              <span className="max-w-[9rem] truncate">{step.label}</span>
+              <kbd className="hidden rounded border border-neutral-900/12 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 sm:block">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => goTo(safeCurrent + 1)}
+              disabled={isLastStep || nextDisabled}
+              aria-label="Paso siguiente"
+              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full bg-neutral-900 text-white disabled:opacity-30"
+            >
+              →
+            </button>
+          </div>
+        </div>
       </div>
-    </main>
+    </>
   );
 }

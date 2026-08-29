@@ -26,3 +26,7 @@ Thumbs.db
 
 .vercel
 .env*
+
+# Skills de terceros (se reinstalan desde skills-lock.json)
+.agents/
+skills-lock.json

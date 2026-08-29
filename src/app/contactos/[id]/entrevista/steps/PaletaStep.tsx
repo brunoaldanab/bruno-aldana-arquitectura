@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { inputClass } from "@/components/ui/field";
 import { colorSwatches, officePaletteCombos, paletteDefs } from "@/lib/entrevista/data";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
@@ -47,7 +49,7 @@ function ColorPickerRow({ onAdd }: { onAdd: (hex: string) => void }) {
       <button
         type="button"
         onClick={() => onAdd(hex.toUpperCase())}
-        className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+        className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
       >
         + Agregar este color
       </button>
@@ -65,23 +67,40 @@ function SwatchGrid({
   onToggle: (n: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-      {swatches.map((c) => (
-        <button
-          key={c.n}
-          type="button"
-          onClick={() => onToggle(c.n)}
-          className={`rounded-md border p-1 text-center ${selected.includes(c.n) ? "border-neutral-900 ring-1 ring-neutral-900" : "border-transparent"}`}
-        >
-          <div className="h-12 w-full rounded" style={{ background: c.h, border: "1px solid rgba(0,0,0,0.1)" }} />
-          <div className="mt-1 text-[10px] text-neutral-500">{c.n}</div>
-        </button>
-      ))}
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+      {swatches.map((c) => {
+        const activo = selected.includes(c.n);
+        return (
+          <button
+            key={c.n}
+            type="button"
+            onClick={() => onToggle(c.n)}
+            className="text-center transition-transform duration-150 active:scale-95"
+          >
+            <div
+              className={`relative aspect-square w-full overflow-hidden rounded-xl transition-[box-shadow] duration-200 ${
+                activo
+                  ? "shadow-[0_0_0_3px_var(--color-neutral-900)]"
+                  : "shadow-[0_0_0_1px_rgba(0,0,0,0.1)] hover:shadow-[0_0_0_2px_var(--color-neutral-400)]"
+              }`}
+              style={{ background: c.h }}
+            >
+              {activo && (
+                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-neutral-900 shadow">
+                  ✓
+                </span>
+              )}
+            </div>
+            <div className="mt-1.5 truncate text-[11px] text-neutral-600">{c.n}</div>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: SetState }) {
+  const reduceMotion = useReducedMotion();
   const p = state.paleta;
   const allSwatches = [...colorSwatches, ...p.customColores];
 
@@ -113,35 +132,57 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Paleta de color — y qué transmite</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Paleta de color — y qué transmite</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         Esta es la decisión que más define cómo se va a sentir el espacio, más allá del estilo. Mostrale al cliente estas 8
         direcciones —cada una con su lectura psicológica— y dejalo reaccionar en vivo. Pueden elegir una o combinar dos.
       </p>
 
-      <div className="mb-6 space-y-3">
-        {paletteDefs.map((pd) => {
+      {/* Cada paleta es una franja de color grande: el color se juzga por su
+          superficie, no por un cuadradito de 24px al lado del texto. */}
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {paletteDefs.map((pd, i) => {
           const selected = p.seleccion.includes(pd.key);
           return (
-            <button
+            <motion.button
               key={pd.key}
               type="button"
               onClick={() => toggleSeleccion(pd.key)}
-              className={`block w-full rounded-lg border p-4 text-left transition ${
-                selected ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200 hover:border-neutral-400"
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(12px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              transition={{ duration: 0.24, delay: i * 0.045, ease: [0.23, 1, 0.32, 1] }}
+              whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+              className={`overflow-hidden rounded-2xl bg-white text-left transition-[box-shadow] duration-200 ${
+                selected
+                  ? "shadow-[0_0_0_3px_var(--color-neutral-900)]"
+                  : "shadow-[0_0_0_1px_var(--color-neutral-200)] hover:shadow-[0_0_0_2px_var(--color-neutral-400)]"
               }`}
             >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="font-semibold text-neutral-900">{pd.nombre}</span>
-                {selected && <span className="text-neutral-900">✓</span>}
-              </div>
-              <div className="mb-2 flex gap-1.5">
+              {/* La franja: los colores a tamaño real, sin bordes que los separen */}
+              <div className="relative flex h-32 w-full">
                 {pd.colores.map((c) => (
-                  <div key={c.n} title={c.n} className="h-6 w-6 rounded" style={{ background: c.h, border: "1px solid rgba(0,0,0,0.1)" }} />
+                  <div key={c.n} title={c.n} className="h-full flex-1" style={{ background: c.h }} />
                 ))}
+                {selected && (
+                  <motion.span
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-neutral-900 shadow-lg"
+                  >
+                    ✓
+                  </motion.span>
+                )}
               </div>
-              <p className="text-xs text-neutral-500" dangerouslySetInnerHTML={{ __html: pd.psicologia }} />
-            </button>
+
+              <div className="p-4">
+                <span className="mb-1 block font-medium text-neutral-900">{pd.nombre}</span>
+                <p
+                  className="text-xs leading-relaxed text-neutral-500"
+                  dangerouslySetInnerHTML={{ __html: pd.psicologia }}
+                />
+              </div>
+            </motion.button>
           );
         })}
       </div>
@@ -149,16 +190,16 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
       <label className="mb-6 block">
         <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">Tono general</span>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-neutral-400">Frío</span>
+          <span className="text-xs text-neutral-500">Frío</span>
           <input
             type="range"
             min={1}
             max={10}
             value={p.calidoFrio}
             onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, calidoFrio: Number(e.target.value) } }))}
-            className="flex-1 accent-neutral-900"
+            className="flex-1 accent-accent-500"
           />
-          <span className="text-xs text-neutral-400">Cálido</span>
+          <span className="text-xs text-neutral-500">Cálido</span>
         </div>
       </label>
 
@@ -178,7 +219,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
           value={p.notas}
           onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, notas: e.target.value } }))}
           placeholder="Ej: quieren base clásica pero con el dormitorio principal más dramático..."
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+          className={inputClass}
         />
       </label>
     </div>
@@ -196,6 +237,7 @@ function PaletaOficina({
   galeria: GaleriaData;
   setGaleria: SetGaleria;
 }) {
+  const reduceMotion = useReducedMotion();
   const colorInputRef = useRef<HTMLInputElement>(null);
   const pendingSlot = useRef<{ key: string; index: number } | null>(null);
 
@@ -263,8 +305,8 @@ function PaletaOficina({
   return (
     <div>
       <input ref={colorInputRef} type="color" className="sr-only" onChange={(e) => handleColorPicked(e.target.value)} />
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Paleta de color de oficina</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Paleta de color de oficina</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         Estas son las 10 combinaciones de color más usadas en espacios corporativos. El moodboard de fotos es tu biblioteca
         compartida — subí una vez, reutilizá con todos los clientes.
       </p>
@@ -277,7 +319,7 @@ function PaletaOficina({
           return (
             <div
               key={pl.key}
-              className={`rounded-lg border p-4 ${isSelected ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200"}`}
+              className={`rounded-2xl p-4 transition-[box-shadow] duration-200 ${isSelected ? "shadow-[0_0_0_3px_var(--color-neutral-900)]" : "shadow-[0_0_0_1px_var(--color-neutral-200)]"}`}
             >
               <button type="button" onClick={() => toggleSeleccion(pl.key)} className="mb-2 flex w-full items-center justify-between text-left">
                 <span className="font-semibold text-neutral-900">
@@ -288,7 +330,7 @@ function PaletaOficina({
                         e.stopPropagation();
                         removePalette(pl.key);
                       }}
-                      className="ml-2 cursor-pointer text-xs text-neutral-400 hover:text-red-500"
+                      className="ml-2 cursor-pointer text-xs text-neutral-500 hover:text-danger-600"
                     >
                       × quitar
                     </span>
@@ -296,17 +338,18 @@ function PaletaOficina({
                 </span>
                 {isSelected && <span className="text-neutral-900">✓</span>}
               </button>
-              <div className="mb-2 flex gap-1.5">
+              {/* La combinación, a superficie: es lo que el cliente juzga */}
+              <div className="mb-3 flex h-24 w-full overflow-hidden rounded-xl">
                 {Array.from({ length: slotCount }).map((_, i) => {
                   const c = pl.colores[i];
                   return c ? (
-                    <div key={i} title={c.n} className="h-6 w-6 rounded" style={{ background: c.h, border: "1px solid rgba(0,0,0,0.1)" }} />
+                    <div key={i} title={c.n} className="h-full flex-1" style={{ background: c.h }} />
                   ) : (
                     <button
                       key={i}
                       type="button"
                       onClick={() => openColorPicker(pl.key, i)}
-                      className="flex h-6 w-6 items-center justify-center rounded border border-dashed border-neutral-300 text-xs text-neutral-400"
+                      className="flex h-full flex-1 items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 text-lg text-neutral-400 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-700"
                     >
                       +
                     </button>
@@ -315,23 +358,32 @@ function PaletaOficina({
               </div>
               <p className="mb-3 text-xs text-neutral-500">{pl.uso || "Definí vos la combinación — agregá los colores con el ícono +."}</p>
 
-              <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Moodboard — fotos de referencia (hasta 10)</p>
-              <div className="grid grid-cols-5 gap-1.5">
+              <p className="mb-2 text-[10px] font-medium tracking-wide text-neutral-500 uppercase">
+                Moodboard — fotos de referencia (hasta 10)
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
                 {fotos.map((f) => (
-                  <div key={f.id} className="relative aspect-square overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+                  <motion.div
+                    key={f.id}
+                    layout={!reduceMotion}
+                    initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.95)" }}
+                    animate={{ opacity: 1, transform: "scale(1)" }}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100 shadow-[0_0_0_1px_var(--color-neutral-200)]"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={f.dataUrl} alt="ref" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeMoodPhoto(f.id)}
-                      className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/90 text-[9px]"
+                      className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-xs text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100"
                     >
                       ×
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
                 {fotos.length < 10 && (
-                  <label className="flex aspect-square cursor-pointer items-center justify-center rounded border border-dashed border-neutral-300 text-[10px] text-neutral-400">
-                    +
+                  <label className="flex aspect-[4/3] cursor-pointer items-center justify-center rounded-xl border border-dashed border-neutral-300 text-xs text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-800">
+                    + Subir
                     <input
                       type="file"
                       accept="image/*"
@@ -353,7 +405,7 @@ function PaletaOficina({
       <button
         type="button"
         onClick={addPalette}
-        className="mb-6 rounded-md border border-dashed border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-400"
+        className="mb-6 rounded-full border border-dashed border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-500 transition hover:border-accent-400 hover:text-accent-600"
       >
         + Agregar paleta personalizada
       </button>
@@ -361,16 +413,16 @@ function PaletaOficina({
       <label className="mb-6 block">
         <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">Tono general</span>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-neutral-400">Frío</span>
+          <span className="text-xs text-neutral-500">Frío</span>
           <input
             type="range"
             min={1}
             max={10}
             value={state.paleta.calidoFrio}
             onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, calidoFrio: Number(e.target.value) } }))}
-            className="flex-1 accent-neutral-900"
+            className="flex-1 accent-accent-500"
           />
-          <span className="text-xs text-neutral-400">Cálido</span>
+          <span className="text-xs text-neutral-500">Cálido</span>
         </div>
       </label>
 
@@ -397,7 +449,7 @@ function PaletaOficina({
           value={state.paleta.notas}
           onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, notas: e.target.value } }))}
           placeholder="Ej: quieren usar el color del logo como acento..."
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+          className={inputClass}
         />
       </label>
     </div>

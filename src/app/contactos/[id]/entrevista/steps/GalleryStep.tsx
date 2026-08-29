@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { mobiliarioCardsBase, styleCards, type StyleCard } from "@/lib/entrevista/data";
 import type { EntrevistaState, EstiloDetalle, FotoReaccion } from "@/lib/entrevista/types";
 import type { GaleriaData, GaleriaFotoDTO } from "@/lib/entrevista/galeria";
 import { imageFileToDataUrl } from "@/lib/entrevista/imageToDataUrl";
-import { addGaleriaCardCustom, addGaleriaFoto, removeGaleriaCardCustom, removeGaleriaFoto } from "../galeriaActions";
-import { PhotoLightbox } from "./PhotoLightbox";
+import {
+  addGaleriaCardCustom,
+  addGaleriaFoto,
+  removeGaleriaCardCustom,
+  removeGaleriaFoto,
+} from "../galeriaActions";
+import { inputClass } from "@/components/ui/field";
 
 type Kind = "estilo" | "mobiliario";
 type SetState = React.Dispatch<React.SetStateAction<EntrevistaState>>;
@@ -15,6 +21,11 @@ type SetGaleria = React.Dispatch<React.SetStateAction<GaleriaData>>;
 function emptyDetail(): EstiloDetalle {
   return { reacciones: {}, notas: "" };
 }
+
+/** Movimiento en pantalla: la foto que sale y la que entra recorren el mismo eje. */
+const PASE = { duration: 0.25, ease: [0.77, 0, 0.175, 1] as const };
+/** Vuelta elástica cuando se arrastra y no alcanza para pasar de foto. */
+const VUELTA = { bounceStiffness: 320, bounceDamping: 34 };
 
 export function GalleryStep({
   kind,
@@ -30,7 +41,11 @@ export function GalleryStep({
   setGaleria: SetGaleria;
 }) {
   const [tabIndex, setTabIndex] = useState(0);
-  const [lightboxFotoId, setLightboxFotoId] = useState<string | null>(null);
+  const [fotoIndex, setFotoIndex] = useState(0);
+  const [direccion, setDireccion] = useState(1);
+  const [subiendo, setSubiendo] = useState(false);
+  const visor = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   const tipo = kind === "mobiliario" ? "MOBILIARIO" : "ESTILO";
   const baseCards: StyleCard[] = kind === "mobiliario" ? mobiliarioCardsBase : styleCards;
@@ -50,10 +65,58 @@ export function GalleryStep({
   const seleccion = kind === "mobiliario" ? state.mobiliarioGaleria.seleccion : state.estilo.seleccion;
   const isSelected = seleccion.includes(card.k);
 
+  const total = fotos.length;
+  const posicion = total > 0 ? Math.min(fotoIndex, total - 1) : 0;
+  const fotoActual: GaleriaFotoDTO | undefined = fotos[posicion];
+  const reaccion: FotoReaccion =
+    (fotoActual && detail.reacciones[fotoActual.id]) || { reaction: "", rating: 0, comment: "" };
+
+  /** Cambiar de estilo/tipo devuelve el visor a la primera foto de esa tarjeta. */
+  function elegirCard(i: number) {
+    setTabIndex(i);
+    setFotoIndex(0);
+    setDireccion(1);
+  }
+
+  const pasar = useCallback(
+    (delta: number) => {
+      if (total < 2) return;
+      setDireccion(delta);
+      setFotoIndex((i) => (i + delta + total) % total);
+    },
+    [total]
+  );
+
+  const irA = useCallback(
+    (destino: number) => {
+      setDireccion(destino > posicion ? 1 : -1);
+      setFotoIndex(destino);
+    },
+    [posicion]
+  );
+
+  // Las flechas manejan el visor mientras no se esté escribiendo en un campo.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+      if (e.key === "ArrowRight") pasar(1);
+      if (e.key === "ArrowLeft") pasar(-1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pasar]);
+
   function updateDetail(patch: Partial<EstiloDetalle>) {
     setState((s) =>
       kind === "mobiliario"
-        ? { ...s, mobiliarioGaleria: { ...s.mobiliarioGaleria, detalle: { ...s.mobiliarioGaleria.detalle, [card.k]: { ...detail, ...patch } } } }
+        ? {
+            ...s,
+            mobiliarioGaleria: {
+              ...s.mobiliarioGaleria,
+              detalle: { ...s.mobiliarioGaleria.detalle, [card.k]: { ...detail, ...patch } },
+            },
+          }
         : { ...s, estiloDetalle: { ...s.estiloDetalle, [card.k]: { ...detail, ...patch } } }
     );
   }
@@ -71,21 +134,49 @@ export function GalleryStep({
           ...s,
           mobiliarioGaleria: {
             ...s.mobiliarioGaleria,
-            seleccion: has ? s.mobiliarioGaleria.seleccion.filter((x) => x !== card.k) : [...s.mobiliarioGaleria.seleccion, card.k],
+            seleccion: has
+              ? s.mobiliarioGaleria.seleccion.filter((x) => x !== card.k)
+              : [...s.mobiliarioGaleria.seleccion, card.k],
           },
         };
       }
       const has = s.estilo.seleccion.includes(card.k);
-      return { ...s, estilo: { ...s.estilo, seleccion: has ? s.estilo.seleccion.filter((x) => x !== card.k) : [...s.estilo.seleccion, card.k] } };
+      return {
+        ...s,
+        estilo: {
+          ...s.estilo,
+          seleccion: has ? s.estilo.seleccion.filter((x) => x !== card.k) : [...s.estilo.seleccion, card.k],
+        },
+      };
     });
   }
 
-  async function handleUpload(file: File) {
-    const dataUrl = await imageFileToDataUrl(file);
-    const foto = await addGaleriaFoto(tipo, card.k, dataUrl);
-    setGaleria((g) =>
-      kind === "mobiliario" ? { ...g, mobiliarioFotos: [...g.mobiliarioFotos, foto] } : { ...g, estiloFotos: [...g.estiloFotos, foto] }
-    );
+  async function handleUpload(files: FileList) {
+    setSubiendo(true);
+    // La foto nueva se agrega al final de esta tarjeta, así que su posición es
+    // la cantidad que había antes. Se calcula acá y no en un efecto para que el
+    // visor salte a ella sin un render intermedio.
+    const base = fotos.length;
+    let agregadas = 0;
+    try {
+      for (const file of Array.from(files)) {
+        const dataUrl = await imageFileToDataUrl(file);
+        const foto = await addGaleriaFoto(tipo, card.k, dataUrl);
+        setGaleria((g) =>
+          kind === "mobiliario"
+            ? { ...g, mobiliarioFotos: [...g.mobiliarioFotos, foto] }
+            : { ...g, estiloFotos: [...g.estiloFotos, foto] }
+        );
+        agregadas += 1;
+      }
+    } finally {
+      setSubiendo(false);
+      if (agregadas > 0) {
+        // El visor salta a la última subida: es la que se quiere mirar.
+        setDireccion(1);
+        setFotoIndex(base + agregadas - 1);
+      }
+    }
   }
 
   async function removePhoto(fotoId: string) {
@@ -95,6 +186,7 @@ export function GalleryStep({
         ? { ...g, mobiliarioFotos: g.mobiliarioFotos.filter((f) => f.id !== fotoId) }
         : { ...g, estiloFotos: g.estiloFotos.filter((f) => f.id !== fotoId) }
     );
+    setFotoIndex((i) => Math.max(0, i - 1));
   }
 
   async function addCustomCard() {
@@ -102,44 +194,72 @@ export function GalleryStep({
     if (!nombre || !nombre.trim()) return;
     const nueva = await addGaleriaCardCustom(tipo, nombre.trim());
     setGaleria((g) =>
-      kind === "mobiliario" ? { ...g, mobiliarioCustom: [...g.mobiliarioCustom, nueva] } : { ...g, estiloCustom: [...g.estiloCustom, nueva] }
+      kind === "mobiliario"
+        ? { ...g, mobiliarioCustom: [...g.mobiliarioCustom, nueva] }
+        : { ...g, estiloCustom: [...g.estiloCustom, nueva] }
     );
-    setTabIndex(cards.length);
+    elegirCard(cards.length);
   }
 
   async function removeCustomCard(key: string) {
     await removeGaleriaCardCustom(tipo, key);
     setGaleria((g) =>
       kind === "mobiliario"
-        ? { ...g, mobiliarioCustom: g.mobiliarioCustom.filter((c) => c.key !== key), mobiliarioFotos: g.mobiliarioFotos.filter((f) => f.cardKey !== key) }
-        : { ...g, estiloCustom: g.estiloCustom.filter((c) => c.key !== key), estiloFotos: g.estiloFotos.filter((f) => f.cardKey !== key) }
+        ? {
+            ...g,
+            mobiliarioCustom: g.mobiliarioCustom.filter((c) => c.key !== key),
+            mobiliarioFotos: g.mobiliarioFotos.filter((f) => f.cardKey !== key),
+          }
+        : {
+            ...g,
+            estiloCustom: g.estiloCustom.filter((c) => c.key !== key),
+            estiloFotos: g.estiloFotos.filter((f) => f.cardKey !== key),
+          }
     );
-    setTabIndex(0);
+    elegirCard(0);
   }
 
-  const title = kind === "mobiliario" ? "¿Qué tipo de mobiliario les gusta más?" : "¿Qué forma / estilo arquitectónico los representa?";
+  const title =
+    kind === "mobiliario"
+      ? "¿Qué tipo de mobiliario les gusta más?"
+      : "¿Qué forma / estilo arquitectónico los representa?";
   const desc =
     kind === "mobiliario"
-      ? "Esto es sobre las PIEZAS de mobiliario en sí. Las fotos de referencia son tu biblioteca compartida — subí una vez, reutilizá con todos los clientes."
-      : "Esto define la FORMA del espacio — líneas, volúmenes, ornamento. Las fotos de referencia son tu biblioteca compartida (no de este cliente en particular): subí una vez y quedan disponibles para cualquier entrevista futura. Reaccioná con este cliente delante: descartar, me gusta o me encanta.";
+      ? "Mostrale las fotos una por una. Reaccioná con el cliente delante — la biblioteca es compartida entre todos los clientes."
+      : "Mostrale las fotos una por una y reaccioná con el cliente delante: descartar, me gusta o me encanta. La biblioteca es compartida entre todas las entrevistas.";
 
-  const activeFoto: GaleriaFotoDTO | undefined = fotos.find((f) => f.id === lightboxFotoId);
-  const activeReaccion: FotoReaccion = (lightboxFotoId && detail.reacciones[lightboxFotoId]) || { reaction: "", rating: 0, comment: "" };
+  /** La foto entra por donde va el pase y sale por el lado opuesto. */
+  const variantes = {
+    entra: (dir: number) => ({
+      opacity: 0,
+      transform: reduceMotion ? "none" : `translateX(${dir * 8}%) scale(1.02)`,
+    }),
+    centro: { opacity: 1, transform: "translateX(0%) scale(1)" },
+    sale: (dir: number) => ({
+      opacity: 0,
+      transform: reduceMotion ? "none" : `translateX(${dir * -8}%) scale(0.98)`,
+    }),
+  };
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">{title}</h2>
-      <p className="mb-5 text-sm text-neutral-500">{desc}</p>
+      <div className="mb-5 px-1">
+        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{title}</h2>
+        <p className="text-sm text-neutral-500">{desc}</p>
+      </div>
 
-      <div className="mb-5 flex flex-wrap gap-2">
+      {/* Estilos / tipos — la navegación de primer nivel */}
+      <div className="mb-4 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {cards.map((c, i) => (
           <button
             key={c.k}
             type="button"
-            onClick={() => setTabIndex(i)}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-              i === idx ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-            } ${seleccion.includes(c.k) ? "ring-2 ring-offset-1 ring-emerald-400" : ""}`}
+            onClick={() => elegirCard(i)}
+            className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors duration-150 ${
+              i === idx
+                ? "border-neutral-900 bg-neutral-900 text-white"
+                : "border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+            } ${seleccion.includes(c.k) ? "ring-2 ring-success-600 ring-offset-1" : ""}`}
           >
             {c.t}
             {c.custom && (
@@ -148,7 +268,7 @@ export function GalleryStep({
                   e.stopPropagation();
                   removeCustomCard(c.k);
                 }}
-                className="ml-1.5 cursor-pointer text-neutral-400 hover:text-red-300"
+                className="ml-1.5 cursor-pointer opacity-60 hover:opacity-100"
               >
                 ×
               </span>
@@ -158,89 +278,259 @@ export function GalleryStep({
         <button
           type="button"
           onClick={addCustomCard}
-          className="rounded-full border border-dashed border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-500 hover:border-neutral-400"
+          className="shrink-0 rounded-full border border-dashed border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-800"
         >
           + Agregar
         </button>
       </div>
 
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-neutral-900">{card.t}</h3>
-          <p className="text-xs text-neutral-500">{card.mood}</p>
-        </div>
-        <button
-          type="button"
-          onClick={toggleSelected}
-          className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-            isSelected ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-          }`}
-        >
-          {isSelected ? "✓ Elegido por el cliente" : "Marcar como elegido"}
-        </button>
-      </div>
+      {/* EL VISOR — la foto es lo más grande de la pantalla */}
+      <div
+        ref={visor}
+        className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-950 select-none"
+      >
+        {fotoActual ? (
+          <AnimatePresence initial={false} custom={direccion} mode="popLayout">
+            <motion.div
+              key={fotoActual.id}
+              custom={direccion}
+              variants={variantes}
+              initial="entra"
+              animate="centro"
+              exit="sale"
+              transition={PASE}
+              drag={total > 1 && !reduceMotion ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.18}
+              onDragEnd={(_, info) => {
+                const fuerza = info.offset.x + info.velocity.x * 0.2;
+                if (fuerza < -80) pasar(1);
+                else if (fuerza > 80) pasar(-1);
+              }}
+              dragTransition={VUELTA}
+              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={fotoActual.dataUrl}
+                alt="Referencia"
+                draggable={false}
+                className="h-full w-full object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 text-neutral-400">
+            <span className="text-4xl font-extralight">+</span>
+            <span className="text-sm">Subí la primera foto de {card.t}</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.length) handleUpload(e.target.files);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        )}
 
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-        Fotos de referencia de la biblioteca — clic para reaccionar con este cliente
-      </p>
-      <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {fotos.map((f) => {
-          const r = detail.reacciones[f.id];
-          return (
-            <div key={f.id} className="relative aspect-square overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
-              <button type="button" onClick={() => setLightboxFotoId(f.id)} className="block h-full w-full">
-                <img src={f.dataUrl} alt="Referencia" className="h-full w-full object-cover" />
-              </button>
-              {r?.reaction && (
-                <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] text-white">
-                  {r.reaction === "super" ? "★" : r.reaction === "like" ? "♥" : "✕"}
-                </span>
-              )}
-              {r && (r.reaction === "like" || r.reaction === "super") && (
-                <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 text-[10px] text-white">{r.rating}/10</span>
-              )}
+        {/* Degradados: sostienen la lectura de los controles sobre cualquier foto */}
+        {fotoActual && (
+          <>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 to-transparent" />
+          </>
+        )}
+
+        {/* Pasar de a una */}
+        {total > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => pasar(-1)}
+              aria-label="Foto anterior"
+              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-white"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => pasar(1)}
+              aria-label="Foto siguiente"
+              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-white"
+            >
+              →
+            </button>
+          </>
+        )}
+
+        {/* Encabezado sobre la foto */}
+        <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between p-4">
+          <div>
+            <p className="text-sm font-medium text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.6)]">{card.t}</p>
+            <p className="text-xs text-white/70 [text-shadow:0_2px_12px_rgba(0,0,0,0.6)]">{card.mood}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {total > 0 && (
+              <span className="rounded-full bg-black/45 px-2.5 py-1 font-mono text-[11px] text-white/90">
+                {posicion + 1} / {total}
+              </span>
+            )}
+            {fotoActual && (
               <button
                 type="button"
-                onClick={() => removePhoto(f.id)}
+                onClick={() => removePhoto(fotoActual.id)}
                 title="Quitar de la biblioteca (afecta a todos los clientes)"
-                className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-[10px] text-neutral-700"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-sm text-white/90 transition-colors duration-150 hover:bg-danger-600"
               >
                 ×
               </button>
+            )}
+          </div>
+        </div>
+
+        {/* Reaccionar sobre la foto misma, sin abrir nada */}
+        {fotoActual && (
+          <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="flex items-center gap-2">
+              {(
+                [
+                  { k: "descartar", icono: "✕", texto: "Descartar" },
+                  { k: "like", icono: "♥", texto: "Me gusta" },
+                  { k: "super", icono: "★", texto: "Me encanta" },
+                ] as const
+              ).map((op) => {
+                const activa = reaccion.reaction === op.k;
+                return (
+                  <button
+                    key={op.k}
+                    type="button"
+                    onClick={() =>
+                      updateReaccion(fotoActual.id, { reaction: activa ? "" : op.k })
+                    }
+                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-[transform,background-color,color] duration-150 active:scale-95 ${
+                      activa
+                        ? "bg-white text-neutral-900"
+                        : "bg-black/45 text-white/90 hover:bg-black/65"
+                    }`}
+                  >
+                    <span>{op.icono}</span>
+                    {op.texto}
+                  </button>
+                );
+              })}
             </div>
-          );
-        })}
-        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 text-xs text-neutral-400 hover:border-neutral-400">
-          <span>+ Subir</span>
+
+            {(reaccion.reaction === "like" || reaccion.reaction === "super") && (
+              <motion.div
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(8px)" }}
+                animate={{ opacity: 1, transform: "translateY(0px)" }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                className="flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5"
+              >
+                <span className="text-[11px] text-white/70">Puntaje</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  value={reaccion.rating}
+                  onChange={(e) => updateReaccion(fotoActual.id, { rating: Number(e.target.value) })}
+                  className="h-1 w-28 accent-white"
+                />
+                <span className="w-8 font-mono text-xs text-white">{reaccion.rating}/10</span>
+              </motion.div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Tira de miniaturas: dónde estoy y salto directo */}
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <AnimatePresence initial={false}>
+          {fotos.map((f, i) => {
+            const r = detail.reacciones[f.id];
+            return (
+              <motion.button
+                key={f.id}
+                type="button"
+                layout={!reduceMotion}
+                initial={
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, transform: "translateY(10px) scale(0.95)" }
+                }
+                animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.95)" }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                onClick={() => irA(i)}
+                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ${
+                  i === posicion ? "border-neutral-900" : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={f.dataUrl} alt="" className="h-full w-full object-cover" />
+                {r?.reaction && (
+                  <span className="absolute left-1 top-1 rounded bg-black/65 px-1 text-[10px] text-white">
+                    {r.reaction === "super" ? "★" : r.reaction === "like" ? "♥" : "✕"}
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
+
+        <label
+          className={`flex h-16 w-24 shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed text-xs transition-colors duration-150 ${
+            subiendo
+              ? "border-neutral-400 text-neutral-400"
+              : "border-neutral-300 text-neutral-500 hover:border-neutral-500 hover:text-neutral-800"
+          }`}
+        >
+          <span>{subiendo ? "Subiendo…" : "+ Subir"}</span>
           <input
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
             onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
+              if (e.target.files?.length) handleUpload(e.target.files);
               e.target.value = "";
             }}
           />
         </label>
       </div>
 
-      {card.facts.length > 0 && (
-        <>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Lo esencial</p>
-          <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={toggleSelected}
+          className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors duration-150 ${
+            isSelected
+              ? "border-success-600 bg-success-50 text-success-700"
+              : "border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+          }`}
+        >
+          {isSelected ? "✓ Elegido por el cliente" : "Marcar como elegido"}
+        </button>
+        {card.facts.length > 0 && (
+          <div className="flex flex-wrap gap-2">
             {card.facts.map((f) => (
-              <div key={f.k} className="rounded-md bg-neutral-50 p-3">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{f.k}</p>
-                <p className="text-sm text-neutral-700">{f.v}</p>
-              </div>
+              <span
+                key={f.k}
+                className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] text-neutral-600"
+                title={f.v}
+              >
+                <span className="font-medium text-neutral-800">{f.k}:</span> {f.v}
+              </span>
             ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      <label className="block">
-        <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">
+      <label className="mt-5 block">
+        <span className="mb-1 block text-xs font-medium tracking-wide text-neutral-500 uppercase">
           Qué le gustó / qué comentó el cliente (en general)
         </span>
         <textarea
@@ -248,18 +538,9 @@ export function GalleryStep({
           value={detail.notas}
           onChange={(e) => updateDetail({ notas: e.target.value })}
           placeholder="Anotá en vivo lo que mencione el cliente..."
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+          className={inputClass}
         />
       </label>
-
-      {activeFoto && (
-        <PhotoLightbox
-          dataUrl={activeFoto.dataUrl}
-          reaccion={activeReaccion}
-          onChange={(patch) => updateReaccion(activeFoto.id, patch)}
-          onClose={() => setLightboxFotoId(null)}
-        />
-      )}
     </div>
   );
 }

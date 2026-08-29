@@ -4,8 +4,8 @@ import { useState } from "react";
 import { matchRoomProfile } from "@/lib/entrevista/roomProfiles";
 import type { AmbienteDetalle, EntrevistaState } from "@/lib/entrevista/types";
 import { ChipMulti } from "@/components/entrevista/ChipMulti";
+import { inputClass } from "@/components/ui/field";
 
-const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
 
 function emptyDetalle(): AmbienteDetalle {
@@ -32,8 +32,8 @@ export function DetalleAmbientesStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">{esUnico ? "Preguntas clave del ambiente" : "Funcionalidad por ambiente"}</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{esUnico ? "Preguntas clave del ambiente" : "Funcionalidad por ambiente"}</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         Cada ambiente tiene su propio set de preguntas — mobiliario, iluminación, y auditoría ergonómica/técnica específica de ese
         espacio en particular.
       </p>
@@ -60,7 +60,7 @@ export function DetalleAmbientesStep({
                   <div className="space-y-4 border-t border-neutral-200 px-4 py-4">
                     <div className="space-y-1">
                       {profile.tips.map((t) => (
-                        <p key={t} className="rounded-md bg-white p-2 text-xs text-neutral-500">
+                        <p key={t} className="rounded-md bg-neutral-100 p-2 text-xs text-neutral-600">
                           {t}
                         </p>
                       ))}
@@ -103,7 +103,7 @@ export function DetalleAmbientesStep({
                       />
                     </label>
 
-                    <p className="rounded-md bg-white p-2 text-xs text-neutral-500">
+                    <p className="rounded-md bg-neutral-100 p-2 text-xs text-neutral-600">
                       Colorimetría: revisá con la paleta elegida en el paso &quot;Paleta de color&quot; — acá solo anotá si este ambiente
                       puntual necesita un tratamiento de color distinto al resto.
                     </p>
@@ -127,7 +127,7 @@ export function DetalleAmbientesStep({
                       <div className="space-y-3">
                         {profile.funcional.map((g) => (
                           <div key={g.categoria}>
-                            <p className="mb-1 font-mono text-[10px] uppercase tracking-wide text-neutral-400">{g.categoria}</p>
+                            <p className="mb-1 font-mono text-[10px] uppercase tracking-wide text-neutral-500">{g.categoria}</p>
                             <ChipMulti
                               options={g.items}
                               values={det.funcional}
@@ -140,7 +140,7 @@ export function DetalleAmbientesStep({
                           </div>
                         ))}
                       </div>
-                      <p className="mt-2 text-xs text-neutral-400">{det.funcional.length} ítems marcados como relevantes para este ambiente</p>
+                      <p className="mt-2 text-xs text-neutral-500">{det.funcional.length} ítems marcados como relevantes para este ambiente</p>
                     </div>
                   </div>
                 )}

@@ -1,8 +1,8 @@
 "use client";
 
 import type { EntrevistaState } from "@/lib/entrevista/types";
+import { inputClass } from "@/components/ui/field";
 
-const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
 
 export function MobiliarioExistenteStep({
@@ -20,8 +20,8 @@ export function MobiliarioExistenteStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Mobiliario existente</h2>
-      <p className="mb-6 text-sm text-neutral-500">Definir qué se muda con ellos condiciona las medidas de todo el proyecto nuevo.</p>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Mobiliario existente</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">Definir qué se muda con ellos condiciona las medidas de todo el proyecto nuevo.</p>
       <div className="grid grid-cols-1 gap-4">
         <label className="block">
           <span className={labelClass}>Muebles actuales que quieren reutilizar</span>

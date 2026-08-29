@@ -1,8 +1,8 @@
 "use client";
 
 import type { EntrevistaState } from "@/lib/entrevista/types";
+import { inputClass } from "@/components/ui/field";
 
-const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
 
 export function DatosGeneralesStep({
@@ -32,8 +32,8 @@ export function DatosGeneralesStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Datos generales</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Datos generales</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         {esVivienda
           ? "Definí el tipo de propiedad — de eso depende qué ambientes van a aparecer después."
           : "Estos datos van a encabezar la ficha final del proyecto."}
@@ -48,11 +48,8 @@ export function DatosGeneralesStep({
                 key={opt}
                 type="button"
                 onClick={() => set("tipo", opt)}
-                className={`rounded-md border px-4 py-2 text-sm ${
-                  state.proyecto.tipo === opt
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                }`}
+                aria-pressed={state.proyecto.tipo === opt}
+                className={`chip px-4 py-2.5 text-sm ${state.proyecto.tipo === opt ? "chip-activo" : ""}`}
               >
                 {opt}
               </button>

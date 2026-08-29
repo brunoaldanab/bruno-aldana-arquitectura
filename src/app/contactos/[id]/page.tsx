@@ -2,6 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { IconDocument } from "@/components/ui/icons";
 
 const ESTADO_LABEL: Record<string, string> = {
   BORRADOR: "Borrador",
@@ -10,11 +15,11 @@ const ESTADO_LABEL: Record<string, string> = {
   RECHAZADA: "Rechazada",
 };
 
-const ESTADO_CLASS: Record<string, string> = {
-  BORRADOR: "bg-neutral-100 text-neutral-600",
-  ENVIADA: "bg-blue-50 text-blue-700",
-  APROBADA: "bg-green-50 text-green-700",
-  RECHAZADA: "bg-red-50 text-red-700",
+const ESTADO_TONE: Record<string, "neutral" | "info" | "success" | "danger"> = {
+  BORRADOR: "neutral",
+  ENVIADA: "info",
+  APROBADA: "success",
+  RECHAZADA: "danger",
 };
 
 function formatMonto(monto: unknown, moneda: string) {
@@ -43,74 +48,65 @@ export default async function ContactoDetailPage({ params }: { params: Promise<{
       <main className="mx-auto max-w-3xl px-4 py-10">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <Link href="/contactos" className="text-sm text-neutral-500 hover:underline">
+            <Link href="/contactos" className="text-sm text-neutral-500 hover:text-neutral-900 hover:underline">
               ← Contactos
             </Link>
-            <h1 className="mt-1 text-xl font-semibold text-neutral-900">{contacto.nombre}</h1>
+            <h1 className="font-display mt-1 text-3xl font-light tracking-tight text-neutral-900">{contacto.nombre}</h1>
           </div>
           <div className="flex gap-2">
-            <Link
-              href={`/contactos/${contacto.id}/entrevista`}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
-            >
+            <Button href={`/contactos/${contacto.id}/entrevista`} variant="secondary" size="sm">
               Ficha de entrevista
-            </Link>
-            <Link
-              href={`/contactos/${contacto.id}/editar`}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
-            >
+            </Button>
+            <Button href={`/contactos/${contacto.id}/editar`} variant="secondary" size="sm">
               Editar
-            </Link>
+            </Button>
           </div>
         </div>
 
-        <dl className="grid grid-cols-1 gap-4 rounded-lg border border-neutral-200 bg-white p-6 sm:grid-cols-2">
+        <Card className="animate-rise-in grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
           {campos.map(([label, value]) => (
             <div key={label}>
-              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-400">{label}</dt>
+              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</dt>
               <dd className="mt-1 text-sm text-neutral-900">{value || "—"}</dd>
             </div>
           ))}
-        </dl>
+        </Card>
 
         {contacto.notas && (
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-white p-6">
-            <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-400">Notas</h2>
+          <Card className="animate-rise-in mt-4 p-6" style={{ animationDelay: "60ms" }}>
+            <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-500">Notas</h2>
             <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-900">{contacto.notas}</p>
-          </div>
+          </Card>
         )}
 
         <div className="mb-4 mt-8 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900">Cotizaciones</h2>
-          <Link
-            href={`/contactos/${contacto.id}/cotizaciones/nueva`}
-            className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-neutral-700"
-          >
+          <h2 className="font-display text-lg font-semibold text-neutral-900">Cotizaciones</h2>
+          <Button href={`/contactos/${contacto.id}/cotizaciones/nueva`} size="sm">
             Nueva cotización
-          </Link>
+          </Button>
         </div>
 
         {contacto.cotizaciones.length === 0 ? (
-          <p className="text-sm text-neutral-500">Todavía no hay cotizaciones para este contacto.</p>
+          <EmptyState icon={<IconDocument />} title="Todavía no hay cotizaciones para este contacto" />
         ) : (
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-            {contacto.cotizaciones.map((cotizacion) => (
-              <li key={cotizacion.id}>
+          <ul className="animate-rise-in overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-soft">
+            {contacto.cotizaciones.map((cotizacion, i) => (
+              <li
+                key={cotizacion.id}
+                className={`animate-rise-in ${i > 0 ? "border-t border-neutral-200" : ""}`}
+                style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+              >
                 <Link
                   href={`/contactos/${contacto.id}/cotizaciones/${cotizacion.id}`}
-                  className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-neutral-50"
+                  className="flex items-center justify-between gap-4 px-4 py-4 transition hover:bg-neutral-50"
                 >
                   <div>
                     <p className="font-medium text-neutral-900">{cotizacion.titulo}</p>
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm tabular-nums text-neutral-500">
                       {formatMonto(cotizacion.montoTotal, cotizacion.moneda)}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${ESTADO_CLASS[cotizacion.estado]}`}
-                  >
-                    {ESTADO_LABEL[cotizacion.estado]}
-                  </span>
+                  <Badge tone={ESTADO_TONE[cotizacion.estado]}>{ESTADO_LABEL[cotizacion.estado]}</Badge>
                 </Link>
               </li>
             ))}

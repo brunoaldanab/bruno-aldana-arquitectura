@@ -4,8 +4,8 @@ import { officeFuncionalGroups } from "@/lib/entrevista/data";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import { ChipSingle } from "@/components/entrevista/ChipSingle";
 import { ChipMulti } from "@/components/entrevista/ChipMulti";
+import { inputClass } from "@/components/ui/field";
 
-const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
 
 export function OficinaStep({
@@ -36,8 +36,8 @@ export function OficinaStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Sobre la oficina</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Sobre la oficina</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         Estas preguntas son específicas de espacios de trabajo — no aparecen en proyectos de vivienda.
       </p>
 
@@ -117,12 +117,12 @@ export function OficinaStep({
       <div className="space-y-4">
         {officeFuncionalGroups.map((g) => (
           <div key={g.categoria}>
-            <p className="mb-2 font-mono text-xs uppercase tracking-wide text-neutral-400">{g.categoria}</p>
+            <p className="mb-2 font-mono text-xs uppercase tracking-wide text-neutral-500">{g.categoria}</p>
             <ChipMulti options={g.items} values={o.funcional} onToggle={toggleFuncional} small />
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs text-neutral-400">{o.funcional.length} ítems marcados como relevantes para este proyecto</p>
+      <p className="mt-3 text-xs text-neutral-500">{o.funcional.length} ítems marcados como relevantes para este proyecto</p>
     </div>
   );
 }

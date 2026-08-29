@@ -1,5 +1,16 @@
 "use client";
 
+/**
+ * Elegir una opción entre varias.
+ *
+ * Deja de ser una pastilla con borde: la opción sin elegir es una superficie
+ * apenas hundida, y la elegida se rellena en negro. El contraste entre las dos
+ * es mucho más fuerte que un borde de color, que es lo que hace falta cuando el
+ * cliente está mirando la pantalla desde el otro lado de la mesa.
+ *
+ * La respuesta al toque vive en `:active` y no en el click: el botón tiene que
+ * acusar recibo en el momento en que se aprieta, no cuando se suelta.
+ */
 export function ChipSingle({
   options,
   value,
@@ -18,10 +29,9 @@ export function ChipSingle({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className={`rounded-full border font-medium transition ${small ? "px-3 py-1 text-xs" : "px-4 py-2 text-sm"} ${
-            value === o
-              ? "border-neutral-900 bg-neutral-900 text-white"
-              : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+          aria-pressed={value === o}
+          className={`chip ${small ? "px-3.5 py-1.5 text-xs" : "px-4 py-2.5 text-sm"} ${
+            value === o ? "chip-activo" : ""
           }`}
         >
           {o}

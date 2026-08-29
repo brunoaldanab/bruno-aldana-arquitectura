@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { styleCards } from "@/lib/entrevista/data";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
+import { Button } from "@/components/ui/Button";
 
 interface DuelItem {
   styleKey: string;
@@ -23,7 +25,10 @@ interface DuelState {
 
 function buildPool(state: EntrevistaState, galeria: GaleriaData): DuelItem[] {
   const pool: DuelItem[] = [];
-  const cards = [...styleCards.map((c) => ({ k: c.k, t: c.t })), ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo }))];
+  const cards = [
+    ...styleCards.map((c) => ({ k: c.k, t: c.t })),
+    ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo })),
+  ];
   cards.forEach((c) => {
     const det = state.estiloDetalle[c.k];
     if (!det) return;
@@ -49,7 +54,10 @@ function makePairs(items: DuelItem[]): { pairs: [DuelItem, DuelItem][]; bye: Due
 }
 
 function computeRanking(state: EntrevistaState, galeria: GaleriaData) {
-  const cards = [...styleCards.map((c) => ({ k: c.k, t: c.t })), ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo }))];
+  const cards = [
+    ...styleCards.map((c) => ({ k: c.k, t: c.t })),
+    ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo })),
+  ];
   return cards
     .map((c) => {
       const det = state.estiloDetalle[c.k];
@@ -74,6 +82,8 @@ export function DueloStep({
   setGaleria: React.Dispatch<React.SetStateAction<GaleriaData>>;
 }) {
   const [duel, setDuel] = useState<DuelState | null>(null);
+  const [elegida, setElegida] = useState<0 | 1 | null>(null);
+  const reduceMotion = useReducedMotion();
   const ranking = useMemo(() => computeRanking(state, galeria), [state, galeria]);
   const maxAvg = Math.max(...ranking.map((r) => r.avg), 1);
   const pool = useMemo(() => buildPool(state, galeria), [state, galeria]);
@@ -85,125 +95,205 @@ export function DueloStep({
     setDuel({ pairs, pairIndex: 0, winners: bye ? [bye] : [], champion: null, roundNum: 1 });
   }
 
-  function pick(winner: DuelItem) {
+  function avanzar(winner: DuelItem) {
     setDuel((d) => {
       if (!d) return d;
       const winners = [...d.winners, winner];
       const pairIndex = d.pairIndex + 1;
       if (pairIndex >= d.pairs.length) {
-        if (winners.length === 1) {
-          return { ...d, winners, pairIndex, champion: winners[0] };
-        }
+        if (winners.length === 1) return { ...d, winners, pairIndex, champion: winners[0] };
         const { pairs, bye } = makePairs(winners);
         return { pairs, pairIndex: 0, winners: bye ? [bye] : [], champion: null, roundNum: d.roundNum + 1 };
       }
       return { ...d, winners, pairIndex };
     });
+    setElegida(null);
+  }
+
+  /** Marca la elegida, deja ver quién ganó, y recién ahí pasa al siguiente par. */
+  function pick(lado: 0 | 1, winner: DuelItem) {
+    if (elegida !== null) return;
+    setElegida(lado);
+    window.setTimeout(() => avanzar(winner), reduceMotion ? 120 : 420);
   }
 
   const currentPair = duel && !duel.champion ? duel.pairs[duel.pairIndex] : null;
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Ranking automático & duelo de favoritos</h2>
-      <p className="mb-6 text-sm text-neutral-500">
-        Con lo que calificaron en el paso anterior armamos dos cosas: un ranking automático de estilos según puntaje promedio, y un
-        duelo cara a cara entre las fotos mejor calificadas (6+/10) de todas las categorías — para definir, en vivo, cuál es LA
-        favorita absoluta.
-      </p>
-
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Ranking automático de estilos</p>
-      {ranking.length === 0 ? (
-        <p className="mb-6 text-sm text-neutral-500">
-          Todavía no hay fotos calificadas con ♥ o ★ en el paso anterior — volvé a &quot;Estilo&quot; y calificá algunas para ver el
-          ranking acá.
+      <div className="mb-5 px-1">
+        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">
+          Ranking automático &amp; duelo de favoritos
+        </h2>
+        <p className="text-sm text-neutral-500">
+          Enfrentá cara a cara las fotos mejor calificadas (6+/10) y definí en vivo cuál es LA favorita.
         </p>
-      ) : (
-        <div className="mb-6 space-y-2">
-          {ranking.map((r, i) => (
-            <div key={r.key} className="flex items-center gap-3">
-              <span className={`w-5 text-sm font-semibold ${i === 0 ? "text-neutral-900" : "text-neutral-400"}`}>{i + 1}</span>
-              <span className="w-40 shrink-0 truncate text-sm text-neutral-700">{r.name}</span>
-              <div className="h-2 flex-1 rounded-full bg-neutral-100">
-                <div className="h-2 rounded-full bg-neutral-900" style={{ width: `${(r.avg / maxAvg) * 100}%` }} />
-              </div>
-              <span className="w-12 text-right text-xs text-neutral-500">{r.avg.toFixed(1)}/10</span>
-            </div>
-          ))}
-        </div>
-      )}
+      </div>
 
-      <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">Duelo de favoritos</p>
-
-      {!duel && (
-        <div>
-          <p className="mb-3 text-sm text-neutral-500">{pool.length} foto(s) calificadas con 6+ puntos, listas para el duelo.</p>
-          <button
-            type="button"
-            disabled={pool.length < 2}
-            onClick={start}
-            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-medium uppercase tracking-wide text-white disabled:opacity-25"
-          >
-            Iniciar duelo →
-          </button>
-          {pool.length < 2 && (
-            <p className="mt-3 text-sm text-neutral-500">
-              Se necesitan al menos 2 fotos con 6+ puntos en distintas fotos para poder enfrentarlas.
+      {/* EL DUELO primero: es lo que se hace con el cliente delante */}
+      {currentPair && (
+        <div className="mb-8">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">
+              Ronda {duel!.roundNum} · enfrentamiento {duel!.pairIndex + 1} de {duel!.pairs.length}
             </p>
-          )}
+            <button
+              type="button"
+              onClick={() => {
+                setDuel(null);
+                setElegida(null);
+              }}
+              className="text-xs text-neutral-500 transition-colors duration-150 hover:text-neutral-900"
+            >
+              Cancelar duelo
+            </button>
+          </div>
+
+          <div className="relative grid grid-cols-2 gap-3 sm:gap-4">
+            {([0, 1] as const).map((lado) => {
+              const item = currentPair[lado];
+              const gana = elegida === lado;
+              const pierde = elegida !== null && elegida !== lado;
+              return (
+                <motion.button
+                  key={`${duel!.roundNum}-${duel!.pairIndex}-${lado}`}
+                  type="button"
+                  onClick={() => pick(lado, item)}
+                  initial={
+                    reduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, transform: `translateX(${lado === 0 ? -24 : 24}px)` }
+                  }
+                  animate={{
+                    opacity: pierde ? 0.25 : 1,
+                    transform: `translateX(0px) scale(${gana ? 1.02 : pierde ? 0.97 : 1})`,
+                  }}
+                  transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+                  className={`group relative aspect-[3/4] overflow-hidden rounded-2xl transition-[box-shadow] duration-200 sm:aspect-[4/5] ${
+                    gana
+                      ? "shadow-[0_0_0_4px_var(--color-success-600)]"
+                      : "shadow-[0_0_0_1px_var(--color-neutral-200)] hover:shadow-[0_0_0_3px_var(--color-neutral-900)]"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.dataUrl} alt={item.styleName} className="h-full w-full object-cover" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 to-transparent" />
+
+                  <div className="absolute inset-x-0 bottom-0 p-4 text-left">
+                    <p className="text-base font-medium text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.7)]">
+                      {item.styleName}
+                    </p>
+                    <p className="text-xs text-white/80 [text-shadow:0_2px_12px_rgba(0,0,0,0.7)]">
+                      {item.rating}/10 · {item.reaction === "super" ? "★ Le encantó" : "♥ Le gustó"}
+                    </p>
+                  </div>
+
+                  <AnimatePresence>
+                    {gana && (
+                      <motion.span
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.5, opacity: 0 }}
+                        transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
+                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-success-600 text-lg text-white shadow-lg"
+                      >
+                        ✓
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              );
+            })}
+
+            <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold tracking-wider text-white shadow-xl">
+              VS
+            </span>
+          </div>
         </div>
       )}
 
       {duel?.champion && (
-        <div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-600">★ Favorita absoluta de la reunión</p>
-            <img src={duel.champion.dataUrl} alt="Foto ganadora" className="mx-auto mb-3 max-h-64 rounded-md object-cover" />
-            <h3 className="text-base font-semibold text-neutral-900">{duel.champion.styleName}</h3>
-            <p className="text-sm text-neutral-500">
-              Calificada {duel.champion.rating}/10 · {duel.champion.reaction === "super" ? "Le encantó" : "Le gustó"}
-            </p>
-          </div>
-          <button type="button" onClick={() => setDuel(null)} className="mt-4 text-sm font-medium text-neutral-700 hover:underline">
+        <div className="mb-8">
+          <motion.div
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.96)" }}
+            animate={{ opacity: 1, transform: "scale(1)" }}
+            transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+            className="relative aspect-[16/9] overflow-hidden rounded-2xl"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={duel.champion.dataUrl} alt="Foto ganadora" className="h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
+            <div className="absolute inset-x-0 bottom-0 p-6 text-center">
+              <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-white/80 uppercase">
+                ★ Favorita absoluta de la reunión
+              </p>
+              <h3 className="font-display text-3xl font-light text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.6)]">
+                {duel.champion.styleName}
+              </h3>
+              <p className="text-sm text-white/80">
+                Calificada {duel.champion.rating}/10 ·{" "}
+                {duel.champion.reaction === "super" ? "Le encantó" : "Le gustó"}
+              </p>
+            </div>
+          </motion.div>
+          <button
+            type="button"
+            onClick={() => {
+              setDuel(null);
+              setElegida(null);
+            }}
+            className="mt-4 text-sm font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900 hover:underline"
+          >
             Repetir duelo
           </button>
         </div>
       )}
 
-      {currentPair && (
-        <div>
-          <p className="mb-3 text-xs text-neutral-400">
-            Ronda {duel!.roundNum} · enfrentamiento {duel!.pairIndex + 1} de {duel!.pairs.length}
+      {!duel && (
+        <div className="mb-8 rounded-2xl border border-neutral-200 p-6 text-center">
+          <p className="mb-3 text-sm text-neutral-600">
+            {pool.length} foto(s) calificadas con 6+ puntos, listas para el duelo.
           </p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => pick(currentPair[0])}
-              className="flex-1 overflow-hidden rounded-lg border border-neutral-200 text-left transition hover:border-neutral-900"
-            >
-              <img src={currentPair[0].dataUrl} alt={currentPair[0].styleName} className="h-40 w-full object-cover" />
-              <div className="p-2">
-                <p className="text-sm font-medium text-neutral-900">{currentPair[0].styleName}</p>
-                <p className="text-xs text-neutral-500">
-                  {currentPair[0].rating}/10 {currentPair[0].reaction === "super" ? "★" : "♥"}
-                </p>
+          <Button disabled={pool.length < 2} onClick={start}>
+            Iniciar duelo →
+          </Button>
+          {pool.length < 2 && (
+            <p className="mt-3 text-sm text-neutral-500">
+              Se necesitan al menos 2 fotos con 6+ puntos para poder enfrentarlas — volvé a &quot;Estilo&quot; y
+              calificá algunas.
+            </p>
+          )}
+        </div>
+      )}
+
+      <p className="mb-3 px-1 text-xs font-medium tracking-wide text-neutral-500 uppercase">
+        Ranking automático de estilos
+      </p>
+      {ranking.length === 0 ? (
+        <p className="px-1 text-sm text-neutral-500">
+          Todavía no hay fotos calificadas con ♥ o ★ en el paso anterior — volvé a &quot;Estilo&quot; y calificá
+          algunas para ver el ranking acá.
+        </p>
+      ) : (
+        <div className="space-y-2 px-1">
+          {ranking.map((r, i) => (
+            <div key={r.key} className="flex items-center gap-3">
+              <span className={`w-5 text-sm font-semibold ${i === 0 ? "text-neutral-900" : "text-neutral-500"}`}>
+                {i + 1}
+              </span>
+              <span className="w-40 shrink-0 truncate text-sm text-neutral-700">{r.name}</span>
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
+                <motion.div
+                  initial={reduceMotion ? false : { transform: "scaleX(0)" }}
+                  animate={{ transform: "scaleX(1)" }}
+                  transition={{ duration: 0.5, delay: i * 0.06, ease: [0.23, 1, 0.32, 1] }}
+                  style={{ width: `${(r.avg / maxAvg) * 100}%`, transformOrigin: "left" }}
+                  className="h-2 rounded-full bg-neutral-900"
+                />
               </div>
-            </button>
-            <span className="text-sm font-semibold text-neutral-400">VS</span>
-            <button
-              type="button"
-              onClick={() => pick(currentPair[1])}
-              className="flex-1 overflow-hidden rounded-lg border border-neutral-200 text-left transition hover:border-neutral-900"
-            >
-              <img src={currentPair[1].dataUrl} alt={currentPair[1].styleName} className="h-40 w-full object-cover" />
-              <div className="p-2">
-                <p className="text-sm font-medium text-neutral-900">{currentPair[1].styleName}</p>
-                <p className="text-xs text-neutral-500">
-                  {currentPair[1].rating}/10 {currentPair[1].reaction === "super" ? "★" : "♥"}
-                </p>
-              </div>
-            </button>
-          </div>
+              <span className="w-12 text-right text-xs text-neutral-500">{r.avg.toFixed(1)}/10</span>
+            </div>
+          ))}
         </div>
       )}
     </div>

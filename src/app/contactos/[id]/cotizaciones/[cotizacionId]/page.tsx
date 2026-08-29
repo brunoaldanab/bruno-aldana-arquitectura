@@ -20,10 +20,10 @@ export default async function CotizacionDetailPage({
     <>
       <AppHeader />
       <main className="mx-auto max-w-xl px-4 py-10">
-        <Link href={`/contactos/${id}`} className="text-sm text-neutral-500 hover:underline">
+        <Link href={`/contactos/${id}`} className="text-sm text-neutral-500 hover:text-neutral-900 hover:underline">
           ← Volver al contacto
         </Link>
-        <h1 className="mb-6 mt-1 text-xl font-semibold text-neutral-900">{cotizacion.titulo}</h1>
+        <h1 className="font-display mb-6 mt-1 text-3xl font-light tracking-tight text-neutral-900">{cotizacion.titulo}</h1>
         <CotizacionForm
           action={action}
           submitLabel="Guardar cambios"

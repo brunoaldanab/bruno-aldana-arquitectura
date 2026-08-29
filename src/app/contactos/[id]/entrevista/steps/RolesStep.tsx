@@ -13,8 +13,9 @@ import {
 import type { EntrevistaState, Rol } from "@/lib/entrevista/types";
 import { ChipSingle } from "@/components/entrevista/ChipSingle";
 import { ChipMulti } from "@/components/entrevista/ChipMulti";
+import { inputClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/Button";
 
-const inputClass = "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 const labelClass = "mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500";
 
 type ListField = "mobiliario" | "equipo" | "instalaciones" | "almacenamiento" | "tecnologia" | "conectaCon" | "confort";
@@ -59,8 +60,8 @@ export function RolesStep({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-neutral-900">Roles y flujo de trabajo</h2>
-      <p className="mb-6 text-sm text-neutral-500">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Roles y flujo de trabajo</h2>
+      <p className="mb-8 max-w-xl text-base text-neutral-500">
         Antes de decidir dónde va cada mueble, hay que entender cómo funciona realmente la empresa por dentro — quién hace qué, a quién
         recibe, y qué necesita a mano. Agregá cada puesto/rol que exista (Promotor, Secretaria, Gerente, Cajero...) y completá su ficha.
         Esto es investigación operativa, no gusto estético.
@@ -75,13 +76,9 @@ export function RolesStep({
           placeholder="Ej: Promotor de ventas, Secretaria, Gerente..."
           className={inputClass}
         />
-        <button
-          type="button"
-          onClick={addRol}
-          className="whitespace-nowrap rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
-        >
+        <Button type="button" onClick={addRol} className="whitespace-nowrap">
           + Agregar rol
-        </button>
+        </Button>
       </div>
 
       {state.roles.length === 0 ? (
@@ -263,7 +260,7 @@ export function RolesStep({
                       />
                     </label>
 
-                    <button type="button" onClick={() => removeRol(r.id)} className="text-sm font-medium text-red-600 hover:underline">
+                    <button type="button" onClick={() => removeRol(r.id)} className="text-sm font-medium text-danger-600 hover:text-danger-700 hover:underline">
                       Eliminar este rol
                     </button>
                   </div>
