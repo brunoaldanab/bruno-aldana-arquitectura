@@ -1,0 +1,228 @@
+/*
+ * Hoja A4 para la propuesta.
+ *
+ * El PDF sale de la impresión del navegador: no hace falta ninguna biblioteca, y
+ * lo que Bruno ve en pantalla es exactamente lo que se guarda. Al imprimir se
+ * apaga todo el chrome de la aplicación y quedan solo las cuatro hojas.
+ */
+
+.propuesta {
+  --hoja-ancho: 210mm;
+  --hoja-alto: 297mm;
+  --margen: 16mm;
+  --tinta: #17191c;
+  --tinta-suave: #565d66;
+  --tenue: #9aa0a8;
+  --linea: #dee1e5;
+  --acento: #3d6bef;
+  --papel: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12mm;
+  padding: 12mm 0;
+  background: #eef0f2;
+}
+
+.hoja {
+  position: relative;
+  width: var(--hoja-ancho);
+  min-height: var(--hoja-alto);
+  padding: var(--margen);
+  background: var(--papel);
+  color: var(--tinta);
+  box-shadow: 0 2px 4px rgba(14, 15, 17, 0.08), 0 24px 48px -16px rgba(14, 15, 17, 0.28);
+  overflow: hidden;
+  break-inside: avoid;
+}
+
+/* El filo de acento, el mismo recurso que ya usaba el PDF anterior. */
+.hoja::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3mm;
+  background: var(--acento);
+}
+
+/* La portada es la única hoja oscura, y sangra la foto de punta a punta. */
+.hoja-portada {
+  padding: 0;
+  background: #0e0f11;
+  color: #f7f8f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.portada-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* El mismo grado frío que usa la aplicación, para que la portada pertenezca
+     al mismo sistema visual que la ficha de entrevista. */
+  filter: saturate(0.5) contrast(1.1) brightness(0.62);
+}
+
+.portada-velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(14, 15, 17, 0.96) 20%, rgba(14, 15, 17, 0.35) 70%, rgba(14, 15, 17, 0.55));
+}
+
+.portada-contenido {
+  position: relative;
+  padding: var(--margen);
+  display: flex;
+  flex-direction: column;
+  gap: 6mm;
+}
+
+.rotulo {
+  font-family: var(--font-mono), monospace;
+  font-size: 8pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.hoja-portada .rotulo { color: #c2c7cd; }
+
+.titulo-portada {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 300;
+  font-size: 32pt;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.datos-portada {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3mm 10mm;
+  padding-top: 5mm;
+  border-top: 1px solid rgba(247, 248, 249, 0.25);
+}
+
+.dato-etiqueta {
+  font-family: var(--font-mono), monospace;
+  font-size: 7pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aa0a8;
+  display: block;
+  margin-bottom: 1mm;
+}
+
+.dato-valor { font-size: 11pt; font-weight: 500; }
+
+/* --- Hojas de contenido --- */
+
+.cabecera-hoja {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 4mm;
+  margin-bottom: 8mm;
+  border-bottom: 1px solid var(--linea);
+}
+
+.titulo-seccion {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 400;
+  font-size: 18pt;
+  letter-spacing: -0.015em;
+  margin: 0 0 5mm;
+}
+
+.propuesta h3 {
+  font-family: var(--font-mono), monospace;
+  font-size: 8pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 0 0 3mm;
+  font-weight: 500;
+}
+
+.propuesta p { font-size: 10pt; line-height: 1.6; margin: 0 0 4mm; }
+.propuesta ul { font-size: 10pt; line-height: 1.6; margin: 0 0 5mm; padding-left: 5mm; }
+.propuesta li { margin-bottom: 1.5mm; }
+
+.dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+
+.cita {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 300;
+  font-size: 20pt;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 6mm;
+  text-wrap: balance;
+}
+
+.etiquetas { display: flex; flex-wrap: wrap; gap: 2mm; margin-bottom: 6mm; }
+
+.etiqueta {
+  font-size: 9pt;
+  padding: 1.5mm 3.5mm;
+  border-radius: 99px;
+  background: #eef0f2;
+  color: var(--tinta);
+}
+
+.paleta { display: flex; gap: 2mm; margin-bottom: 6mm; }
+.color { flex: 1; }
+.color-muestra { height: 14mm; border-radius: 2mm; border: 1px solid rgba(14, 15, 17, 0.08); }
+.color-nombre { font-size: 7.5pt; color: var(--tinta-suave); margin-top: 1.5mm; display: block; }
+
+.pie-hoja {
+  position: absolute;
+  left: var(--margen);
+  right: var(--margen);
+  bottom: 10mm;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono), monospace;
+  font-size: 7pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  padding-top: 3mm;
+  border-top: 1px solid var(--linea);
+}
+
+/* --- Impresión --- */
+
+@page { size: A4; margin: 0; }
+
+@media print {
+  /* Fuera todo lo que no es la propuesta: encabezado de la app, botones, fondo. */
+  body > *:not(.propuesta-raiz) { display: none !important; }
+  .no-imprimir { display: none !important; }
+
+  .propuesta { gap: 0; padding: 0; background: none; }
+  .hoja {
+    box-shadow: none;
+    break-after: page;
+    min-height: var(--hoja-alto);
+  }
+  .hoja:last-child { break-after: auto; }
+
+  /* Sin esto el navegador descarta los fondos y la portada sale en blanco. */
+  .hoja-portada, .portada-foto, .portada-velo, .etiqueta, .color-muestra {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media screen and (max-width: 230mm) {
+  /* En el celular la hoja no entra: se deja escalar para poder revisarla. */
+  .propuesta { padding: 4mm; }
+  .hoja { width: 100%; min-height: auto; }
+}
