@@ -197,6 +197,43 @@
   border-top: 1px solid var(--linea);
 }
 
+/* La inversión es lo primero que busca el ojo del cliente: se trata en grande,
+   no como una nota al pie. En el PDF anterior era el título más chico. */
+.tabla-inversion {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10pt;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6mm;
+}
+
+.tabla-inversion th {
+  font-family: var(--font-mono), monospace;
+  font-size: 7pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  text-align: left;
+  font-weight: 500;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid var(--tinta);
+}
+
+.tabla-inversion td { padding: 4mm 0; border-bottom: 1px solid var(--linea); }
+.tabla-inversion .num { text-align: right; }
+.tabla-inversion .total { font-size: 14pt; font-weight: 600; }
+
+.franja-pago { background: #f7f8f9; padding: 5mm; border-radius: 2mm; margin-bottom: 5mm; }
+.franja-pago p { margin: 0; }
+
+.vencimiento {
+  border-left: 2px solid var(--acento);
+  padding-left: 4mm;
+  color: var(--tinta-suave);
+}
+
+.ejemplo { background: #f7f8f9; padding: 4mm 5mm; border-radius: 2mm; font-size: 9.5pt; }
+
 /* --- Impresión --- */
 
 @page { size: A4; margin: 0; }

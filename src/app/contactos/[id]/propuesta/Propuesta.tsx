@@ -140,6 +140,100 @@ export function Propuesta({ datos }: { datos: PropuestaData }) {
 
           <PieHoja n="02" />
         </section>
+
+        {/* ---------- 03 · La propuesta ---------- */}
+        <section className="hoja">
+          <CabeceraHoja seccion="Propuesta · Alcance" />
+          <h2 className="titulo-seccion">Propuesta de servicio</h2>
+          <p>{TEXTOS.intro}</p>
+
+          <div className="dos-columnas">
+            <div>
+              <h3>Alcance del diseño</h3>
+              <ul>
+                {TEXTOS.alcance.map((a) => <li key={a}>{a}</li>)}
+              </ul>
+            </div>
+            <div>
+              <h3>Metodología</h3>
+              {TEXTOS.metodologia.map((m) => (
+                <p key={m.n}>
+                  <strong>{m.n} · {m.titulo}</strong>
+                  <br />
+                  {m.texto}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <h3>Qué recibís</h3>
+          <ul>
+            {TEXTOS.queRecibis.map((q) => <li key={q}>{q}</li>)}
+            <li>Entrega en <strong>{datos.plazoDias} días hábiles</strong>.</li>
+          </ul>
+
+          <PieHoja n="03" />
+        </section>
+
+        {/* ---------- 04 · Inversión ---------- */}
+        <section className="hoja">
+          <CabeceraHoja seccion="Inversión" />
+          <h2 className="titulo-seccion">Inversión en diseño</h2>
+
+          <table className="tabla-inversion">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th className="num">Superficie</th>
+                <th className="num">Tarifa</th>
+                <th className="num">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{datos.titulo}</td>
+                <td className="num">{datos.m2Texto}</td>
+                <td className="num">{datos.tarifaTexto}</td>
+                <td className="num total">{datos.precioTexto}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="franja-pago">
+            <h3>Forma de pago</h3>
+            <div className="dos-columnas">
+              <p><strong>30% · {datos.anticipoTexto}</strong><br />Al inicio</p>
+              <p><strong>70% · {datos.saldoTexto}</strong><br />A la entrega del proyecto final</p>
+            </div>
+          </div>
+
+          <p className="vencimiento">
+            Esta propuesta tiene validez hasta el <strong>{datos.venceTexto}</strong>.
+          </p>
+
+          <h2 className="titulo-seccion" style={{ marginTop: "8mm" }}>
+            Dirección, coordinación y supervisión · 10%
+          </h2>
+          <p>{TEXTOS.supervisionIntro}</p>
+
+          <div className="dos-columnas">
+            <div>
+              <h3>Incluye</h3>
+              <ul>{TEXTOS.supervisionIncluye.map((i) => <li key={i}>{i}</li>)}</ul>
+            </div>
+            <div>
+              <h3>No forma parte de la base del 10%</h3>
+              <ul>{TEXTOS.supervisionExcluye.map((e) => <li key={e}>{e}</li>)}</ul>
+            </div>
+          </div>
+
+          <p className="ejemplo"><strong>Ejemplo.</strong> {TEXTOS.supervisionEjemplo}</p>
+
+          <h3>Inicio</h3>
+          <p>{TEXTOS.inicio}</p>
+
+          <PieHoja n="04" />
+        </section>
       </div>
     </div>
   );
