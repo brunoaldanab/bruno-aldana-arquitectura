@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { styleCards } from "@/lib/entrevista/data";
+import { campeonGuardado } from "@/lib/entrevista/duelo";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { Button } from "@/components/ui/Button";
 
 interface DuelItem {
+  fotoId: string;
   styleKey: string;
   styleName: string;
   dataUrl: string;
@@ -36,7 +38,7 @@ function buildPool(state: EntrevistaState, galeria: GaleriaData): DuelItem[] {
     fotos.forEach((f) => {
       const r = det.reacciones[f.id];
       if (r && (r.reaction === "like" || r.reaction === "super") && r.rating >= 6) {
-        pool.push({ styleKey: c.k, styleName: c.t, dataUrl: f.dataUrl, rating: r.rating, reaction: r.reaction });
+        pool.push({ fotoId: f.id, styleKey: c.k, styleName: c.t, dataUrl: f.dataUrl, rating: r.rating, reaction: r.reaction });
       }
     });
   });
@@ -74,6 +76,7 @@ function computeRanking(state: EntrevistaState, galeria: GaleriaData) {
 
 export function DueloStep({
   state,
+  setState,
   galeria,
 }: {
   state: EntrevistaState;
@@ -87,6 +90,35 @@ export function DueloStep({
   const ranking = useMemo(() => computeRanking(state, galeria), [state, galeria]);
   const maxAvg = Math.max(...ranking.map((r) => r.avg), 1);
   const pool = useMemo(() => buildPool(state, galeria), [state, galeria]);
+
+  // El campeón que quedó guardado de una sesión anterior, reconstruido desde la
+  // biblioteca. Sin esto, volver al paso mostraba la pantalla de inicio y había
+  // que rehacer el torneo entero.
+  const guardado = useMemo(
+    () => campeonGuardado(state.duelo, galeria.estiloFotos),
+    [state.duelo, galeria.estiloFotos]
+  );
+
+  // Se guarda apenas se define el campeón. La guarda por fotoId evita volver a
+  // escribir el mismo resultado en cada render.
+  useEffect(() => {
+    const c = duel?.champion;
+    if (!c) return;
+    setState((s) => {
+      if (s.duelo?.fotoId === c.fotoId) return s;
+      return {
+        ...s,
+        duelo: {
+          fotoId: c.fotoId,
+          styleKey: c.styleKey,
+          styleName: c.styleName,
+          rating: c.rating,
+          reaction: c.reaction,
+          decididoEn: new Date().toISOString(),
+        },
+      };
+    });
+  }, [duel?.champion, setState]);
 
   function start() {
     if (pool.length < 2) return;
@@ -118,6 +150,13 @@ export function DueloStep({
   }
 
   const currentPair = duel && !duel.champion ? duel.pairs[duel.pairIndex] : null;
+
+  // Da igual si el campeón se acaba de decidir o venía guardado: se muestra igual.
+  const campeon = duel?.champion
+    ? { dataUrl: duel.champion.dataUrl, styleName: duel.champion.styleName, rating: duel.champion.rating, reaction: duel.champion.reaction }
+    : guardado
+      ? { dataUrl: guardado.dataUrl, styleName: guardado.styleName, rating: guardado.rating, reaction: "super" }
+      : null;
 
   return (
     <div>
@@ -212,7 +251,7 @@ export function DueloStep({
         </div>
       )}
 
-      {duel?.champion && (
+      {campeon && (
         <div className="mb-8">
           <motion.div
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.96)" }}
@@ -221,18 +260,18 @@ export function DueloStep({
             className="relative aspect-[16/9] overflow-hidden rounded-2xl"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={duel.champion.dataUrl} alt="Foto ganadora" className="h-full w-full object-cover" />
+            <img src={campeon.dataUrl} alt="Foto ganadora" className="h-full w-full object-cover" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
             <div className="absolute inset-x-0 bottom-0 p-6 text-center">
               <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-white/80 uppercase">
                 ★ Favorita absoluta de la reunión
               </p>
               <h3 className="font-display text-3xl font-light text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.6)]">
-                {duel.champion.styleName}
+                {campeon.styleName}
               </h3>
               <p className="text-sm text-white/80">
-                Calificada {duel.champion.rating}/10 ·{" "}
-                {duel.champion.reaction === "super" ? "Le encantó" : "Le gustó"}
+                Calificada {campeon.rating}/10 ·{" "}
+                {campeon.reaction === "super" ? "Le encantó" : "Le gustó"}
               </p>
             </div>
           </motion.div>

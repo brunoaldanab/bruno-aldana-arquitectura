@@ -39,6 +39,26 @@ export interface AmbienteDetalle {
   funcional: string[];
 }
 
+/**
+ * El resultado del torneo de fotos.
+ *
+ * Se guarda para que sobreviva al cambio de paso —antes vivía solo en la memoria
+ * del componente y volver al duelo obligaba a rehacerlo entero, delante del
+ * cliente— y para que la propuesta pueda usar la foto ganadora como portada.
+ *
+ * Se guarda el id de la foto y no la foto: la imagen ya vive en la biblioteca
+ * compartida, y copiar su base64 acá inflaría el JSON de cada entrevista.
+ */
+export interface DueloResultado {
+  fotoId: string;
+  styleKey: string;
+  styleName: string;
+  rating: number;
+  reaction: string;
+  /** Cuándo se cerró el torneo, en ISO. */
+  decididoEn: string;
+}
+
 export interface EntrevistaState {
   proyecto: {
     tipoProyecto: TipoProyecto;
@@ -112,6 +132,11 @@ export interface EntrevistaState {
     palabra: string;
     pendientes: string;
   };
+  /**
+   * Opcional a propósito: las entrevistas guardadas antes de que esto existiera
+   * no tienen el campo, y `Entrevista.data` es una columna JSON sin migración.
+   */
+  duelo?: DueloResultado | null;
 }
 
 export function createInitialEntrevistaState(): EntrevistaState {
@@ -150,5 +175,6 @@ export function createInitialEntrevistaState(): EntrevistaState {
     presupuesto: { monto: "", distribucion: "", incluyeObra: "", flexible: "" },
     plazos: { fecha: "", motivo: "", etapas: "" },
     cierre: { evitar: "", palabra: "", pendientes: "" },
+    duelo: null,
   };
 }
