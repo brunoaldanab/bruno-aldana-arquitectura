@@ -404,3 +404,21 @@
   .propuesta { padding: 4mm; gap: 6mm; }
   .hoja { width: 100%; min-height: auto; }
 }
+
+/* Explica en la propia fila por qué ese ambiente no se cobró por metro. */
+.nota-fila {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 6.5pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  margin-top: 1mm;
+}
+
+.tabla-inversion tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--tinta);
+  font-weight: 600;
+  padding-top: 4mm;
+}

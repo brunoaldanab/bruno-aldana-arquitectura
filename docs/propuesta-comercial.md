@@ -38,30 +38,35 @@ componentes.
 
 ### Precio del diseño
 
+Se cobra **ambiente por ambiente**, y el mínimo se aplica a cada espacio chico
+por separado:
+
 ```
-precio = el mayor entre:
-    m² totales × 60 Bs
-    cantidad de ambientes × 1.000 Bs
+por cada ambiente:  cobra = el mayor entre (m² del ambiente × 60 Bs) y 1.000 Bs
+precio = la suma de todos los ambientes
 ```
 
-Se cobra el mayor de los dos. Se ajusta solo, sin regla de "más de 3 ambientes":
+| Ambiente | Por m² | Cobra |
+|---|---|---|
+| Baño 4 m² | 240 | **1.000** (mínimo) |
+| Cocina 9 m² | 540 | **1.000** (mínimo) |
+| Dormitorio 12 m² | 720 | **1.000** (mínimo) |
+| Living 25 m² | 1.500 | **1.500** |
+| **Total** | | **4.500** |
 
-| Proyecto | Por m² | Por ambiente | Cobra |
-|---|---|---|---|
-| 1 baño de 4 m² | 240 | 1.000 | **1.000** |
-| 4 ambientes chicos, 35 m² | 2.100 | 4.000 | **4.000** |
-| Oficina 77 m², 5 ambientes | 4.620 | 5.000 | **5.000** |
-| Casa 150 m², 6 ambientes | 9.000 | 6.000 | **9.000** |
+**Por qué por ambiente y no sobre el total:** un baño de 4 m² no da menos trabajo
+que una sala de 25 — da más detalle por metro. El cruce está en 16,67 m²
+(1.000 ÷ 60): abajo de eso, un ambiente cobrado por m² factura menos que el piso.
 
-**Por qué el mayor y no solo los m²:** un baño de 4 m² no da menos trabajo que una sala
-de 25 — da más detalle por metro. Cobrar solo por superficie castiga justo donde más se
-trabaja. El punto de cruce está en 16,67 m² (1.000 ÷ 60): abajo de eso, un ambiente
-cobrado por m² factura menos que el mínimo.
+Esto exige la superficie de **cada** ambiente, que se carga en el paso de
+selección de ambientes de la entrevista. Si falta la de alguno, el desglose se
+descarta entero y se cae en una aproximación sobre el total del proyecto —
+`el mayor entre (m² totales × 60) y (cantidad de ambientes × 1.000)`. Un
+desglose a medias cobraría de menos sin que se note.
 
-**El mínimo por ambiente quedó en 1.000 Bs.** Bruno consideró bajarlo a 700 para que
-los proyectos de varios ambientes chicos no se disparen; se quedó en 1.000 porque el
-objetivo declarado era justamente elevar el precio de los espacios chicos. Es un solo
-número en el archivo de constantes: si en la práctica asusta, se baja sin tocar nada más.
+El documento imprime el desglose abierto, una fila por ambiente, marcando cuáles
+pagaron el mínimo. Le explica al cliente de dónde sale cada boliviano en vez de
+darle un número y punto.
 
 ### Plazo de entrega
 

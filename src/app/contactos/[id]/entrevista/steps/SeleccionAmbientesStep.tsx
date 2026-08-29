@@ -70,6 +70,45 @@ export function SeleccionAmbientesStep({
         ))}
       </div>
 
+      {state.ambientesSeleccion.length > 0 && (
+        <div className="mt-8 rounded-2xl bg-neutral-900/[0.035] p-5">
+          <p className="mb-1 text-sm font-medium text-neutral-900">Superficie de cada ambiente</p>
+          {/* De acá sale el precio del diseño. Se pide por ambiente y no en total
+              porque el mínimo se aplica a cada espacio chico por separado: un
+              baño de 4 m² no da menos trabajo que una sala de 25. */}
+          <p className="mb-4 max-w-md text-sm text-neutral-500">
+            De acá sale el precio de la propuesta. Podés cargarlas ahora con el láser o
+            dejarlas para después.
+          </p>
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {state.ambientesSeleccion.map((r) => (
+              <label key={r} className="flex items-center gap-3">
+                <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{r}</span>
+                <span className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={state.superficies?.[r] ?? ""}
+                    onChange={(e) => {
+                      const valor = e.target.value;
+                      setState((s) => ({
+                        ...s,
+                        superficies: { ...(s.superficies ?? {}), [r]: valor },
+                      }));
+                    }}
+                    placeholder="0"
+                    aria-label={`Superficie de ${r} en metros cuadrados`}
+                    className={`${inputClass} w-24 py-2 text-right`}
+                  />
+                  <span className="text-sm text-neutral-500">m²</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!single && (
         <label className="mt-5 block">
           <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">

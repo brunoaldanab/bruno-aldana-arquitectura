@@ -69,3 +69,47 @@ export function formatearFecha(fecha: Date): string {
   const mes = String(fecha.getMonth() + 1).padStart(2, "0");
   return `${dia}/${mes}/${fecha.getFullYear()}`;
 }
+
+/** Una línea del desglose: qué se cobra por un ambiente y por qué. */
+export interface LineaAmbiente {
+  ambiente: string;
+  m2: number;
+  /** Lo que daría cobrando solo por superficie. */
+  porSuperficie: number;
+  /** Lo que se cobra de verdad. */
+  cobra: number;
+  /** Verdadero cuando este ambiente no llegó al mínimo y se cobró el piso. */
+  minimoAplicado: boolean;
+}
+
+/**
+ * Desglosa el precio ambiente por ambiente.
+ *
+ * El mínimo se aplica a cada ambiente por separado, no al proyecto entero: un
+ * baño de 4 m² no da menos trabajo que una sala de 25 — da más detalle por
+ * metro. Los ambientes grandes pagan por superficie y los chicos pagan el piso.
+ *
+ * Devuelve `null` si falta la superficie de aunque sea un ambiente: un desglose
+ * a medias cobraría de menos sin que se note.
+ */
+export function desglosePorAmbiente(
+  ambientes: string[],
+  superficies: Record<string, string> | undefined
+): LineaAmbiente[] | null {
+  if (ambientes.length === 0) return null;
+
+  const lineas: LineaAmbiente[] = [];
+  for (const ambiente of ambientes) {
+    const m2 = parsearM2(superficies?.[ambiente] ?? "");
+    if (m2 === null) return null;
+    const porSuperficie = Math.round(m2 * TARIFA_M2);
+    const cobra = Math.max(porSuperficie, MINIMO_POR_AMBIENTE);
+    lineas.push({ ambiente, m2, porSuperficie, cobra, minimoAplicado: cobra > porSuperficie });
+  }
+  return lineas;
+}
+
+/** Suma de un desglose. */
+export function sumaDesglose(lineas: LineaAmbiente[]): number {
+  return lineas.reduce((total, l) => total + l.cobra, 0);
+}

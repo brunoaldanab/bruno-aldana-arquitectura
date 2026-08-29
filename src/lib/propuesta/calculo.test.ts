@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  desglosePorAmbiente,
+  sumaDesglose,
   fechaVencimiento,
   formatearBs,
   formatearFecha,
@@ -96,5 +98,37 @@ describe("fechas", () => {
 
   it("formatea en día/mes/año", () => {
     expect(formatearFecha(new Date(2026, 0, 5))).toBe("05/01/2026");
+  });
+});
+
+describe("desglosePorAmbiente", () => {
+  const ambientes = ["Baño", "Cocina", "Dormitorio", "Living"];
+  const superficies = { "Baño": "4", Cocina: "9", Dormitorio: "12", Living: "25" };
+
+  it("cobra el piso en los chicos y por superficie en los grandes", () => {
+    const lineas = desglosePorAmbiente(ambientes, superficies);
+    expect(lineas?.map((l) => l.cobra)).toEqual([1000, 1000, 1000, 1500]);
+  });
+
+  it("marca cuáles no llegaron al mínimo", () => {
+    const lineas = desglosePorAmbiente(ambientes, superficies);
+    expect(lineas?.map((l) => l.minimoAplicado)).toEqual([true, true, true, false]);
+  });
+
+  it("suma 4.500 en el caso de los cuatro ambientes", () => {
+    expect(sumaDesglose(desglosePorAmbiente(ambientes, superficies)!)).toBe(4500);
+  });
+
+  it("cobra todo por superficie cuando ningún ambiente es chico", () => {
+    const lineas = desglosePorAmbiente(["Living", "Cocina"], { Living: "40", Cocina: "30" });
+    expect(sumaDesglose(lineas!)).toBe(4200);
+  });
+
+  it("devuelve null si falta la superficie de un solo ambiente", () => {
+    expect(desglosePorAmbiente(ambientes, { "Baño": "4", Cocina: "9", Dormitorio: "12" })).toBeNull();
+  });
+
+  it("devuelve null si todavía no se eligieron ambientes", () => {
+    expect(desglosePorAmbiente([], {})).toBeNull();
   });
 });

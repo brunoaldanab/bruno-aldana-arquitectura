@@ -3,6 +3,8 @@ import { fotoPortada } from "@/lib/entrevista/duelo";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import type { EntrevistaState, TipoProyecto } from "@/lib/entrevista/types";
 import {
+  desglosePorAmbiente,
+  sumaDesglose,
   fechaVencimiento,
   formatearBs,
   formatearFecha,
@@ -38,12 +40,19 @@ function nombresDe(claves: string[], catalogo: { k: string; t: string }[]): stri
 export function armarPropuesta(entrada: EntradaPropuesta): PropuestaData | { falta: "m2" } {
   const { nombreCliente, state, galeria, emision } = entrada;
 
+  // Primero el desglose ambiente por ambiente, que es la forma correcta de
+  // cobrar: el mínimo se aplica a cada espacio chico por separado. Solo si falta
+  // alguna superficie se cae en el total del proyecto, que es una aproximación.
+  const lineas = desglosePorAmbiente(state.ambientesSeleccion, state.superficies);
+
   // Sin superficie no hay precio, y un precio inventado es peor que ninguno.
-  const m2 = parsearM2(state.proyecto.m2);
+  const m2 = lineas
+    ? lineas.reduce((total, l) => total + l.m2, 0)
+    : parsearM2(state.proyecto.m2);
   if (m2 === null) return { falta: "m2" };
 
   const cantidadAmbientes = state.ambientesSeleccion.length;
-  const precio = precioDiseno(m2, cantidadAmbientes);
+  const precio = lineas ? sumaDesglose(lineas) : precioDiseno(m2, cantidadAmbientes);
   const { anticipo, saldo } = reparto(precio);
 
   const estilosCatalogo = [
@@ -74,7 +83,8 @@ export function armarPropuesta(entrada: EntradaPropuesta): PropuestaData | { fal
     paleta,
 
     m2,
-    m2Texto: `${m2} m²`,
+    m2Texto: `${String(m2).replace(".", ",")} m²`,
+    lineas,
     cantidadAmbientes,
     precio,
     precioTexto: formatearBs(precio),

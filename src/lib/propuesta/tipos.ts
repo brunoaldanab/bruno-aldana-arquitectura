@@ -1,4 +1,5 @@
 import type { FotoCampeon } from "@/lib/entrevista/duelo";
+import type { LineaAmbiente } from "./calculo";
 
 /** Un color de la paleta elegida, listo para pintar un cuadradito. */
 export interface ColorPaleta {
@@ -31,6 +32,8 @@ export interface PropuestaData {
   m2: number;
   m2Texto: string;
   cantidadAmbientes: number;
+  /** Desglose ambiente por ambiente, o null si falta alguna superficie. */
+  lineas: LineaAmbiente[] | null;
   precio: number;
   precioTexto: string;
   tarifaTexto: string;

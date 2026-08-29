@@ -1,5 +1,6 @@
 "use client";
 
+import { formatearBs } from "@/lib/propuesta/calculo";
 import { TEXTOS } from "@/lib/propuesta/textos";
 import type { PropuestaData } from "@/lib/propuesta/tipos";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
@@ -236,23 +237,49 @@ export function Propuesta({
 
         {/* ---------- Inversión ---------- */}
         <Hoja seccion="Inversión" titulo="Inversión en diseño" foto={foto} n="07">
+          {/* Con el desglose cargado se cobra ambiente por ambiente, que es más
+              justo: los grandes pagan por superficie y los chicos el mínimo.
+              Mostrarlo abierto también le explica al cliente de dónde sale cada
+              boliviano, en vez de darle un número y punto. */}
           <table className="tabla-inversion">
             <thead>
               <tr>
                 <th>Concepto</th>
                 <th className="num">Superficie</th>
                 <th className="num">Tarifa</th>
-                <th className="num">Total</th>
+                <th className="num">Subtotal</th>
               </tr>
             </thead>
             <tbody>
+              {datos.lineas ? (
+                datos.lineas.map((l) => (
+                  <tr key={l.ambiente}>
+                    <td>
+                      {l.ambiente}
+                      {l.minimoAplicado && <span className="nota-fila">mínimo por ambiente</span>}
+                    </td>
+                    <td className="num">{String(l.m2).replace(".", ",")} m²</td>
+                    <td className="num">{l.minimoAplicado ? "—" : datos.tarifaTexto}</td>
+                    <td className="num">{formatearBs(l.cobra)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td>{datos.titulo}</td>
+                  <td className="num">{datos.m2Texto}</td>
+                  <td className="num">{datos.tarifaTexto}</td>
+                  <td className="num">{datos.precioTexto}</td>
+                </tr>
+              )}
+            </tbody>
+            <tfoot>
               <tr>
-                <td>{datos.titulo}</td>
+                <td>Total del diseño</td>
                 <td className="num">{datos.m2Texto}</td>
-                <td className="num">{datos.tarifaTexto}</td>
+                <td className="num" />
                 <td className="num total">{datos.precioTexto}</td>
               </tr>
-            </tbody>
+            </tfoot>
           </table>
 
           <div className="franja-pago">

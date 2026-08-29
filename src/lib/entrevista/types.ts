@@ -71,6 +71,14 @@ export interface EntrevistaState {
     contacto: string;
   };
   ambientesSeleccion: string[];
+  /**
+   * Superficie de cada ambiente, en metros cuadrados, tal como se escribe.
+   *
+   * Es lo que permite cobrar bien: el mínimo por ambiente se aplica a cada
+   * espacio chico por separado, no al proyecto entero. Opcional porque las
+   * entrevistas guardadas antes de que existiera no lo tienen.
+   */
+  superficies?: Record<string, string>;
   oficina: {
     personas: string;
     modalidad: string;
@@ -152,6 +160,7 @@ export function createInitialEntrevistaState(): EntrevistaState {
       contacto: "",
     },
     ambientesSeleccion: [],
+    superficies: {},
     oficina: {
       personas: "",
       modalidad: "",
