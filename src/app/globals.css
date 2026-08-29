@@ -1,73 +1,138 @@
 @import "tailwindcss";
 
+/*
+ * Identidad visual — Bruno Aldana · Arquitectura, manual de marca 1.0.
+ *
+ * Los cinco colores de la marca y nada más. El fondo es grafito, el papel claro
+ * queda reservado para la impresión (la propuesta en PDF tiene su propia hoja de
+ * estilos). No hay color de acento y es a propósito: los renders cambian de
+ * paleta en cada proyecto, así que cualquier color de marca terminaría peleando
+ * con alguna imagen. El color lo pone la obra, nunca la marca.
+ */
+
 :root {
-  --background: #f7f8f9;
-  --foreground: #17191c;
+  /* Los cinco de la marca, con su nombre del manual. */
+  --grafito: #0f1113;
+  --bloque: #171a1c;
+  --secundario: #888e92;
+  --tinta: #e9e7e4;
+  --claro: #f2f1ee;
+
+  --background: var(--grafito);
+  --foreground: var(--tinta);
+
+  /*
+   * Vocabulario de movimiento, gemelo en CSS de src/lib/movimiento.ts.
+   * Existe para que ninguna hoja de estilos vuelva a escribir la curva a mano y
+   * la aplicación entera se mueva de una sola manera.
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @theme {
-  /* Identidad negro/plomo del estudio — escala fría de grafito, reemplaza el
-     tono cálido anterior. Se pisa "neutral" completo para que todo lo que ya
-     usa neutral-50..950 en la app herede el tono sin tocar cada archivo. */
-  --color-neutral-50: #f7f8f9;
-  --color-neutral-100: #eef0f2;
-  --color-neutral-200: #dee1e5;
-  --color-neutral-300: #c2c7cd;
-  --color-neutral-400: #9aa0a8;
-  --color-neutral-500: #767d86;
-  --color-neutral-600: #565d66;
-  --color-neutral-700: #3d4249;
-  --color-neutral-800: #24272b;
-  --color-neutral-900: #17191c;
-  --color-neutral-950: #0e0f11;
+  /*
+   * La escala neutra se mantiene en su dirección de siempre —50 lo más claro,
+   * 950 lo más oscuro— pero ahora todos sus valores salen de la familia grafito
+   * de la marca. Conservar la dirección es lo que deja intactos los velos sobre
+   * las fotos, que se apoyan en `neutral-950`.
+   */
+  --color-neutral-50: #f2f1ee; /* claro — impresión */
+  --color-neutral-100: #e9e7e4; /* tinta — texto principal */
+  --color-neutral-200: #cfcdc9;
+  --color-neutral-300: #adb1b4;
+  --color-neutral-400: #9aa0a3;
+  --color-neutral-500: #888e92; /* secundario — texto de apoyo */
+  --color-neutral-600: #6a7074;
+  --color-neutral-700: #40464a;
+  --color-neutral-800: #24282b;
+  --color-neutral-900: #171a1c; /* bloque — tarjetas y tablas */
+  --color-neutral-950: #0f1113; /* grafito — fondo de todo */
 
-  /* Acento único: azul señal, preciso y frío — el único color con carácter en
-     un sistema por lo demás monocromo (negro / plomo / blanco). */
-  --color-accent-50: #eef3ff;
-  --color-accent-100: #dce7ff;
-  --color-accent-200: #b8ceff;
-  --color-accent-300: #8caeff;
-  --color-accent-400: #5c87fa;
-  --color-accent-500: #3d6bef;
-  --color-accent-600: #2c52c7;
-  --color-accent-700: #23409b;
-  --color-accent-800: #1b2f72;
-  --color-accent-900: #14224f;
+  /*
+   * Sin color de acento. Los semánticos son la única excepción que admite el
+   * manual y viven solo acá adentro: desaturados y calibrados para leerse sobre
+   * grafito, no sobre papel.
+   */
+  /* El "50" deja de ser un fondo pálido y pasa a ser el grafito apenas teñido;
+     el 600/700 es la tinta clara que se apoya encima. Los nombres se conservan
+     para no tener que tocar cada componente. */
+  --color-success-50: #16241a;
+  --color-success-600: #93c09c;
+  --color-success-700: #aed2b5;
 
-  /* Semánticos desaturados, dentro de la misma familia fría. */
-  --color-success-50: #e9f1ea;
-  --color-success-600: #3e6b47;
-  --color-success-700: #305438;
+  --color-info-50: #17212b;
+  --color-info-600: #9ab6cd;
+  --color-info-700: #b3c9dc;
 
-  --color-info-50: #e8eef5;
-  --color-info-600: #35597d;
-  --color-info-700: #2a4763;
+  --color-danger-50: #2a1a1a;
+  --color-danger-600: #d29c9c;
+  --color-danger-700: #e0b3b3;
 
-  --color-danger-50: #f5e9e9;
-  --color-danger-600: #8c3b3b;
-  --color-danger-700: #6e2e2e;
-
-  --shadow-soft: 0 1px 2px rgba(14, 15, 17, 0.06), 0 10px 28px -12px rgba(14, 15, 17, 0.22);
-  --shadow-soft-lg: 0 2px 4px rgba(14, 15, 17, 0.08), 0 24px 48px -16px rgba(14, 15, 17, 0.28);
+  /*
+   * Sobre grafito una sombra no se ve: la profundidad la da el filo de luz de
+   * arriba, no el oscurecimiento de abajo. Se conservan los nombres para no
+   * tener que tocar cada componente.
+   */
+  --shadow-soft: inset 0 1px 0 rgba(233, 231, 228, 0.05), 0 12px 32px -18px #000;
+  --shadow-soft-lg: inset 0 1px 0 rgba(233, 231, 228, 0.07), 0 28px 60px -24px #000;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-jetbrains);
+  --font-display: var(--font-archivo);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-weight: 300;
+  line-height: 1.65;
 }
 
+/*
+ * Los títulos grandes van en Archivo 200 con `tracking-[-0.03em]`, escrito en
+ * cada título y no acá: el manual prohíbe el peso 200 por debajo de 24 px, así
+ * que la regla no puede ser global. Es la mitad de la firma tipográfica de la
+ * marca; la otra mitad es la etiqueta monoespaciada diminuta de más abajo, y el
+ * contraste entre esas dos escalas es lo que se reconoce.
+ */
+
 ::selection {
-  background: var(--color-accent-200);
-  color: var(--color-neutral-900);
+  background: var(--tinta);
+  color: var(--grafito);
+}
+
+/*
+ * Etiquetas y datos: JetBrains Mono, muy chica, en mayúsculas y bien abierta.
+ * Números, metros, precios y fechas van siempre acá.
+ */
+.rotulo {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/*
+ * El dato en sí —un teléfono, un correo, unos metros, un precio, una fecha—.
+ * Misma familia que la etiqueta pero sin mayúsculas y un punto más grande,
+ * porque acá el contenido se lee, no se rotula. Las cifras van tabulares para
+ * que una columna de precios quede alineada por la coma.
+ */
+.dato {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes rise-in {
@@ -82,37 +147,40 @@ body {
 }
 
 .animate-rise-in {
-  animation: rise-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation: rise-in 0.4s var(--ease-out) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-rise-in {
-    animation: none;
+    animation: aparecer 0.2s ease both;
+  }
+}
+
+/* Movimiento reducido: se conserva el fundido, se quita el desplazamiento. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
 /*
- * Escena cinematográfica (ver src/components/EscenaCinematica.tsx).
- *
- * El componente escribe --mx/--my (puntero) y --escena-* (scroll) en un rAF;
- * acá se consumen. El parallax va sobre la <img> y no sobre la capa que anima
- * motion, porque motion ya ocupa el `transform` de esa capa con el corte de
- * plano y los dos se pisarían.
- */
-/*
  * Chips de selección de la entrevista (ChipSingle / ChipMulti).
  *
- * Sin elegir: superficie apenas hundida, sin contorno. Elegido: relleno negro.
- * El salto entre ambos estados es mucho más legible a distancia que un borde de
- * color, y deja de haber un borde gris por cada opción ensuciando la pantalla.
+ * Sin elegir: superficie apenas levantada sobre el grafito, sin contorno.
+ * Elegido: relleno en tinta con el texto en grafito. La inversión completa se
+ * lee desde el otro lado de la mesa, que es la distancia real de uso; un borde
+ * de color a esa distancia no se ve.
  */
 .chip {
   border-radius: 999px;
-  font-weight: 500;
-  color: var(--color-neutral-700);
-  background-color: rgba(14, 15, 17, 0.05);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+  background-color: rgba(233, 231, 228, 0.06);
   transition:
-    transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 120ms var(--ease-out),
     background-color 150ms ease,
     color 150ms ease;
 }
@@ -120,19 +188,19 @@ body {
   transform: scale(0.97);
 }
 .chip-activo {
-  color: #fff;
-  background-color: var(--color-neutral-900);
+  color: var(--grafito);
+  background-color: var(--tinta);
 }
 .chip:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-neutral-900);
+  box-shadow: 0 0 0 2px var(--tinta);
 }
 @media (hover: hover) and (pointer: fine) {
   .chip:hover {
-    background-color: rgba(14, 15, 17, 0.09);
+    background-color: rgba(233, 231, 228, 0.11);
   }
   .chip-activo:hover {
-    background-color: var(--color-neutral-800);
+    background-color: #fff;
   }
 }
 
@@ -145,7 +213,7 @@ body {
  */
 .boton-chrome {
   transition:
-    transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 120ms var(--ease-out),
     background-color 150ms ease;
 }
 .boton-chrome:active:not(:disabled) {
@@ -153,10 +221,10 @@ body {
 }
 @media (hover: hover) and (pointer: fine) {
   .boton-chrome:not(:disabled):hover {
-    background-color: rgba(14, 15, 17, 0.06);
+    background-color: rgba(233, 231, 228, 0.08);
   }
-  .boton-chrome.bg-neutral-900:not(:disabled):hover {
-    background-color: rgb(36, 39, 43);
+  .boton-chrome.bg-neutral-100:not(:disabled):hover {
+    background-color: #fff;
   }
 }
 
@@ -175,17 +243,20 @@ body {
  * Grado de color del sistema.
  *
  * Las fotos vienen de fuentes distintas y cada una trae su propia temperatura y
- * saturación. Este grado las lleva a todas a la misma familia negro/plomo, para
- * que la ficha no parezca un collage de fotos ajenas. Tocar estos cuatro valores
+ * saturación. Este grado las lleva a todas a la misma familia grafito, para que
+ * la ficha no parezca un collage de fotos ajenas. Tocar estos cuatro valores
  * cambia la dirección visual de toda la aplicación de una sola vez.
+ *
+ * El tinte ahora es el propio grafito de la marca en vez del plomo azulado
+ * anterior: el manual pide temperatura tibia y constante, y un tinte frío
+ * empujaba todas las fotos al azul.
  */
 :root {
-  --grado-saturacion: 0.45;
-  --grado-contraste: 1.12;
-  --grado-brillo: 0.82;
-  /* Plomo frío que tiñe las fotos para unificarles el matiz. */
-  --grado-tinte: #38414a;
-  --grado-tinte-fuerza: 0.32;
+  --grado-saturacion: 0.5;
+  --grado-contraste: 1.1;
+  --grado-brillo: 0.84;
+  --grado-tinte: #171a1c;
+  --grado-tinte-fuerza: 0.3;
 }
 
 .escena-cinematica .escena-capa img {
@@ -232,28 +303,28 @@ body {
 
 /*
  * Opciones grandes: las decisiones que se toman una sola vez y con el cliente
- * mirando (tipo de proyecto). Misma lógica que los chips —hundido cuando está
- * libre, negro cuando está elegido— pero a escala de tarjeta.
+ * mirando (tipo de proyecto). Misma lógica que los chips —levantada cuando está
+ * libre, en tinta cuando está elegida— pero a escala de tarjeta.
  */
 .opcion-grande {
-  background-color: rgba(14, 15, 17, 0.04);
+  background-color: rgba(233, 231, 228, 0.05);
   transition:
-    transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 140ms var(--ease-out),
     background-color 180ms ease;
 }
 .opcion-grande:active:not(:disabled) {
   transform: scale(0.985);
 }
 .opcion-grande-activa {
-  background-color: var(--color-neutral-900);
+  background-color: var(--tinta);
 }
 .opcion-grande:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-neutral-900);
+  box-shadow: 0 0 0 2px var(--tinta);
 }
 @media (hover: hover) and (pointer: fine) {
   .opcion-grande:not(:disabled):not(.opcion-grande-activa):hover {
-    background-color: rgba(14, 15, 17, 0.075);
+    background-color: rgba(233, 231, 228, 0.09);
   }
 }
 
@@ -279,7 +350,7 @@ body {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   opacity: 0;
-  animation: dibujar-trazo 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation: dibujar-trazo 0.7s var(--ease-out) forwards;
   animation-delay: inherit;
 }
 

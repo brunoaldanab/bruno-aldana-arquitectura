@@ -1,15 +1,21 @@
 /*
- * Hoja A4 para la propuesta.
+ * Hoja A4 para la propuesta — el único documento que se lleva el cliente.
  *
  * El PDF sale de la impresión del navegador: no hace falta ninguna biblioteca, y
  * lo que se ve en pantalla es exactamente lo que se guarda.
  *
- * La idea del diseño en una línea: cada hoja abre con una banda oscura que lleva
- * la misma foto de la portada, con el mismo grado frío y el título en blanco. La
- * foto cambia según el cliente, así que lo que unifica el documento no es una
- * imagen fija sino el tratamiento — y cada propuesta termina con su propio color
- * sin dejar de ser el mismo formato. Debajo de la banda el papel vuelve a ser
- * blanco, que es donde se lee cómodo.
+ * La idea del diseño en una línea: cada hoja abre con una banda de grafito que
+ * lleva la misma foto de la portada y el título en tinta clara. La foto cambia
+ * según el cliente, así que lo que unifica el documento no es una imagen fija
+ * sino el tratamiento — y cada propuesta termina con su propio color sin dejar
+ * de ser el mismo formato. Debajo de la banda el papel es el claro de la marca,
+ * que es donde se lee cómodo.
+ *
+ * Los cinco colores del manual y ninguno más. Donde antes había un filo y unos
+ * títulos en azul ahora hay grafito: el manual no tiene color de acento a
+ * propósito, porque el color lo tiene que poner el render del proyecto. En un
+ * documento que arranca con una foto a página completa, un azul de marca sería
+ * exactamente lo que compite con ella.
  */
 
 .propuesta {
@@ -18,26 +24,35 @@
   --margen: 16mm;
   --banda-alto: 46mm;
 
-  --tinta: #17191c;
-  --tinta-suave: #3d4249;
-  --tenue: #767d86;
-  --linea: #dee1e5;
-  --acento: #3d6bef;
-  --papel: #ffffff;
-  --noche: #0e0f11;
-  --noche-texto: #f7f8f9;
-  --noche-tenue: #9aa0a8;
+  /* Los cinco de la marca. Sobre papel claro la tinta es #111111, como manda
+     el manual; el grafito queda para las bandas y la portada. */
+  --grafito: #0f1113;
+  --bloque: #171a1c;
+  --secundario: #888e92;
+  --tinta-clara: #e9e7e4;
+  --papel: #f2f1ee;
+
+  --tinta: #111111;
+  /* Los intermedios no son colores nuevos: son la propia tinta rebajada, que es
+     como se construye la jerarquía en una paleta sin acento. */
+  --tinta-suave: rgba(17, 17, 17, 0.72);
+  --tenue: rgba(17, 17, 17, 0.5);
+  --linea: rgba(17, 17, 17, 0.14);
+  --linea-fina: rgba(17, 17, 17, 0.08);
+  --bloque-claro: rgba(17, 17, 17, 0.045);
 
   /* El mismo grado de la aplicación: las fotos vienen de fuentes distintas y
-     esto las lleva a todas a la misma familia negro/plomo. */
-  --grado: saturate(0.42) contrast(1.14) brightness(0.6);
+     esto las lleva a todas a la misma familia grafito. */
+  --grado: saturate(0.5) contrast(1.1) brightness(0.62);
 
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12mm;
   padding: 12mm 0;
-  background: #eef0f2;
+  background: var(--grafito);
+  font-family: var(--font-sans), Arial, sans-serif;
+  font-weight: 300;
 }
 
 .hoja {
@@ -48,55 +63,40 @@
   min-height: var(--hoja-alto);
   background: var(--papel);
   color: var(--tinta);
-  box-shadow: 0 2px 4px rgba(14, 15, 17, 0.08), 0 24px 48px -16px rgba(14, 15, 17, 0.28);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
   overflow: hidden;
 }
 
-/* ---------- La marca, siempre en blanco sobre la banda ---------- */
+/* ---------- La firma, siempre en blanco sobre la banda ----------
+   Es el vector con el texto ya convertido a curvas. No se re-tipea nunca: si se
+   escribiera con una fuente, el documento dependería de que esa fuente esté
+   instalada en la máquina que lo abra. */
 
-.marca { display: flex; align-items: center; gap: 2.6mm; }
-
-.marca-logo {
-  width: 8mm;
-  height: 8mm;
-  object-fit: contain;
-}
-
-.marca-nombre {
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-display), sans-serif;
-  font-size: 8.5pt;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--noche-texto);
-}
-
-.marca-nombre em {
-  font-style: normal;
-  font-weight: 400;
-  font-size: 6.5pt;
-  letter-spacing: 0.18em;
-  color: var(--noche-tenue);
+.marca-firma {
+  display: block;
+  height: 7mm;
+  width: auto;
 }
 
 .rotulo {
   font-family: var(--font-mono), monospace;
-  font-size: 7.5pt;
+  font-size: 7pt;
+  font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
 }
 
-.rotulo-claro { color: var(--noche-tenue); }
+.rotulo-claro {
+  color: var(--tinta-clara);
+  opacity: 0.65;
+}
 
 /* ---------- Portada ---------- */
 
 .hoja-portada {
-  background: var(--noche);
-  color: var(--noche-texto);
+  background: var(--grafito);
+  color: var(--tinta-clara);
 }
 
 .portada-foto,
@@ -114,9 +114,9 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(14, 15, 17, 0.97) 18%,
-    rgba(14, 15, 17, 0.45) 62%,
-    rgba(14, 15, 17, 0.75)
+    rgba(15, 17, 19, 0.97) 18%,
+    rgba(15, 17, 19, 0.45) 62%,
+    rgba(15, 17, 19, 0.78)
   );
 }
 
@@ -135,15 +135,18 @@
   justify-content: space-between;
 }
 
+/* Archivo 200 a 34pt. El peso fino a ese tamaño es la firma tipográfica de la
+   marca; por debajo de 24 px el manual lo prohíbe, y acá estamos muy por
+   encima. */
 .titulo-portada {
   font-family: var(--font-display), sans-serif;
-  font-weight: 300;
-  font-size: 34pt;
-  line-height: 1.04;
-  letter-spacing: -0.025em;
-  color: var(--noche-texto);
-  margin: 0 0 8mm;
-  max-width: 130mm;
+  font-weight: 200;
+  font-size: 36pt;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--tinta-clara);
+  margin: 0 0 9mm;
+  max-width: 135mm;
   text-wrap: balance;
 }
 
@@ -152,20 +155,28 @@
   flex-wrap: wrap;
   gap: 4mm 12mm;
   padding-top: 5mm;
-  border-top: 1px solid rgba(247, 248, 249, 0.22);
+  border-top: 1px solid rgba(233, 231, 228, 0.2);
 }
 
 .dato-etiqueta {
   display: block;
   font-family: var(--font-mono), monospace;
   font-size: 6.5pt;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--noche-tenue);
-  margin-bottom: 1.2mm;
+  color: var(--secundario);
+  margin-bottom: 1.5mm;
 }
 
-.dato-valor { font-size: 11pt; font-weight: 500; color: var(--noche-texto); }
+/* El dato en sí también va monoespaciado: son metros, fechas y nombres propios,
+   justo lo que el manual manda poner en JetBrains Mono. */
+.dato-valor {
+  font-family: var(--font-mono), monospace;
+  font-size: 10pt;
+  font-weight: 400;
+  color: var(--tinta-clara);
+}
 
 /* ---------- La banda de las hojas interiores ---------- */
 
@@ -173,7 +184,7 @@
   position: relative;
   height: var(--banda-alto);
   flex: none;
-  background: var(--noche);
+  background: var(--grafito);
   overflow: hidden;
 }
 
@@ -183,20 +194,10 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(14, 15, 17, 0.94) 15%,
-    rgba(14, 15, 17, 0.78) 60%,
-    rgba(14, 15, 17, 0.88)
+    rgba(15, 17, 19, 0.95) 15%,
+    rgba(15, 17, 19, 0.8) 60%,
+    rgba(15, 17, 19, 0.9)
   );
-}
-
-/* El filo de acento cierra la banda y la ata al resto del sistema. */
-.banda::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 1.2mm;
-  background: var(--acento);
-  z-index: 2;
 }
 
 .banda-contenido {
@@ -216,11 +217,11 @@
 
 .banda-titulo {
   font-family: var(--font-display), sans-serif;
-  font-weight: 300;
-  font-size: 21pt;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--noche-texto);
+  font-weight: 200;
+  font-size: 22pt;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--tinta-clara);
   margin: 0;
   text-wrap: balance;
 }
@@ -229,36 +230,69 @@
 
 .cuerpo {
   flex: 1;
-  padding: 10mm var(--margen) 0;
+  padding: 11mm var(--margen) 0;
 }
 
+/* El manual pide 65 caracteres de ancho máximo para el texto corrido. A 10,5pt
+   eso cae cerca de 125 mm, que es el ancho útil de la hoja menos los márgenes. */
 .entradilla {
   font-size: 10.5pt;
-  line-height: 1.55;
+  line-height: 1.65;
   color: var(--tinta-suave);
   max-width: 125mm;
-  margin: 0 0 8mm;
+  margin: 0 0 9mm;
 }
 
-.propuesta p { font-size: 10pt; line-height: 1.55; margin: 0 0 4mm; }
-.propuesta ul { font-size: 10pt; line-height: 1.55; margin: 0 0 5mm; padding-left: 5mm; }
-.propuesta li { margin-bottom: 1.6mm; }
+.propuesta p {
+  font-size: 10pt;
+  line-height: 1.65;
+  margin: 0 0 4mm;
+  max-width: 130mm;
+}
+.propuesta ul {
+  font-size: 10pt;
+  line-height: 1.65;
+  margin: 0 0 5mm;
+  padding-left: 5mm;
+  max-width: 130mm;
+}
+.propuesta li {
+  margin-bottom: 1.8mm;
+}
 
+/* El énfasis dentro de un párrafo se hace con el peso 400 de Archivo, nunca con
+   negrita: el manual es explícito en que el énfasis va por tamaño y espacio. */
+.propuesta strong {
+  font-weight: 400;
+}
+
+/* Los subtítulos son etiquetas, no titulares: van monoespaciados y diminutos,
+   que es la otra mitad del contraste tipográfico de la marca. */
 .propuesta h3 {
   font-family: var(--font-mono), monospace;
-  font-size: 7.5pt;
+  font-size: 7pt;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--acento);
-  margin: 0 0 3.5mm;
+  color: var(--tinta);
+  margin: 0 0 4mm;
 }
 
-.titulo-bloque { margin-top: 9mm !important; }
+.titulo-bloque {
+  margin-top: 10mm !important;
+  padding-top: 4mm;
+  border-top: 1px solid var(--linea);
+}
 
-.dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 9mm; }
+.dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9mm;
+}
 
-.paso { margin-bottom: 4mm; }
+.paso {
+  margin-bottom: 4mm;
+}
 
 .pie-hoja {
   margin-top: auto;
@@ -267,7 +301,8 @@
   padding: 6mm var(--margen) 10mm;
   font-family: var(--font-mono), monospace;
   font-size: 6.5pt;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
 }
@@ -280,42 +315,67 @@
   break-inside: avoid;
   margin-bottom: 6mm;
   padding-top: 4.5mm;
-  border-top: 1px solid var(--linea);
+  border-top: 1px solid var(--linea-fina);
 }
 
-.bloque:first-of-type { border-top: 0; padding-top: 0; }
+.bloque:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
 
-.grilla-resumen { display: grid; grid-template-columns: 50mm 1fr; }
+.grilla-resumen {
+  display: grid;
+  grid-template-columns: 50mm 1fr;
+}
 
 .fila-k {
   font-family: var(--font-mono), monospace;
-  font-size: 7pt;
-  letter-spacing: 0.1em;
+  font-size: 6.5pt;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
-  padding: 1.8mm 4mm 1.8mm 0;
-  line-height: 1.45;
+  padding: 2mm 4mm 2mm 0;
+  line-height: 1.5;
 }
 
 .fila-v {
   font-size: 10pt;
-  line-height: 1.5;
-  padding: 1.6mm 0;
+  line-height: 1.6;
+  padding: 1.7mm 0;
   color: var(--tinta);
 }
 
-.paleta { display: flex; gap: 2mm; margin: 0 0 6mm; }
-.color { flex: 1; }
-.color-muestra { height: 15mm; border: 1px solid rgba(14, 15, 17, 0.1); }
-.color-nombre { display: block; font-size: 7.5pt; color: var(--tinta-suave); margin-top: 1.5mm; }
+.paleta {
+  display: flex;
+  gap: 2mm;
+  margin: 0 0 6mm;
+}
+.color {
+  flex: 1;
+}
+.color-muestra {
+  height: 15mm;
+  border: 1px solid var(--linea);
+}
+.color-nombre {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 6.5pt;
+  letter-spacing: 0.1em;
+  color: var(--tinta-suave);
+  margin-top: 1.5mm;
+}
 
-/* ---------- Bloques con fondo ---------- */
+/* ---------- Bloques con fondo ----------
+   El filo lateral era azul y ahora es grafito. Un bloque destacado no necesita
+   color para destacarse: le alcanza con separarse del papel. */
 
 .destacado,
 .franja-pago,
 .ejemplo {
-  background: #f4f6f7;
-  border-left: 1.2mm solid var(--acento);
+  background: var(--bloque-claro);
+  border-left: 1mm solid var(--grafito);
   padding: 5mm 6mm;
   margin-bottom: 6mm;
   break-inside: avoid;
@@ -324,26 +384,30 @@
 .destacado ul:last-child,
 .destacado p:last-child,
 .franja-pago p:last-child,
-.ejemplo { margin-bottom: 0; }
+.ejemplo {
+  margin-bottom: 0;
+}
 
-.ejemplo { font-size: 9.5pt; }
+.ejemplo {
+  font-size: 9.5pt;
+}
 
 /* ---------- Inversión ---------- */
 
 /* La inversión es lo primero que busca el ojo del cliente: se trata en grande,
-   no como una nota al pie. En el PDF anterior era el título más chico. */
+   no como una nota al pie. Toda la tabla va monoespaciada, porque son cifras. */
 .tabla-inversion {
   width: 100%;
   border-collapse: collapse;
-  font-size: 10pt;
+  font-size: 9.5pt;
   font-variant-numeric: tabular-nums;
-  margin-bottom: 6mm;
+  margin-bottom: 7mm;
 }
 
 .tabla-inversion th {
   font-family: var(--font-mono), monospace;
   font-size: 6.5pt;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
   text-align: left;
@@ -352,12 +416,26 @@
   border-bottom: 1px solid var(--tinta);
 }
 
-.tabla-inversion td { padding: 4.5mm 0; border-bottom: 1px solid var(--linea); }
-.tabla-inversion .num { text-align: right; }
-.tabla-inversion .total { font-size: 17pt; font-weight: 600; letter-spacing: -0.01em; }
+.tabla-inversion td {
+  padding: 4.5mm 0;
+  border-bottom: 1px solid var(--linea-fina);
+}
+.tabla-inversion .num {
+  font-family: var(--font-mono), monospace;
+  text-align: right;
+}
+
+/* El total es el número que el cliente busca primero: se trata como un título,
+   en Archivo 200 y grande, no como una celda más de la tabla. */
+.tabla-inversion .total {
+  font-family: var(--font-display), sans-serif;
+  font-size: 20pt;
+  font-weight: 200;
+  letter-spacing: -0.03em;
+}
 
 .vencimiento {
-  border-left: 1.2mm solid var(--tinta);
+  border-left: 1mm solid var(--grafito);
   padding-left: 4mm;
   color: var(--tinta-suave);
   margin-bottom: 6mm;
@@ -365,14 +443,25 @@
 
 /* ---------- Impresión ---------- */
 
-@page { size: A4; margin: 0; }
+@page {
+  size: A4;
+  margin: 0;
+}
 
 @media print {
   /* Fuera todo lo que no es la propuesta. */
-  body > *:not(.propuesta-raiz) { display: none !important; }
-  .no-imprimir { display: none !important; }
+  body > *:not(.propuesta-raiz) {
+    display: none !important;
+  }
+  .no-imprimir {
+    display: none !important;
+  }
 
-  .propuesta { gap: 0; padding: 0; background: none; }
+  .propuesta {
+    gap: 0;
+    padding: 0;
+    background: none;
+  }
 
   .hoja {
     box-shadow: none;
@@ -380,16 +469,19 @@
     min-height: var(--hoja-alto);
   }
 
-  .hoja:last-child { break-after: auto; }
+  .hoja:last-child {
+    break-after: auto;
+  }
 
   /* Sin esto el navegador descarta los fondos y salen las hojas en blanco. */
+  .hoja,
   .hoja-portada,
   .portada-foto,
   .portada-velo,
   .banda,
   .banda-foto,
   .banda-velo,
-  .marca-logo,
+  .marca-firma,
   .destacado,
   .franja-pago,
   .ejemplo,
@@ -401,24 +493,31 @@
 
 @media screen and (max-width: 230mm) {
   /* En el celular la hoja no entra: se deja escalar para poder revisarla. */
-  .propuesta { padding: 4mm; gap: 6mm; }
-  .hoja { width: 100%; min-height: auto; }
+  .propuesta {
+    padding: 4mm;
+    gap: 6mm;
+  }
+  .hoja {
+    width: 100%;
+    min-height: auto;
+  }
 }
 
 /* Explica en la propia fila por qué ese ambiente no se cobró por metro. */
 .nota-fila {
   display: block;
   font-family: var(--font-mono), monospace;
-  font-size: 6.5pt;
-  letter-spacing: 0.1em;
+  font-size: 6pt;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
-  margin-top: 1mm;
+  margin-top: 1.2mm;
 }
 
 .tabla-inversion tfoot td {
   border-bottom: 0;
   border-top: 1px solid var(--tinta);
-  font-weight: 600;
-  padding-top: 4mm;
+  padding-top: 5mm;
+  vertical-align: baseline;
 }

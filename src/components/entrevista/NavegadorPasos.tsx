@@ -124,10 +124,10 @@ function PanelPasos({
             : { opacity: 0, transform: "translateY(-6px) scale(0.99)", filter: "blur(3px)" }
         }
         transition={reduceMotion ? { duration: 0.15 } : HOJA}
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white/85 shadow-[0_24px_80px_-12px_rgba(14,15,17,0.4)] backdrop-blur-2xl backdrop-saturate-150"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-neutral-900/90 shadow-[0_24px_80px_-12px_rgba(0,0,0,0.7)] ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150"
       >
-        <div className="flex items-center gap-2 border-b border-neutral-900/8 px-4">
-          <span className="text-neutral-400">↳</span>
+        <div className="flex items-center gap-2 border-b border-neutral-100/8 px-4">
+          <span className="text-neutral-600">↳</span>
           <input
             ref={campo}
             value={busqueda}
@@ -139,9 +139,9 @@ function PanelPasos({
               if (primero >= 0) setResaltado(primero);
             }}
             placeholder="Ir a un paso…"
-            className="w-full bg-transparent py-3.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent py-3.5 text-sm text-neutral-100 outline-none placeholder:text-neutral-600"
           />
-          <kbd className="shrink-0 rounded border border-neutral-900/10 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
+          <kbd className="shrink-0 rounded border border-neutral-100/10 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
             esc
           </kbd>
         </div>
@@ -163,20 +163,20 @@ function PanelPasos({
                   onCerrar();
                 }}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-100 ${
-                  estaResaltado ? "bg-neutral-900/6" : ""
+                  estaResaltado ? "bg-white/6" : ""
                 }`}
               >
-                <span className="w-6 shrink-0 font-mono text-[11px] text-neutral-400">
+                <span className="w-6 shrink-0 font-mono text-[11px] text-neutral-600">
                   {String(s.indice + 1).padStart(2, "0")}
                 </span>
                 <span
                   className={`flex-1 truncate text-sm ${
-                    esActual ? "font-medium text-neutral-900" : "text-neutral-700"
+                    esActual ? "font-medium text-neutral-100" : "text-neutral-300"
                   }`}
                 >
                   {s.label}
                 </span>
-                {esActual && <span className="shrink-0 text-[10px] text-neutral-400">acá estás</span>}
+                {esActual && <span className="shrink-0 text-[10px] text-neutral-600">acá estás</span>}
               </button>
             );
           })}

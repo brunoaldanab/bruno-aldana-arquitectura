@@ -60,7 +60,7 @@ export function RolesStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Roles y flujo de trabajo</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Roles y flujo de trabajo</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Antes de decidir dónde va cada mueble, hay que entender cómo funciona realmente la empresa por dentro — quién hace qué, a quién
         recibe, y qué necesita a mano. Agregá cada puesto/rol que exista (Promotor, Secretaria, Gerente, Cajero...) y completá su ficha.
@@ -89,17 +89,17 @@ export function RolesStep({
             const otrosRoles = state.roles.filter((x) => x.id !== r.id);
             const open = openId === r.id;
             return (
-              <div key={r.id} className="rounded-lg border border-neutral-200 bg-neutral-50">
+              <div key={r.id} className="rounded-lg border border-white/10 bg-white/[0.05]">
                 <button
                   type="button"
                   onClick={() => setOpenId(open ? null : r.id)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-neutral-900"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-neutral-100"
                 >
                   <span>{r.nombre || "(sin nombre)"}</span>
                   <span className={`transition ${open ? "rotate-90" : ""}`}>›</span>
                 </button>
                 {open && (
-                  <div className="space-y-4 border-t border-neutral-200 px-4 py-4">
+                  <div className="space-y-4 border-t border-white/10 px-4 py-4">
                     <label className="block">
                       <span className={labelClass}>Nombre del puesto / rol</span>
                       <input
@@ -146,7 +146,7 @@ export function RolesStep({
                     </label>
 
                     <div>
-                      <h4 className="text-sm font-semibold text-neutral-900">Mobiliario y equipamiento del puesto</h4>
+                      <h4 className="text-sm font-medium text-neutral-100">Mobiliario y equipamiento del puesto</h4>
                       <p className="mb-2 text-xs text-neutral-500">
                         Esto define medidas reales — no es decoración, es la base de todo el diseño del puesto.
                       </p>
@@ -201,7 +201,7 @@ export function RolesStep({
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-semibold text-neutral-900">Conexión con otras áreas o trabajadores</h4>
+                      <h4 className="text-sm font-medium text-neutral-100">Conexión con otras áreas o trabajadores</h4>
                       <p className="mb-2 text-xs text-neutral-500">
                         ¿Este puesto depende de otro, le pasa cosas a otro, o debe estar físicamente cerca de alguien?
                       </p>

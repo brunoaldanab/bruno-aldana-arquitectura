@@ -244,7 +244,7 @@ export function GalleryStep({
   return (
     <div>
       <div className="mb-5 px-1">
-        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{title}</h2>
+        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">{title}</h2>
         <p className="text-sm text-neutral-500">{desc}</p>
       </div>
 
@@ -257,8 +257,8 @@ export function GalleryStep({
             onClick={() => elegirCard(i)}
             className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors duration-150 ${
               i === idx
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+                ? "border-neutral-100 bg-neutral-100 text-neutral-950"
+                : "border-white/15 text-neutral-300 hover:border-white/25 hover:bg-white/[0.05]"
             } ${seleccion.includes(c.k) ? "ring-2 ring-success-600 ring-offset-1" : ""}`}
           >
             {c.t}
@@ -278,7 +278,7 @@ export function GalleryStep({
         <button
           type="button"
           onClick={addCustomCard}
-          className="shrink-0 rounded-full border border-dashed border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-800"
+          className="shrink-0 rounded-full border border-dashed border-white/15 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-200"
         >
           + Agregar
         </button>
@@ -320,7 +320,7 @@ export function GalleryStep({
             </motion.div>
           </AnimatePresence>
         ) : (
-          <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 text-neutral-400">
+          <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 text-neutral-600">
             <span className="text-4xl font-extralight">+</span>
             <span className="text-sm">Subí la primera foto de {card.t}</span>
             <input
@@ -351,7 +351,7 @@ export function GalleryStep({
               type="button"
               onClick={() => pasar(-1)}
               aria-label="Foto anterior"
-              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-white"
+              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-100 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-900"
             >
               ←
             </button>
@@ -359,7 +359,7 @@ export function GalleryStep({
               type="button"
               onClick={() => pasar(1)}
               aria-label="Foto siguiente"
-              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-white"
+              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-100 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-900"
             >
               →
             </button>
@@ -383,7 +383,7 @@ export function GalleryStep({
                 type="button"
                 onClick={() => removePhoto(fotoActual.id)}
                 title="Quitar de la biblioteca (afecta a todos los clientes)"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-sm text-white/90 transition-colors duration-150 hover:bg-danger-600"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-sm text-white/90 transition-colors duration-150 hover:bg-danger-600 hover:text-neutral-950"
               >
                 ×
               </button>
@@ -412,7 +412,7 @@ export function GalleryStep({
                     }
                     className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-[transform,background-color,color] duration-150 active:scale-95 ${
                       activa
-                        ? "bg-white text-neutral-900"
+                        ? "bg-neutral-900 text-neutral-100"
                         : "bg-black/45 text-white/90 hover:bg-black/65"
                     }`}
                   >
@@ -466,7 +466,7 @@ export function GalleryStep({
                 transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => irA(i)}
                 className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ${
-                  i === posicion ? "border-neutral-900" : "border-transparent opacity-60 hover:opacity-100"
+                  i === posicion ? "border-neutral-100" : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -484,8 +484,8 @@ export function GalleryStep({
         <label
           className={`flex h-16 w-24 shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed text-xs transition-colors duration-150 ${
             subiendo
-              ? "border-neutral-400 text-neutral-400"
-              : "border-neutral-300 text-neutral-500 hover:border-neutral-500 hover:text-neutral-800"
+              ? "border-white/25 text-neutral-600"
+              : "border-white/15 text-neutral-500 hover:border-neutral-500 hover:text-neutral-200"
           }`}
         >
           <span>{subiendo ? "Subiendo…" : "+ Subir"}</span>
@@ -509,7 +509,7 @@ export function GalleryStep({
           className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors duration-150 ${
             isSelected
               ? "border-success-600 bg-success-50 text-success-700"
-              : "border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50"
+              : "border-white/15 text-neutral-300 hover:border-white/25 hover:bg-white/[0.05]"
           }`}
         >
           {isSelected ? "✓ Elegido por el cliente" : "Marcar como elegido"}
@@ -519,10 +519,10 @@ export function GalleryStep({
             {card.facts.map((f) => (
               <span
                 key={f.k}
-                className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] text-neutral-600"
+                className="rounded-full bg-white/[0.09] px-3 py-1.5 text-[11px] text-neutral-400"
                 title={f.v}
               >
-                <span className="font-medium text-neutral-800">{f.k}:</span> {f.v}
+                <span className="font-medium text-neutral-200">{f.k}:</span> {f.v}
               </span>
             ))}
           </div>

@@ -261,13 +261,13 @@ export function EntrevistaWizard({
         {/* Chrome flotante: material translúcido con el contenido pasando por
             debajo, en vez de una franja opaca que se come una tira de pantalla. */}
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-5">
-          <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/60 bg-white/70 p-1.5 shadow-[0_12px_40px_-8px_rgba(14,15,17,0.35)] backdrop-blur-2xl backdrop-saturate-150">
+          <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/10 bg-neutral-900/80 p-1.5 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.65)] backdrop-blur-2xl backdrop-saturate-150">
             <button
               type="button"
               onClick={() => goTo(safeCurrent - 1)}
               disabled={isFirstStep}
               aria-label="Paso anterior"
-              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full text-neutral-800 disabled:opacity-30"
+              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full text-neutral-200 disabled:opacity-30"
             >
               ←
             </button>
@@ -275,10 +275,10 @@ export function EntrevistaWizard({
             <button
               type="button"
               onClick={() => setNavegadorAbierto(true)}
-              className="boton-chrome flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-neutral-900"
+              className="boton-chrome flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-neutral-100"
             >
               <span className="max-w-[9rem] truncate">{step.label}</span>
-              <kbd className="hidden rounded border border-neutral-900/12 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 sm:block">
+              <kbd className="hidden rounded border border-neutral-100/12 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 sm:block">
                 ⌘K
               </kbd>
             </button>
@@ -288,7 +288,7 @@ export function EntrevistaWizard({
               onClick={() => goTo(safeCurrent + 1)}
               disabled={isLastStep || nextDisabled}
               aria-label="Paso siguiente"
-              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full bg-neutral-900 text-white disabled:opacity-30"
+              className="boton-chrome flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-950 disabled:opacity-30"
             >
               →
             </button>

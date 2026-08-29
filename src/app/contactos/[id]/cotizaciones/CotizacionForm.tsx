@@ -23,7 +23,7 @@ export function CotizacionForm({ action, defaultValues, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <form action={formAction} className="animate-rise-in space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-soft">
+    <form action={formAction} className="animate-rise-in space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-soft">
       <label className="block">
         <span className={labelClass}>Título *</span>
         <input type="text" name="titulo" required defaultValue={defaultValues?.titulo} className={inputClass} />

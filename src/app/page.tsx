@@ -1,23 +1,47 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { logout } from "@/app/login/actions";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/Button";
 import { FondoCinematico } from "@/components/FondoCinematico";
 import { fondos } from "@/lib/images";
+import { SALIDA } from "@/lib/movimiento";
 
-const container = {
+/**
+ * La portada del sistema.
+ *
+ * Es la única pantalla que se ve una vez por sesión y no cien veces al día, así
+ * que acá sí corresponde gastar el presupuesto de animación: la firma y el
+ * título entran escalonados sobre el render. El escalón es de 70 ms —lo
+ * suficiente para que se lea como una secuencia y no como un rebote colectivo.
+ *
+ * La firma es el vector con el texto en curvas, no el nombre tipeado: el manual
+ * pide que la firma no se re-tipee nunca.
+ */
+const contenedor = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
 };
 
-const rise = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as const } },
+const subir = {
+  hidden: { opacity: 0, transform: "translateY(14px)" },
+  show: {
+    opacity: 1,
+    transform: "translateY(0px)",
+    transition: { duration: 0.5, ease: SALIDA },
+  },
+};
+
+const subirQuieto = {
+  hidden: { opacity: 0, transform: "translateY(0px)" },
+  show: { opacity: 1, transform: "translateY(0px)", transition: { duration: 0.3 } },
 };
 
 export default function Home() {
+  const reduceMotion = useReducedMotion();
+  const entrada = reduceMotion ? subirQuieto : subir;
+
   return (
     <>
       <AppHeader />
@@ -25,37 +49,46 @@ export default function Home() {
         src={fondos.home.src}
         brillo={fondos.home.brillo}
         className="flex flex-1 flex-col"
-        velo="bg-gradient-to-t from-neutral-950/95 via-neutral-950/55 to-neutral-950/25"
+        velo="bg-gradient-to-t from-neutral-950/95 via-neutral-950/60 to-neutral-950/30"
       >
         <main className="flex h-full flex-col items-center justify-center px-4 py-24 text-center">
-        <motion.div variants={container} initial="hidden" animate="show" className="relative flex flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-4">
-            <motion.span variants={rise} className="text-xs font-medium tracking-[0.2em] text-neutral-300 uppercase">
-              Estudio de arquitectura
-            </motion.span>
-            <motion.h1 variants={rise} className="font-display text-5xl font-light tracking-tight text-white sm:text-7xl">
-              Bruno Aldana
-            </motion.h1>
-            <motion.p variants={rise} className="text-sm text-neutral-300">
-              Sesión iniciada.
+          <motion.div
+            variants={contenedor}
+            initial="hidden"
+            animate="show"
+            className="relative flex flex-col items-center gap-10"
+          >
+            <motion.div variants={entrada}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/firma-vertical-blanco.svg"
+                alt="Bruno Aldana · Arquitectura"
+                width={240}
+                height={130}
+                className="h-auto w-[220px] sm:w-[260px]"
+              />
+            </motion.div>
+
+            <motion.p variants={entrada} className="rotulo text-neutral-400">
+              Entrevista · Cotización · Propuesta
             </motion.p>
-          </div>
-          <motion.div variants={rise} className="flex items-center gap-3">
-            <Button href="/contactos">Ver contactos</Button>
-            <form action={logout}>
-              {/* Sobre la foto oscura el gris del botón fantasma no se lee: el
-                  color va forzado porque su clase base pierde por orden de CSS. */}
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="!text-neutral-200 hover:!text-white hover:bg-white/10"
-              >
-                Cerrar sesión
-              </Button>
-            </form>
+
+            <motion.div variants={entrada} className="flex items-center gap-3">
+              <Button href="/contactos">Ver contactos</Button>
+              <form action={logout}>
+                {/* Sobre la foto oscura el gris del botón fantasma no se lee: el
+                    color va forzado porque su clase base pierde por orden de CSS. */}
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="sm"
+                  className="!text-neutral-300 hover:!text-neutral-100 hover:bg-white/10"
+                >
+                  Cerrar sesión
+                </Button>
+              </form>
+            </motion.div>
           </motion.div>
-        </motion.div>
         </main>
       </FondoCinematico>
     </>

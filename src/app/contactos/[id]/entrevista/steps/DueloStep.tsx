@@ -161,7 +161,7 @@ export function DueloStep({
   return (
     <div>
       <div className="mb-5 px-1">
-        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">
+        <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">
           Ranking automático &amp; duelo de favoritos
         </h2>
         <p className="text-sm text-neutral-500">
@@ -182,7 +182,7 @@ export function DueloStep({
                 setDuel(null);
                 setElegida(null);
               }}
-              className="text-xs text-neutral-500 transition-colors duration-150 hover:text-neutral-900"
+              className="text-xs text-neutral-500 transition-colors duration-150 hover:text-neutral-100"
             >
               Cancelar duelo
             </button>
@@ -234,7 +234,7 @@ export function DueloStep({
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.5, opacity: 0 }}
                         transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-success-600 text-lg text-white shadow-lg"
+                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-success-600 text-lg text-neutral-950 shadow-lg"
                       >
                         ✓
                       </motion.span>
@@ -244,7 +244,7 @@ export function DueloStep({
               );
             })}
 
-            <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold tracking-wider text-white shadow-xl">
+            <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium tracking-wider text-white shadow-xl">
               VS
             </span>
           </div>
@@ -263,10 +263,10 @@ export function DueloStep({
             <img src={campeon.dataUrl} alt="Foto ganadora" className="h-full w-full object-cover" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
             <div className="absolute inset-x-0 bottom-0 p-6 text-center">
-              <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-white/80 uppercase">
+              <p className="mb-1 text-xs font-medium tracking-[0.2em] text-white/80 uppercase">
                 ★ Favorita absoluta de la reunión
               </p>
-              <h3 className="font-display text-3xl font-light text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.6)]">
+              <h3 className="font-display text-3xl font-extralight text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.6)]">
                 {campeon.styleName}
               </h3>
               <p className="text-sm text-white/80">
@@ -285,7 +285,7 @@ export function DueloStep({
               // el campeón anterior y el duelo en curso.
               setState((s) => ({ ...s, duelo: null }));
             }}
-            className="mt-4 text-sm font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900 hover:underline"
+            className="mt-4 text-sm font-medium text-neutral-300 transition-colors duration-150 hover:text-neutral-100 hover:underline"
           >
             Repetir duelo
           </button>
@@ -293,8 +293,8 @@ export function DueloStep({
       )}
 
       {!duel && (
-        <div className="mb-8 rounded-2xl border border-neutral-200 p-6 text-center">
-          <p className="mb-3 text-sm text-neutral-600">
+        <div className="mb-8 rounded-2xl border border-white/10 p-6 text-center">
+          <p className="mb-3 text-sm text-neutral-400">
             {pool.length} foto(s) calificadas con 6+ puntos, listas para el duelo.
           </p>
           <Button disabled={pool.length < 2} onClick={start}>
@@ -321,11 +321,11 @@ export function DueloStep({
         <div className="space-y-2 px-1">
           {ranking.map((r, i) => (
             <div key={r.key} className="flex items-center gap-3">
-              <span className={`w-5 text-sm font-semibold ${i === 0 ? "text-neutral-900" : "text-neutral-500"}`}>
+              <span className={`w-5 text-sm font-medium ${i === 0 ? "text-neutral-100" : "text-neutral-500"}`}>
                 {i + 1}
               </span>
-              <span className="w-40 shrink-0 truncate text-sm text-neutral-700">{r.name}</span>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
+              <span className="w-40 shrink-0 truncate text-sm text-neutral-300">{r.name}</span>
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.09]">
                 <motion.div
                   initial={reduceMotion ? false : { transform: "scaleX(0)" }}
                   animate={{ transform: "scaleX(1)" }}

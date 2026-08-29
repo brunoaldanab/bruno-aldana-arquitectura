@@ -51,7 +51,7 @@ export function SeleccionAmbientesStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{titulo}</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">{titulo}</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">{desc}</p>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -71,8 +71,8 @@ export function SeleccionAmbientesStep({
       </div>
 
       {state.ambientesSeleccion.length > 0 && (
-        <div className="mt-8 rounded-2xl bg-neutral-900/[0.035] p-5">
-          <p className="mb-1 text-sm font-medium text-neutral-900">Superficie de cada ambiente</p>
+        <div className="mt-8 rounded-2xl bg-white/[0.035] p-5">
+          <p className="mb-1 text-sm font-medium text-neutral-100">Superficie de cada ambiente</p>
           {/* De acá sale el precio del diseño. Se pide por ambiente y no en total
               porque el mínimo se aplica a cada espacio chico por separado: un
               baño de 4 m² no da menos trabajo que una sala de 25. */}
@@ -84,7 +84,7 @@ export function SeleccionAmbientesStep({
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {state.ambientesSeleccion.map((r) => (
               <label key={r} className="flex items-center gap-3">
-                <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{r}</span>
+                <span className="min-w-0 flex-1 truncate text-sm text-neutral-300">{r}</span>
                 <span className="flex items-center gap-1.5">
                   <input
                     type="text"

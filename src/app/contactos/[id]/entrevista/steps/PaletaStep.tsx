@@ -43,13 +43,13 @@ function ColorPickerRow({ onAdd }: { onAdd: (hex: string) => void }) {
         type="color"
         value={hex}
         onChange={(e) => setHex(e.target.value)}
-        className="h-9 w-14 cursor-pointer rounded border border-neutral-300 p-1"
+        className="h-9 w-14 cursor-pointer rounded border border-white/15 p-1"
       />
       <span className="font-mono text-xs text-neutral-500">{hex.toUpperCase()}</span>
       <button
         type="button"
         onClick={() => onAdd(hex.toUpperCase())}
-        className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+        className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-neutral-300 transition hover:border-white/25 hover:bg-white/[0.05]"
       >
         + Agregar este color
       </button>
@@ -86,12 +86,12 @@ function SwatchGrid({
               style={{ background: c.h }}
             >
               {activo && (
-                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-neutral-900 shadow">
+                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-medium text-neutral-100 shadow">
                   ✓
                 </span>
               )}
             </div>
-            <div className="mt-1.5 truncate text-[11px] text-neutral-600">{c.n}</div>
+            <div className="mt-1.5 truncate text-[11px] text-neutral-400">{c.n}</div>
           </button>
         );
       })}
@@ -132,7 +132,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Paleta de color — y qué transmite</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Paleta de color — y qué transmite</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Esta es la decisión que más define cómo se va a sentir el espacio, más allá del estilo. Mostrale al cliente estas 8
         direcciones —cada una con su lectura psicológica— y dejalo reaccionar en vivo. Pueden elegir una o combinar dos.
@@ -152,7 +152,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
               animate={{ opacity: 1, transform: "translateY(0px)" }}
               transition={{ duration: 0.24, delay: i * 0.045, ease: [0.23, 1, 0.32, 1] }}
               whileTap={reduceMotion ? undefined : { scale: 0.99 }}
-              className={`overflow-hidden rounded-2xl bg-white text-left transition-[box-shadow] duration-200 ${
+              className={`overflow-hidden rounded-2xl bg-neutral-900 text-left transition-[box-shadow] duration-200 ${
                 selected
                   ? "shadow-[0_0_0_3px_var(--color-neutral-900)]"
                   : "shadow-[0_0_0_1px_var(--color-neutral-200)] hover:shadow-[0_0_0_2px_var(--color-neutral-400)]"
@@ -168,7 +168,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
                     initial={{ scale: 0.6, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
-                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-neutral-900 shadow-lg"
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-medium text-neutral-100 shadow-lg"
                   >
                     ✓
                   </motion.span>
@@ -176,7 +176,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
               </div>
 
               <div className="p-4">
-                <span className="mb-1 block font-medium text-neutral-900">{pd.nombre}</span>
+                <span className="mb-1 block font-medium text-neutral-100">{pd.nombre}</span>
                 <p
                   className="text-xs leading-relaxed text-neutral-500"
                   dangerouslySetInnerHTML={{ __html: pd.psicologia }}
@@ -197,7 +197,7 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
             max={10}
             value={p.calidoFrio}
             onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, calidoFrio: Number(e.target.value) } }))}
-            className="flex-1 accent-accent-500"
+            className="flex-1 accent-neutral-100"
           />
           <span className="text-xs text-neutral-500">Cálido</span>
         </div>
@@ -305,7 +305,7 @@ function PaletaOficina({
   return (
     <div>
       <input ref={colorInputRef} type="color" className="sr-only" onChange={(e) => handleColorPicked(e.target.value)} />
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Paleta de color de oficina</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Paleta de color de oficina</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Estas son las 10 combinaciones de color más usadas en espacios corporativos. El moodboard de fotos es tu biblioteca
         compartida — subí una vez, reutilizá con todos los clientes.
@@ -322,7 +322,7 @@ function PaletaOficina({
               className={`rounded-2xl p-4 transition-[box-shadow] duration-200 ${isSelected ? "shadow-[0_0_0_3px_var(--color-neutral-900)]" : "shadow-[0_0_0_1px_var(--color-neutral-200)]"}`}
             >
               <button type="button" onClick={() => toggleSeleccion(pl.key)} className="mb-2 flex w-full items-center justify-between text-left">
-                <span className="font-semibold text-neutral-900">
+                <span className="font-medium text-neutral-100">
                   {pl.nombre}
                   {pl.custom && (
                     <span
@@ -336,7 +336,7 @@ function PaletaOficina({
                     </span>
                   )}
                 </span>
-                {isSelected && <span className="text-neutral-900">✓</span>}
+                {isSelected && <span className="text-neutral-100">✓</span>}
               </button>
               {/* La combinación, a superficie: es lo que el cliente juzga */}
               <div className="mb-3 flex h-24 w-full overflow-hidden rounded-xl">
@@ -349,7 +349,7 @@ function PaletaOficina({
                       key={i}
                       type="button"
                       onClick={() => openColorPicker(pl.key, i)}
-                      className="flex h-full flex-1 items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 text-lg text-neutral-400 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-700"
+                      className="flex h-full flex-1 items-center justify-center border border-dashed border-white/15 bg-white/[0.05] text-lg text-neutral-600 transition-colors duration-150 hover:bg-white/[0.09] hover:text-neutral-300"
                     >
                       +
                     </button>
@@ -368,7 +368,7 @@ function PaletaOficina({
                     layout={!reduceMotion}
                     initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.95)" }}
                     animate={{ opacity: 1, transform: "scale(1)" }}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100 shadow-[0_0_0_1px_var(--color-neutral-200)]"
+                    className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-white/[0.09] shadow-[0_0_0_1px_var(--color-neutral-200)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={f.dataUrl} alt="ref" className="h-full w-full object-cover" />
@@ -382,7 +382,7 @@ function PaletaOficina({
                   </motion.div>
                 ))}
                 {fotos.length < 10 && (
-                  <label className="flex aspect-[4/3] cursor-pointer items-center justify-center rounded-xl border border-dashed border-neutral-300 text-xs text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-800">
+                  <label className="flex aspect-[4/3] cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/15 text-xs text-neutral-500 transition-colors duration-150 hover:border-neutral-500 hover:text-neutral-200">
                     + Subir
                     <input
                       type="file"
@@ -405,7 +405,7 @@ function PaletaOficina({
       <button
         type="button"
         onClick={addPalette}
-        className="mb-6 rounded-full border border-dashed border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-500 transition hover:border-accent-400 hover:text-accent-600"
+        className="mb-6 rounded-full border border-dashed border-white/15 px-4 py-2 text-sm font-medium text-neutral-500 transition hover:border-white/30 hover:text-neutral-200"
       >
         + Agregar paleta personalizada
       </button>
@@ -420,7 +420,7 @@ function PaletaOficina({
             max={10}
             value={state.paleta.calidoFrio}
             onChange={(e) => setState((s) => ({ ...s, paleta: { ...s.paleta, calidoFrio: Number(e.target.value) } }))}
-            className="flex-1 accent-accent-500"
+            className="flex-1 accent-neutral-100"
           />
           <span className="text-xs text-neutral-500">Cálido</span>
         </div>

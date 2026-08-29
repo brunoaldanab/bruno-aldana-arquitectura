@@ -26,7 +26,7 @@ export function ContactoForm({ action, defaultValues, submitLabel }: Props) {
   return (
     <form
       action={formAction}
-      className="animate-rise-in space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-soft"
+      className="animate-rise-in space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-soft"
     >
         <label className="block">
           <span className={labelClass}>Nombre *</span>

@@ -32,7 +32,7 @@ export function DetalleAmbientesStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">{esUnico ? "Preguntas clave del ambiente" : "Funcionalidad por ambiente"}</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">{esUnico ? "Preguntas clave del ambiente" : "Funcionalidad por ambiente"}</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Cada ambiente tiene su propio set de preguntas — mobiliario, iluminación, y auditoría ergonómica/técnica específica de ese
         espacio en particular.
@@ -47,20 +47,20 @@ export function DetalleAmbientesStep({
             const det = state.ambientesDetalle[room] || emptyDetalle();
             const open = openRoom === room;
             return (
-              <div key={room} className="rounded-lg border border-neutral-200 bg-neutral-50">
+              <div key={room} className="rounded-lg border border-white/10 bg-white/[0.05]">
                 <button
                   type="button"
                   onClick={() => setOpenRoom(open ? null : room)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-neutral-900"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-neutral-100"
                 >
                   <span>{room}</span>
                   <span className={`transition ${open ? "rotate-90" : ""}`}>›</span>
                 </button>
                 {open && (
-                  <div className="space-y-4 border-t border-neutral-200 px-4 py-4">
+                  <div className="space-y-4 border-t border-white/10 px-4 py-4">
                     <div className="space-y-1">
                       {profile.tips.map((t) => (
-                        <p key={t} className="rounded-md bg-neutral-100 p-2 text-xs text-neutral-600">
+                        <p key={t} className="rounded-md bg-white/[0.09] p-2 text-xs text-neutral-400">
                           {t}
                         </p>
                       ))}
@@ -103,7 +103,7 @@ export function DetalleAmbientesStep({
                       />
                     </label>
 
-                    <p className="rounded-md bg-neutral-100 p-2 text-xs text-neutral-600">
+                    <p className="rounded-md bg-white/[0.09] p-2 text-xs text-neutral-400">
                       Colorimetría: revisá con la paleta elegida en el paso &quot;Paleta de color&quot; — acá solo anotá si este ambiente
                       puntual necesita un tratamiento de color distinto al resto.
                     </p>
@@ -122,7 +122,7 @@ export function DetalleAmbientesStep({
                     ))}
 
                     <div>
-                      <h4 className="text-sm font-semibold text-neutral-900">Auditoría funcional y ergonómica</h4>
+                      <h4 className="text-sm font-medium text-neutral-100">Auditoría funcional y ergonómica</h4>
                       <p className="mb-2 text-xs text-neutral-500">Puntos técnicos que definen si el ambiente funciona bien, más allá del gusto.</p>
                       <div className="space-y-3">
                         {profile.funcional.map((g) => (

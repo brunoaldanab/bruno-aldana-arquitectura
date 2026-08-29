@@ -20,7 +20,7 @@ export function MobiliarioExistenteStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Mobiliario existente</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Mobiliario existente</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">Definir qué se muda con ellos condiciona las medidas de todo el proyecto nuevo.</p>
       <div className="grid grid-cols-1 gap-4">
         <label className="block">

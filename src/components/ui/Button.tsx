@@ -5,18 +5,19 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "md" | "sm";
 
 /**
- * La acción principal es negra, no azul.
+ * La acción principal es la tinta de la marca sobre grafito, no un color.
  *
- * El sistema quedó monocromo —negro, plomo, blanco— y el azul de acento peleaba
- * con las fotos, que son el contenido real de la entrevista. Se reserva el azul
- * para enlaces, donde sí conviene que se lea como "esto es un enlace".
+ * El manual no tiene color de acento a propósito: el color lo pone el render del
+ * proyecto y nunca la marca. Así que la jerarquía se construye con luz —cuánto
+ * se separa del fondo— y no con matiz. La primaria es el único bloque claro de
+ * la pantalla, y por eso se encuentra sola sin necesidad de teñirla.
  */
 const VARIANT_CLASS: Record<Variant, string> = {
   primary:
-    "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-neutral-950 disabled:bg-neutral-300",
+    "bg-neutral-100 text-neutral-950 hover:bg-white active:bg-neutral-200 disabled:bg-neutral-700 disabled:text-neutral-400",
   secondary:
-    "bg-neutral-900/[0.06] text-neutral-800 hover:bg-neutral-900/[0.1] active:bg-neutral-900/[0.14]",
-  ghost: "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-900/[0.06]",
+    "bg-white/[0.07] text-neutral-200 hover:bg-white/[0.12] active:bg-white/[0.16]",
+  ghost: "text-neutral-400 hover:bg-white/[0.07] hover:text-neutral-100",
   danger: "text-danger-600 hover:bg-danger-50 active:bg-danger-50",
 };
 
@@ -28,9 +29,12 @@ const SIZE_CLASS: Record<Size, string> = {
 /**
  * Las propiedades de la transición van nombradas: `transition` a secas anima
  * todo lo que cambie, incluidas cosas que nadie pidió animar.
+ *
+ * El peso es 400 y no 500: el manual pide que el énfasis se haga con tamaño y
+ * espacio, nunca con negrita.
  */
 const BASE =
-  "inline-flex items-center justify-center gap-1.5 rounded-full font-medium transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full font-normal transition-[transform,background-color,color] duration-150 ease-[var(--ease-out)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-100 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950";
 
 type CommonProps = {
   variant?: Variant;

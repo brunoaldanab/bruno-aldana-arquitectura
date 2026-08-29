@@ -1,35 +1,47 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/**
+ * Las dos familias del manual de marca y ninguna más.
+ *
+ * Archivo carga los cuatro pesos que usa el sistema: 200 para los títulos
+ * grandes, 300 para el texto corrido, 400 para lo destacado y 500 para lo poco
+ * que necesita peso. JetBrains Mono va solo en 500, que es el peso de las
+ * etiquetas y los números.
+ */
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
+  weight: ["200", "300", "400", "500"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Bruno Aldana Arquitectura",
+  title: "Bruno Aldana · Arquitectura",
   description: "Gestión de contactos, cotizaciones y fichas de entrevista del estudio.",
+  icons: { icon: "/ab-cuadrado-negro.svg" },
 };
 
+/**
+ * `color-scheme: dark` le avisa al navegador que la página es oscura, y con eso
+ * las barras de scroll, los campos nativos y los menús del sistema salen
+ * oscuros también. Sin esa línea quedan blancos y rompen el grafito.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${archivo.variable} ${jetbrainsMono.variable} h-full antialiased [color-scheme:dark]`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-50">{children}</body>
+      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">{children}</body>
     </html>
   );
 }

@@ -96,7 +96,7 @@ export function ProgresoCapitulos({
       </div>
 
       <div className="flex items-baseline gap-2 overflow-hidden">
-        <span className="shrink-0 font-mono text-[11px] text-neutral-600">
+        <span className="shrink-0 font-mono text-[11px] text-neutral-400">
           {String(actual + 1).padStart(2, "0")}/{String(steps.length).padStart(2, "0")}
         </span>
         <motion.span
@@ -104,7 +104,7 @@ export function ProgresoCapitulos({
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(6px)" }}
           animate={{ opacity: 1, transform: "translateY(0px)" }}
           transition={{ duration: 0.2, ease: SALIDA }}
-          className="truncate text-[11px] font-medium tracking-wide text-neutral-600 uppercase"
+          className="truncate text-[11px] font-medium tracking-wide text-neutral-400 uppercase"
         >
           {steps[actual]?.label}
         </motion.span>

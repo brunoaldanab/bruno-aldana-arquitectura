@@ -36,7 +36,7 @@ export function OficinaStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Sobre la oficina</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Sobre la oficina</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Estas preguntas son específicas de espacios de trabajo — no aparecen en proyectos de vivienda.
       </p>
@@ -109,7 +109,7 @@ export function OficinaStep({
         />
       </label>
 
-      <h3 className="mb-1 text-base font-semibold text-neutral-900">Auditoría funcional y ergonómica</h3>
+      <h3 className="mb-1 text-base font-medium text-neutral-100">Auditoría funcional y ergonómica</h3>
       <p className="mb-4 text-sm text-neutral-500">
         Esto va más allá del gusto — son los puntos técnicos que definen si la oficina realmente funciona bien día a día. Marcá los que
         apliquen a este proyecto.

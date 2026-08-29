@@ -45,7 +45,7 @@ export function MaterialesStep({
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 px-1">
         <div>
-          <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Materiales</h2>
+          <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Materiales</h2>
           <p className="text-sm text-neutral-500">
             Tocá los que le gusten al cliente. La textura es la que decide — mostrala grande.
           </p>
@@ -101,7 +101,7 @@ export function MaterialesStep({
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.6, opacity: 0 }}
                     transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
-                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-neutral-900 shadow-lg"
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-medium text-neutral-100 shadow-lg"
                   >
                     ✓
                   </motion.span>

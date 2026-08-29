@@ -21,7 +21,7 @@ export function PresupuestoStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">Presupuesto</h2>
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Presupuesto</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">Preguntalo con naturalidad, después de haber generado confianza con los pasos anteriores.</p>
 
       <label className="mb-5 block">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { formatearBs } from "@/lib/propuesta/calculo";
 import { TEXTOS } from "@/lib/propuesta/textos";
 import type { PropuestaData } from "@/lib/propuesta/tipos";
@@ -14,21 +15,41 @@ import {
 import "./propuesta.css";
 
 /**
- * La marca, en blanco sobre la banda oscura.
+ * Arma el nombre del archivo: "Propuesta - Nombre del cliente - 29-08-2026".
+ *
+ * Los caracteres que Windows y macOS no aceptan en un nombre de archivo se
+ * sacan acá; si quedaran, el navegador descarta el nombre entero y vuelve al
+ * suyo. Los acentos sí se conservan: son válidos y el documento está en español.
+ */
+function nombreDelArchivo(cliente: string, emision: string) {
+  const limpio = (s: string) =>
+    s
+      .replace(/[\\/:*?"<>|]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  return `Propuesta - ${limpio(cliente)} - ${limpio(emision).replace(/\//g, "-")}`;
+}
+
+/**
+ * La firma, en blanco sobre la banda de grafito.
  *
  * Va en todas las hojas: sin ella las páginas interiores no se leen como parte
  * del mismo documento que la portada.
+ *
+ * Es el vector de la firma con el texto ya convertido a curvas, no el logo más
+ * el nombre tipeado que había antes. El manual lo pide explícitamente, y en un
+ * documento que se imprime y se manda por correo la razón es práctica: un
+ * nombre tipeado depende de que la fuente esté instalada en la máquina que lo
+ * abra, y el vector no depende de nada.
  */
 function Marca() {
   return (
-    <div className="marca">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="marca-logo" src="/logo-ab.png" alt="" />
-      <span className="marca-nombre">
-        Bruno Aldana
-        <em>Arquitectura</em>
-      </span>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="marca-firma"
+      src="/firma-horizontal-blanco.svg"
+      alt="Bruno Aldana · Arquitectura"
+    />
   );
 }
 
@@ -36,14 +57,14 @@ function Marca() {
  * Una hoja interior.
  *
  * El tercio superior es una banda oscura con la misma foto de la portada, el
- * mismo grado frío y el título en blanco: es literalmente un pedazo de la
+ * mismo grado y el título en tinta clara: es literalmente un pedazo de la
  * portada repetido en cada página. Como la foto cambia según el cliente, lo que
  * unifica el documento no es una imagen fija sino el tratamiento, y cada
  * propuesta termina teniendo su propio color sin dejar de ser el mismo formato.
  *
- * Debajo de la banda el papel es blanco, que es donde se lee cómodo. El contraste
- * entre las dos zonas es el que ordena la página: arriba de qué se trata, abajo
- * el contenido.
+ * Debajo de la banda el papel es el claro de la marca, que es donde se lee
+ * cómodo. El contraste entre las dos zonas ordena la página: arriba de qué se
+ * trata, abajo el contenido.
  */
 function Hoja({
   seccion,
@@ -102,20 +123,35 @@ export function Propuesta({
   galeria: GaleriaData;
 }) {
   const foto = datos.portada?.dataUrl ?? null;
+  const nombreArchivo = nombreDelArchivo(datos.nombreCliente, datos.emisionTexto);
+
+  /**
+   * Guardar el PDF con un nombre que sirva.
+   *
+   * El navegador propone como nombre de archivo el título de la pestaña, así que
+   * se lo cambiamos justo antes de abrir el diálogo y lo devolvemos después. Sin
+   * esto el cliente recibe un archivo llamado "Bruno Aldana · Arquitectura.pdf",
+   * o directamente el nombre de la ruta, y en su carpeta de descargas no hay
+   * forma de distinguir una propuesta de otra.
+   */
+  function descargar() {
+    const titulo = document.title;
+    document.title = nombreArchivo;
+    window.print();
+    document.title = titulo;
+  }
 
   return (
     <div className="propuesta-raiz">
-      <div className="no-imprimir mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 pt-6">
-        <p className="text-sm text-neutral-500">
-          Revisá el documento y guardalo como PDF desde el diálogo de impresión.
-        </p>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="shrink-0 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white"
-        >
-          Guardar como PDF
-        </button>
+      <div className="no-imprimir mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-4 px-4 pt-10 pb-2">
+        <div>
+          <span className="rotulo block text-neutral-500">Entregable · 7 hojas A4</span>
+          <p className="mt-2 text-sm text-neutral-400">
+            Se guarda como{" "}
+            <span className="dato text-neutral-200">{nombreArchivo}.pdf</span>
+          </p>
+        </div>
+        <Button onClick={descargar}>Descargar PDF</Button>
       </div>
 
       <div className="propuesta">

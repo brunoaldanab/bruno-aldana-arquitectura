@@ -62,16 +62,17 @@ export default async function PropuestaPage({ params }: { params: Promise<{ id: 
   if ("falta" in datos) {
     return (
       <main className="mx-auto max-w-xl px-4 py-24 text-center">
-        <h1 className="font-display mb-3 text-2xl font-light text-neutral-900">
+        <span className="rotulo mb-4 block text-neutral-600">Propuesta incompleta</span>
+        <h1 className="font-display mb-4 text-4xl font-extralight tracking-[-0.03em] text-neutral-100">
           Falta la superficie
         </h1>
-        <p className="mb-6 text-neutral-500">
+        <p className="mb-8 text-sm text-neutral-500">
           Para calcular el precio hace falta cargar los metros cuadrados en el paso de
           Datos generales de la entrevista.
         </p>
         <Link
           href={`/contactos/${id}/entrevista`}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white"
+          className="inline-flex rounded-full bg-neutral-100 px-5 py-2.5 text-sm text-neutral-950 transition-colors duration-150 hover:bg-white"
         >
           Ir a la entrevista
         </Link>

@@ -32,7 +32,7 @@ export function TipoProyectoStep({
 
   return (
     <div>
-      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-light tracking-[-0.02em] text-neutral-900">
+      <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">
         ¿Qué vamos a diseñar hoy?
       </h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
@@ -62,7 +62,7 @@ export function TipoProyectoStep({
               } ${t.disabled ? "cursor-not-allowed opacity-40" : ""}`}
             >
               {t.disabled && (
-                <span className="absolute top-4 right-4 rounded-full bg-neutral-900/8 px-2.5 py-1 text-[10px] font-medium text-neutral-500">
+                <span className="absolute top-4 right-4 rounded-full bg-white/8 px-2.5 py-1 text-[10px] font-medium text-neutral-500">
                   Próximamente
                 </span>
               )}
@@ -78,7 +78,7 @@ export function TipoProyectoStep({
               >
                 <IconoTipo tipo={t.k} className="h-8 w-8" />
               </div>
-              <div className={`text-lg font-medium ${elegido ? "text-white" : "text-neutral-900"}`}>{t.t}</div>
+              <div className={`text-lg font-medium ${elegido ? "text-white" : "text-neutral-100"}`}>{t.t}</div>
               <div className={`mt-1 text-sm ${elegido ? "text-white/70" : "text-neutral-500"}`}>{t.d}</div>
             </motion.button>
           );

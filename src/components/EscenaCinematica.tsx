@@ -118,7 +118,7 @@ export function EscenaCinematica({
               animate={{ opacity: 1, y: 0 }}
               exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
               transition={{ duration: 0.34, ease: [0.23, 1, 0.32, 1] }}
-              className="font-display text-3xl font-light tracking-tight text-white sm:text-4xl"
+              className="font-display text-3xl font-extralight tracking-[-0.03em] text-white sm:text-4xl"
             >
               {titulo}
             </motion.h1>
