@@ -203,8 +203,11 @@ export function ResumenGustos({
 
       {colores.length > 0 && (
         <div className="paleta">
-          {colores.map((c) => (
-            <div key={c.h + c.n} className="color">
+          {/* La clave lleva el índice porque una paleta puede repetir el mismo color
+              con el mismo nombre —pasa cuando se elige dos veces desde la galería— y
+              React descarta el duplicado si la clave no los distingue. */}
+          {colores.map((c, i) => (
+            <div key={`${c.h}-${c.n}-${i}`} className="color">
               <div className="color-muestra" style={{ background: c.h }} />
               <span className="color-nombre">{c.n}</span>
             </div>

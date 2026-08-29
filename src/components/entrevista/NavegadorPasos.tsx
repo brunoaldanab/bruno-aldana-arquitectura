@@ -108,6 +108,11 @@ function PanelPasos({
         className="absolute inset-0 bg-neutral-950/40 backdrop-blur-[2px]"
       />
 
+      {/* Baja un poco y se abre desde 0.98, nunca desde cero: nada en el mundo
+          real aparece de la nada, y una ventana que crece desde un punto se lee
+          como un truco. El desenfoque que tenía se sacó por la regla del manual
+          —solo opacidad y transform—; el material translúcido del fondo
+          (`backdrop-blur`) se queda, porque ese es fijo y no se anima. */}
       <motion.div
         role="dialog"
         aria-modal="true"
@@ -115,13 +120,13 @@ function PanelPasos({
         initial={
           reduceMotion
             ? { opacity: 0 }
-            : { opacity: 0, transform: "translateY(-8px) scale(0.98)", filter: "blur(4px)" }
+            : { opacity: 0, transform: "translateY(-8px) scale(0.98)" }
         }
-        animate={{ opacity: 1, transform: "translateY(0px) scale(1)", filter: "blur(0px)" }}
+        animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
         exit={
           reduceMotion
             ? { opacity: 0 }
-            : { opacity: 0, transform: "translateY(-6px) scale(0.99)", filter: "blur(3px)" }
+            : { opacity: 0, transform: "translateY(-6px) scale(0.99)" }
         }
         transition={reduceMotion ? { duration: 0.15 } : HOJA}
         className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-neutral-900/90 shadow-[0_24px_80px_-12px_rgba(0,0,0,0.7)] ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150"

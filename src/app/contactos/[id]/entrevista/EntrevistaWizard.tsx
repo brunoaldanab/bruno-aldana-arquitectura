@@ -217,6 +217,14 @@ export function EntrevistaWizard({
           {/* El paso ya no vive dentro de una tarjeta: es la pantalla.
               El arrastre horizontal cambia de paso, con resistencia en los
               extremos y decisión por velocidad, no por distancia. */}
+          {/* El paso entra y sale solo con desplazamiento y opacidad.
+              Antes también animaba un desenfoque. Se sacó por la regla de
+              movimiento del manual —solo `opacity` y `transform`— y porque acá
+              costaba caro de verdad: el desenfoque obliga al navegador a
+              repintar el elemento más grande de la pantalla en cada cuadro, y
+              este paso puede tener una grilla de fotos adentro. El
+              desplazamiento y la opacidad, en cambio, los resuelve la placa de
+              video sin repintar nada. */}
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={step.id}
@@ -224,13 +232,13 @@ export function EntrevistaWizard({
               initial={
                 reduceMotion
                   ? { opacity: 0 }
-                  : { opacity: 0, transform: `translateX(${direction * offset}px)`, filter: "blur(4px)" }
+                  : { opacity: 0, transform: `translateX(${direction * offset}px)` }
               }
-              animate={{ opacity: 1, transform: "translateX(0px)", filter: "blur(0px)" }}
+              animate={{ opacity: 1, transform: "translateX(0px)" }}
               exit={
                 reduceMotion
                   ? { opacity: 0 }
-                  : { opacity: 0, transform: `translateX(${direction * -offset}px)`, filter: "blur(4px)" }
+                  : { opacity: 0, transform: `translateX(${direction * -offset}px)` }
               }
               transition={{ duration: 0.24, ease: SALIDA }}
               drag={puedeArrastrar ? "x" : false}

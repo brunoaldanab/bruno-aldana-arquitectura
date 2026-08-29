@@ -244,7 +244,7 @@ export function DueloStep({
               );
             })}
 
-            <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium tracking-wider text-white shadow-xl">
+            <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium tracking-wider text-neutral-950 shadow-xl">
               VS
             </span>
           </div>
@@ -331,7 +331,7 @@ export function DueloStep({
                   animate={{ transform: "scaleX(1)" }}
                   transition={{ duration: 0.5, delay: i * 0.06, ease: [0.23, 1, 0.32, 1] }}
                   style={{ width: `${(r.avg / maxAvg) * 100}%`, transformOrigin: "left" }}
-                  className="h-2 rounded-full bg-neutral-900"
+                  className="h-2 rounded-full bg-neutral-100"
                 />
               </div>
               <span className="w-12 text-right text-xs text-neutral-500">{r.avg.toFixed(1)}/10</span>

@@ -43,7 +43,7 @@
 
   /* El mismo grado de la aplicación: las fotos vienen de fuentes distintas y
      esto las lleva a todas a la misma familia grafito. */
-  --grado: saturate(0.5) contrast(1.1) brightness(0.62);
+  --grado: saturate(0.5) contrast(1.08) brightness(0.8);
 
   display: flex;
   flex-direction: column;
@@ -249,15 +249,32 @@
   margin: 0 0 4mm;
   max-width: 130mm;
 }
+/*
+ * Las listas llevan una raya y no un punto.
+ *
+ * Tailwind quita los marcadores de serie, así que sin esto los ítems quedaban
+ * como párrafos sangrados y no se leían como lista. La raya es más discreta que
+ * el punto negro del navegador y no agrega un elemento decorativo nuevo: es el
+ * mismo signo que separa los datos en toda la marca.
+ */
 .propuesta ul {
+  list-style: none;
   font-size: 10pt;
   line-height: 1.65;
   margin: 0 0 5mm;
-  padding-left: 5mm;
+  padding-left: 0;
   max-width: 130mm;
 }
 .propuesta li {
-  margin-bottom: 1.8mm;
+  position: relative;
+  padding-left: 6mm;
+  margin-bottom: 2.2mm;
+}
+.propuesta li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--tenue);
 }
 
 /* El énfasis dentro de un párrafo se hace con el peso 400 de Archivo, nunca con

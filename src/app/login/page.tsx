@@ -28,9 +28,9 @@ export default function LoginPage() {
           <img
             src="/firma-horizontal-blanco.svg"
             alt="Bruno Aldana · Arquitectura"
-            width={150}
-            height={31}
-            className="h-[31px] w-auto"
+            width={184}
+            height={38}
+            className="h-[38px] w-auto"
           />
           <p className="max-w-sm font-display text-3xl font-extralight tracking-[-0.03em] text-neutral-100 [text-shadow:0_2px_18px_rgba(0,0,0,0.5)]">
             Cada entrevista, cada cotización, cada proyecto — en un solo lugar.

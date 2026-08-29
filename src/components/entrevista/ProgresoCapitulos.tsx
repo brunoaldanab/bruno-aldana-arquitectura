@@ -89,7 +89,7 @@ export function ProgresoCapitulos({
               }}
               transition={reduceMotion ? { duration: 0.12 } : RESORTE}
               style={{ flex: esActual ? 2.2 : 1, height: 10, transformOrigin: "bottom" }}
-              className="rounded-full bg-neutral-900"
+              className="rounded-full bg-neutral-100"
             />
           );
         })}

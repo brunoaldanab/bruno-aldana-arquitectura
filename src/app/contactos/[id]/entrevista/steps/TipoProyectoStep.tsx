@@ -72,14 +72,14 @@ export function TipoProyectoStep({
                   principal y no pierde cuadros mientras la página carga. */}
               <div
                 className={`icono-trazo mb-6 transition-colors duration-200 ${
-                  elegido ? "text-white" : "text-neutral-500"
+                  elegido ? "text-neutral-950" : "text-neutral-500"
                 }`}
                 style={{ animationDelay: `${150 + i * 80}ms` }}
               >
                 <IconoTipo tipo={t.k} className="h-8 w-8" />
               </div>
-              <div className={`text-lg font-medium ${elegido ? "text-white" : "text-neutral-100"}`}>{t.t}</div>
-              <div className={`mt-1 text-sm ${elegido ? "text-white/70" : "text-neutral-500"}`}>{t.d}</div>
+              <div className={`text-lg font-medium ${elegido ? "text-neutral-950" : "text-neutral-100"}`}>{t.t}</div>
+              <div className={`mt-1 text-sm ${elegido ? "text-neutral-950/65" : "text-neutral-500"}`}>{t.d}</div>
             </motion.button>
           );
         })}

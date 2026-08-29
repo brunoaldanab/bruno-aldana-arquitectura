@@ -35,9 +35,9 @@ export function AppHeader() {
           <img
             src="/firma-horizontal-blanco.svg"
             alt="Bruno Aldana · Arquitectura"
-            width={106}
-            height={22}
-            className="h-[22px] w-auto"
+            width={126}
+            height={26}
+            className="h-[26px] w-auto"
           />
         </Link>
 

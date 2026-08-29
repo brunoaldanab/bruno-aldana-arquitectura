@@ -351,7 +351,7 @@ export function GalleryStep({
               type="button"
               onClick={() => pasar(-1)}
               aria-label="Foto anterior"
-              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-100 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-900"
+              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100/90 text-neutral-950 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-100"
             >
               ←
             </button>
@@ -359,7 +359,7 @@ export function GalleryStep({
               type="button"
               onClick={() => pasar(1)}
               aria-label="Foto siguiente"
-              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-100 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-900"
+              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100/90 text-neutral-950 shadow-lg boton-visor transition-[transform,background-color] duration-150 hover:bg-neutral-100"
             >
               →
             </button>
@@ -412,7 +412,7 @@ export function GalleryStep({
                     }
                     className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-[transform,background-color,color] duration-150 active:scale-95 ${
                       activa
-                        ? "bg-neutral-900 text-neutral-100"
+                        ? "bg-neutral-100 text-neutral-950"
                         : "bg-black/45 text-white/90 hover:bg-black/65"
                     }`}
                   >
