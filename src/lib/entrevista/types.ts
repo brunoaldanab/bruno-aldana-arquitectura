@@ -109,9 +109,18 @@ export interface EntrevistaState {
     calidoFrio: number;
     notas: string;
     customColores: { n: string; h: string }[];
+    /**
+     * Cuánto le gustó cada paleta, del 1 al 5, por clave de paleta. Es lo que
+     * separa "me sirve" de "me encanta": con solo elegidas y descartadas, dos
+     * paletas marcadas pesan igual y la propuesta pierde el orden real de
+     * preferencia. Opcional porque `Entrevista.data` es una columna JSON y las
+     * entrevistas anteriores no lo tienen.
+     */
+    puntajes?: Record<string, number>;
   };
   paletaOficina: {
     seleccion: string[];
+    puntajes?: Record<string, number>;
   };
   materiales: {
     seleccion: string[];
@@ -176,8 +185,8 @@ export function createInitialEntrevistaState(): EntrevistaState {
     estilo: { seleccion: [], atemporalidad: 5, densidad: "equilibrado", refs: "" },
     estiloDetalle: {},
     mobiliarioGaleria: { seleccion: [], detalle: {} },
-    paleta: { seleccion: [], base: [], evitar: [], calidoFrio: 5, notas: "", customColores: [] },
-    paletaOficina: { seleccion: [] },
+    paleta: { seleccion: [], base: [], evitar: [], calidoFrio: 5, notas: "", customColores: [], puntajes: {} },
+    paletaOficina: { seleccion: [], puntajes: {} },
     materiales: { seleccion: [], notas: "" },
     ambientesDetalle: {},
     mobiliario: { reutilizar: "", noNegociables: "", electrodomesticos: "", arte: "" },

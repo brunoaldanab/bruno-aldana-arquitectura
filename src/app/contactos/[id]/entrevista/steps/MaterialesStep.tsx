@@ -5,6 +5,7 @@ import { materialCards } from "@/lib/entrevista/data";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import { images } from "@/lib/images";
 import { inputClass } from "@/components/ui/field";
+import { anilloSeleccion } from "@/components/ui/seleccion";
 
 const materialPhotos: Record<string, string> = {
   "Madera clara": images.materials.maderaClara,
@@ -72,7 +73,7 @@ export function MaterialesStep({
               whileTap={reduceMotion ? undefined : { scale: 0.98 }}
               onClick={() => toggle(m.n)}
               className={`group relative aspect-[4/5] overflow-hidden rounded-2xl text-left transition-[box-shadow] duration-200 ${
-                selected ? "shadow-[0_0_0_3px_var(--color-neutral-900)]" : "shadow-[0_0_0_1px_var(--color-neutral-200)]"
+                anilloSeleccion(selected)
               }`}
             >
               {photo ? (

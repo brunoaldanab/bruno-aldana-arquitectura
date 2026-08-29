@@ -52,6 +52,15 @@ pantalla —relleno en tinta con el texto en grafito— y por eso se encuentra s
 Lo secundario es luz al 7 % sobre grafito. Cuanto más se separa del fondo, más
 importante es.
 
+**Lo elegido se enciende, no se oscurece.** Es la misma regla, aplicada a la
+marca de selección, y es el error que dejó el cambio de fondo: sobre papel
+claro, "esto está elegido" se dibujaba con un anillo oscuro, y al pasar a
+grafito ese anillo quedó del color de la propia tarjeta. Se podía elegir, pero
+no se veía, así que en la pantalla de paleta parecía que la aplicación no
+respondía. El anillo de selección vive ahora en un solo archivo,
+`src/components/ui/seleccion.ts`, y una prueba automática impide que vuelva a
+pintarse con un color de la familia del fondo.
+
 ---
 
 ## La tipografía

@@ -1,6 +1,7 @@
 "use client";
 
 import { mobiliarioCardsBase, officePaletteCombos, paletteDefs, styleCards } from "@/lib/entrevista/data";
+import { ordenarPorPuntaje, PUNTAJE_MAXIMO } from "@/lib/entrevista/puntaje";
 import { matchRoomProfile } from "@/lib/entrevista/roomProfiles";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
@@ -57,9 +58,19 @@ export function ResumenStep({
     ...officePaletteCombos.map((p) => ({ key: p.key, nombre: p.nombre })),
     ...galeria.paletaOficinaCustom.map((p) => ({ key: p.key, nombre: p.nombre })),
   ];
-  const paletteNombres = esOficina
-    ? state.paletaOficina.seleccion.map((k) => officePalettes.find((p) => p.key === k)?.nombre || k)
-    : state.paleta.seleccion.map((k) => paletteDefs.find((p) => p.key === k)?.nombre || k);
+  // De la que más le gustó a la que menos: en la propuesta importa el orden,
+  // no la lista. Las puntuadas llevan su nota al lado.
+  const paletaPuntajes = (esOficina ? state.paletaOficina.puntajes : state.paleta.puntajes) ?? {};
+  const paletteNombres = ordenarPorPuntaje(
+    esOficina ? state.paletaOficina.seleccion : state.paleta.seleccion,
+    paletaPuntajes
+  ).map((k) => {
+    const nombre = esOficina
+      ? officePalettes.find((p) => p.key === k)?.nombre || k
+      : paletteDefs.find((p) => p.key === k)?.nombre || k;
+    const puntaje = paletaPuntajes[k];
+    return puntaje ? `${nombre} (${puntaje}/${PUNTAJE_MAXIMO})` : nombre;
+  });
 
   return (
     <div>

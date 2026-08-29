@@ -30,3 +30,4 @@ Thumbs.db
 # Skills de terceros (se reinstalan desde skills-lock.json)
 .agents/
 skills-lock.json
+.playwright-mcp/

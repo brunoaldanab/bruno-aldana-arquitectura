@@ -7,6 +7,7 @@ import { campeonGuardado } from "@/lib/entrevista/duelo";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { Button } from "@/components/ui/Button";
+import { anilloReposo } from "@/components/ui/seleccion";
 
 interface DuelItem {
   fotoId: string;
@@ -211,7 +212,7 @@ export function DueloStep({
                   className={`group relative aspect-[3/4] overflow-hidden rounded-2xl transition-[box-shadow] duration-200 sm:aspect-[4/5] ${
                     gana
                       ? "shadow-[0_0_0_4px_var(--color-success-600)]"
-                      : "shadow-[0_0_0_1px_var(--color-neutral-200)] hover:shadow-[0_0_0_3px_var(--color-neutral-900)]"
+                      : anilloReposo
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}

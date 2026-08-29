@@ -1,5 +1,6 @@
 import { paletteDefs, styleCards } from "@/lib/entrevista/data";
 import { fotoPortada } from "@/lib/entrevista/duelo";
+import { ordenarPorPuntaje } from "@/lib/entrevista/puntaje";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import type { EntrevistaState, TipoProyecto } from "@/lib/entrevista/types";
 import {
@@ -60,7 +61,10 @@ export function armarPropuesta(entrada: EntradaPropuesta): PropuestaData | { fal
     ...galeria.estiloCustom.map((c) => ({ k: c.key, t: c.titulo })),
   ];
 
-  const paleta: ColorPaleta[] = state.paleta.seleccion.flatMap((clave) => {
+  // En orden de preferencia: la paleta que más le gustó encabeza la propuesta.
+  // El puntaje en sí es una nota de trabajo y no se le muestra al cliente; lo
+  // que sí se le muestra es la consecuencia, que es el orden.
+  const paleta: ColorPaleta[] = ordenarPorPuntaje(state.paleta.seleccion, state.paleta.puntajes).flatMap((clave) => {
     const def = paletteDefs.find((p) => p.key === clave);
     if (!def) return [];
     return def.colores.map((c) => ({ nombre: c.n, hex: c.h }));

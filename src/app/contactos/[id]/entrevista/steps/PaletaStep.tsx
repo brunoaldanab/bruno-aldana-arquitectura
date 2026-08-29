@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { inputClass } from "@/components/ui/field";
+import { anilloReposo, anilloSeleccion } from "@/components/ui/seleccion";
 import { colorSwatches, officePaletteCombos, paletteDefs } from "@/lib/entrevista/data";
+import { aplicarPuntaje, PUNTAJE_MAXIMO } from "@/lib/entrevista/puntaje";
 import type { EntrevistaState } from "@/lib/entrevista/types";
 import type { GaleriaData } from "@/lib/entrevista/galeria";
 import { imageFileToDataUrl } from "@/lib/entrevista/imageToDataUrl";
@@ -33,6 +35,41 @@ export function PaletaStep({
     return <PaletaOficina state={state} setState={setState} galeria={galeria} setGaleria={setGaleria} />;
   }
   return <PaletaGeneral state={state} setState={setState} />;
+}
+
+/*
+ * Las estrellas son el gesto principal de este paso: eligen y puntúan de una
+ * sola vez. Se usan adelante del cliente, así que son grandes y separadas —
+ * un blanco chico obliga a apuntar, y apuntar corta la conversación.
+ */
+function Estrellas({ valor, onPuntuar }: { valor: number; onPuntuar: (n: number) => void }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <div className="flex items-center gap-1" role="group" aria-label="Cuánto le gustó">
+      {Array.from({ length: PUNTAJE_MAXIMO }).map((_, i) => {
+        const n = i + 1;
+        const encendida = valor >= n;
+        return (
+          <motion.button
+            key={n}
+            type="button"
+            aria-label={`${n} de ${PUNTAJE_MAXIMO}`}
+            aria-pressed={encendida}
+            onClick={() => onPuntuar(n)}
+            whileTap={reduceMotion ? undefined : { scale: 0.85 }}
+            className={`px-0.5 text-2xl leading-none transition-colors duration-150 ${
+              encendida ? "text-neutral-100" : "text-neutral-700 hover:text-neutral-500"
+            }`}
+          >
+            {encendida ? "★" : "☆"}
+          </motion.button>
+        );
+      })}
+      <span className="ml-2 font-mono text-[11px] tracking-wide text-neutral-500">
+        {valor > 0 ? `${valor}/${PUNTAJE_MAXIMO}` : "SIN PUNTUAR"}
+      </span>
+    </div>
+  );
 }
 
 function ColorPickerRow({ onAdd }: { onAdd: (hex: string) => void }) {
@@ -78,15 +115,11 @@ function SwatchGrid({
             className="text-center transition-transform duration-150 active:scale-95"
           >
             <div
-              className={`relative aspect-square w-full overflow-hidden rounded-xl transition-[box-shadow] duration-200 ${
-                activo
-                  ? "shadow-[0_0_0_3px_var(--color-neutral-900)]"
-                  : "shadow-[0_0_0_1px_rgba(0,0,0,0.1)] hover:shadow-[0_0_0_2px_var(--color-neutral-400)]"
-              }`}
+              className={`relative aspect-square w-full overflow-hidden rounded-xl transition-[box-shadow] duration-200 ${anilloSeleccion(activo)}`}
               style={{ background: c.h }}
             >
               {activo && (
-                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-medium text-neutral-100 shadow">
+                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-100 text-[10px] font-medium text-neutral-950 shadow">
                   ✓
                 </span>
               )}
@@ -99,15 +132,76 @@ function SwatchGrid({
   );
 }
 
+/** La foto en grande, para mostrársela al cliente sin salir del paso. */
+function VisorFoto({ src, onClose }: { src: string | null; onClose: () => void }) {
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!src) return;
+    function alTeclear(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", alTeclear);
+    return () => window.removeEventListener("keydown", alTeclear);
+  }, [src, onClose]);
+
+  return (
+    <AnimatePresence>
+      {src && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={onClose}
+          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-neutral-950/95 p-6"
+        >
+          <motion.img
+            src={src}
+            alt="Referencia"
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.97)" }}
+            animate={{ opacity: 1, transform: "scale(1)" }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="max-h-full max-w-full rounded-2xl object-contain"
+          />
+          <span className="pointer-events-none absolute bottom-6 font-mono text-[11px] tracking-wide text-neutral-500">
+            TOCÁ EN CUALQUIER LADO PARA CERRAR
+          </span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: SetState }) {
   const reduceMotion = useReducedMotion();
   const p = state.paleta;
+  const puntajes = p.puntajes ?? {};
   const allSwatches = [...colorSwatches, ...p.customColores];
 
   function toggleSeleccion(key: string) {
     setState((s) => {
       const has = s.paleta.seleccion.includes(key);
-      return { ...s, paleta: { ...s.paleta, seleccion: has ? s.paleta.seleccion.filter((x) => x !== key) : [...s.paleta.seleccion, key] } };
+      const puntajesNuevos = { ...(s.paleta.puntajes ?? {}) };
+      if (has) delete puntajesNuevos[key];
+      return {
+        ...s,
+        paleta: {
+          ...s.paleta,
+          seleccion: has ? s.paleta.seleccion.filter((x) => x !== key) : [...s.paleta.seleccion, key],
+          puntajes: puntajesNuevos,
+        },
+      };
+    });
+  }
+  function puntuar(key: string, estrellas: number) {
+    setState((s) => {
+      const r = aplicarPuntaje(
+        { seleccion: s.paleta.seleccion, puntajes: s.paleta.puntajes ?? {} },
+        key,
+        estrellas
+      );
+      return { ...s, paleta: { ...s.paleta, seleccion: r.seleccion, puntajes: r.puntajes } };
     });
   }
   function toggleBase(n: string) {
@@ -135,7 +229,8 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
       <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Paleta de color — y qué transmite</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
         Esta es la decisión que más define cómo se va a sentir el espacio, más allá del estilo. Mostrale al cliente estas 8
-        direcciones —cada una con su lectura psicológica— y dejalo reaccionar en vivo. Pueden elegir una o combinar dos.
+        direcciones —cada una con su lectura psicológica— y dejalo reaccionar en vivo. Puede elegir las que quiera y
+        ponerle estrellas a cada una: eso deja escrito no solo cuáles le gustan, sino cuál le gusta más.
       </p>
 
       {/* Cada paleta es una franja de color grande: el color se juzga por su
@@ -144,45 +239,44 @@ function PaletaGeneral({ state, setState }: { state: EntrevistaState; setState: 
         {paletteDefs.map((pd, i) => {
           const selected = p.seleccion.includes(pd.key);
           return (
-            <motion.button
+            <motion.div
               key={pd.key}
-              type="button"
-              onClick={() => toggleSeleccion(pd.key)}
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "translateY(12px)" }}
               animate={{ opacity: 1, transform: "translateY(0px)" }}
               transition={{ duration: 0.24, delay: i * 0.045, ease: [0.23, 1, 0.32, 1] }}
-              whileTap={reduceMotion ? undefined : { scale: 0.99 }}
-              className={`overflow-hidden rounded-2xl bg-neutral-900 text-left transition-[box-shadow] duration-200 ${
-                selected
-                  ? "shadow-[0_0_0_3px_var(--color-neutral-900)]"
-                  : "shadow-[0_0_0_1px_var(--color-neutral-200)] hover:shadow-[0_0_0_2px_var(--color-neutral-400)]"
-              }`}
+              className={`overflow-hidden rounded-2xl bg-neutral-900 text-left transition-[box-shadow] duration-200 ${anilloSeleccion(selected)}`}
             >
-              {/* La franja: los colores a tamaño real, sin bordes que los separen */}
-              <div className="relative flex h-32 w-full">
-                {pd.colores.map((c) => (
-                  <div key={c.n} title={c.n} className="h-full flex-1" style={{ background: c.h }} />
-                ))}
-                {selected && (
-                  <motion.span
-                    initial={{ scale: 0.6, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
-                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-medium text-neutral-100 shadow-lg"
-                  >
-                    ✓
-                  </motion.span>
-                )}
-              </div>
+              <button type="button" onClick={() => toggleSeleccion(pd.key)} className="block w-full text-left">
+                {/* La franja: los colores a tamaño real, sin bordes que los separen */}
+                <div className="relative flex h-32 w-full">
+                  {pd.colores.map((c) => (
+                    <div key={c.n} title={c.n} className="h-full flex-1" style={{ background: c.h }} />
+                  ))}
+                  {selected && (
+                    <motion.span
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
+                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-sm font-medium text-neutral-950 shadow-lg"
+                    >
+                      ✓
+                    </motion.span>
+                  )}
+                </div>
 
-              <div className="p-4">
-                <span className="mb-1 block font-medium text-neutral-100">{pd.nombre}</span>
-                <p
-                  className="text-xs leading-relaxed text-neutral-500"
-                  dangerouslySetInnerHTML={{ __html: pd.psicologia }}
-                />
+                <div className="px-4 pt-4">
+                  <span className="mb-1 block font-medium text-neutral-100">{pd.nombre}</span>
+                  <p
+                    className="text-xs leading-relaxed text-neutral-500"
+                    dangerouslySetInnerHTML={{ __html: pd.psicologia }}
+                  />
+                </div>
+              </button>
+
+              <div className="px-4 pb-4 pt-3">
+                <Estrellas valor={puntajes[pd.key] ?? 0} onPuntuar={(n) => puntuar(pd.key, n)} />
               </div>
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
@@ -240,6 +334,8 @@ function PaletaOficina({
   const reduceMotion = useReducedMotion();
   const colorInputRef = useRef<HTMLInputElement>(null);
   const pendingSlot = useRef<{ key: string; index: number } | null>(null);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const puntajes = state.paletaOficina.puntajes ?? {};
 
   const palettes = [
     ...officePaletteCombos.map((p) => ({ key: p.key, nombre: p.nombre, colores: p.colores, uso: p.uso, custom: false })),
@@ -249,13 +345,27 @@ function PaletaOficina({
   function toggleSeleccion(key: string) {
     setState((s) => {
       const has = s.paletaOficina.seleccion.includes(key);
+      const puntajesNuevos = { ...(s.paletaOficina.puntajes ?? {}) };
+      if (has) delete puntajesNuevos[key];
       return {
         ...s,
         paletaOficina: {
           ...s.paletaOficina,
           seleccion: has ? s.paletaOficina.seleccion.filter((x) => x !== key) : [...s.paletaOficina.seleccion, key],
+          puntajes: puntajesNuevos,
         },
       };
+    });
+  }
+
+  function puntuar(key: string, estrellas: number) {
+    setState((s) => {
+      const r = aplicarPuntaje(
+        { seleccion: s.paletaOficina.seleccion, puntajes: s.paletaOficina.puntajes ?? {} },
+        key,
+        estrellas
+      );
+      return { ...s, paletaOficina: { ...s.paletaOficina, seleccion: r.seleccion, puntajes: r.puntajes } };
     });
   }
 
@@ -305,10 +415,12 @@ function PaletaOficina({
   return (
     <div>
       <input ref={colorInputRef} type="color" className="sr-only" onChange={(e) => handleColorPicked(e.target.value)} />
+      <VisorFoto src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
       <h2 className="font-display mb-2 text-4xl leading-[1.05] font-extralight tracking-[-0.03em] text-neutral-100">Paleta de color de oficina</h2>
       <p className="mb-8 max-w-xl text-base text-neutral-500">
-        Estas son las 10 combinaciones de color más usadas en espacios corporativos. El moodboard de fotos es tu biblioteca
-        compartida — subí una vez, reutilizá con todos los clientes.
+        Estas son las 10 combinaciones de color más usadas en espacios corporativos. Puntuá cada una con estrellas
+        mientras el cliente reacciona. El moodboard de fotos es tu biblioteca compartida — subí una vez, reutilizá con
+        todos los clientes.
       </p>
 
       <div className="mb-4 space-y-4">
@@ -319,7 +431,7 @@ function PaletaOficina({
           return (
             <div
               key={pl.key}
-              className={`rounded-2xl p-4 transition-[box-shadow] duration-200 ${isSelected ? "shadow-[0_0_0_3px_var(--color-neutral-900)]" : "shadow-[0_0_0_1px_var(--color-neutral-200)]"}`}
+              className={`rounded-2xl p-4 transition-[box-shadow] duration-200 ${anilloSeleccion(isSelected)}`}
             >
               <button type="button" onClick={() => toggleSeleccion(pl.key)} className="mb-2 flex w-full items-center justify-between text-left">
                 <span className="font-medium text-neutral-100">
@@ -336,7 +448,11 @@ function PaletaOficina({
                     </span>
                   )}
                 </span>
-                {isSelected && <span className="text-neutral-100">✓</span>}
+                {isSelected && (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-950">
+                    ✓
+                  </span>
+                )}
               </button>
               {/* La combinación, a superficie: es lo que el cliente juzga */}
               <div className="mb-3 flex h-24 w-full overflow-hidden rounded-xl">
@@ -356,26 +472,42 @@ function PaletaOficina({
                   );
                 })}
               </div>
+
+              <div className="mb-3">
+                <Estrellas valor={puntajes[pl.key] ?? 0} onPuntuar={(n) => puntuar(pl.key, n)} />
+              </div>
+
               <p className="mb-3 text-xs text-neutral-500">{pl.uso || "Definí vos la combinación — agregá los colores con el ícono +."}</p>
 
               <p className="mb-2 text-[10px] font-medium tracking-wide text-neutral-500 uppercase">
-                Moodboard — fotos de referencia (hasta 10)
+                Moodboard — fotos de referencia (hasta 10) · tocá una para verla en grande
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+              {/* Tres por fila y no cinco: estas fotos se le muestran al cliente
+                  en la reunión, así que tienen que leerse de lejos y en la
+                  pantalla de una notebook, no ser miniaturas de control. */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {fotos.map((f) => (
                   <motion.div
                     key={f.id}
                     layout={!reduceMotion}
                     initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: "scale(0.95)" }}
                     animate={{ opacity: 1, transform: "scale(1)" }}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-white/[0.09] shadow-[0_0_0_1px_var(--color-neutral-200)]"
+                    className={`group relative aspect-[4/3] overflow-hidden rounded-xl bg-white/[0.09] ${anilloReposo}`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={f.dataUrl} alt="ref" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setFotoAmpliada(f.dataUrl)}
+                      className="block h-full w-full cursor-zoom-in"
+                      aria-label="Ver la referencia en grande"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={f.dataUrl} alt="ref" className="h-full w-full object-cover" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => removeMoodPhoto(f.id)}
-                      className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-xs text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-xs text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                      aria-label="Quitar la foto"
                     >
                       ×
                     </button>
@@ -438,7 +570,7 @@ function PaletaOficina({
       />
       <div className="flex flex-wrap gap-2">
         {state.paleta.customColores.map((c) => (
-          <div key={c.n} className="h-8 w-8 rounded" style={{ background: c.h, border: "1px solid rgba(0,0,0,0.1)" }} title={c.n} />
+          <div key={c.n} className={`h-8 w-8 rounded ${anilloReposo}`} style={{ background: c.h }} title={c.n} />
         ))}
       </div>
 
