@@ -155,7 +155,7 @@ export function DueloStep({
   const campeon = duel?.champion
     ? { dataUrl: duel.champion.dataUrl, styleName: duel.champion.styleName, rating: duel.champion.rating, reaction: duel.champion.reaction }
     : guardado
-      ? { dataUrl: guardado.dataUrl, styleName: guardado.styleName, rating: guardado.rating, reaction: "super" }
+      ? { dataUrl: guardado.dataUrl, styleName: guardado.styleName, rating: guardado.rating, reaction: guardado.reaction }
       : null;
 
   return (
@@ -280,6 +280,10 @@ export function DueloStep({
             onClick={() => {
               setDuel(null);
               setElegida(null);
+              // Sin esto el campeón viejo quedaba pegado en pantalla —"guardado" se
+              // deriva de state.duelo— y si se relanzaba el torneo se veían a la vez
+              // el campeón anterior y el duelo en curso.
+              setState((s) => ({ ...s, duelo: null }));
             }}
             className="mt-4 text-sm font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900 hover:underline"
           >

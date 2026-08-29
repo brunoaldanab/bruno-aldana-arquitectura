@@ -37,6 +37,7 @@ describe("campeonGuardado", () => {
       dataUrl: "data:image/jpeg;base64,BBB",
       styleName: "Industrial suave",
       rating: 9,
+      reaction: "super",
     });
   });
 

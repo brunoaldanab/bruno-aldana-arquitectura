@@ -8,6 +8,7 @@ export interface FotoCampeon {
   dataUrl: string;
   styleName: string;
   rating: number;
+  reaction: string;
 }
 
 /** Reconstruye el campeón guardado buscando su foto en la biblioteca compartida. */
@@ -23,6 +24,7 @@ export function campeonGuardado(
     dataUrl: foto.dataUrl,
     styleName: duelo.styleName,
     rating: duelo.rating,
+    reaction: duelo.reaction,
   };
 }
 
@@ -54,6 +56,7 @@ export function fotoPortada(state: EntrevistaState, galeria: GaleriaData): FotoC
       dataUrl: foto.dataUrl,
       styleName: nombrePorClave.get(foto.cardKey) ?? foto.cardKey,
       rating: reaccion.rating,
+      reaction: reaccion.reaction,
     };
   }
   return mejor;
