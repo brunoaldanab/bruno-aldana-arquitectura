@@ -208,9 +208,10 @@ export function EntrevistaWizard({
         </div>
 
         <div
-          className={`mx-auto px-4 transition-[max-width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
-            esPasoVisual ? "max-w-6xl" : "max-w-3xl"
-          }`}
+          // El ancho cambia de golpe: animar `max-width` recalcula el layout en
+          // cada cuadro, y el cambio queda tapado igual por la animación de
+          // entrada del propio paso, que ya está corriendo encima.
+          className={`mx-auto px-4 ${esPasoVisual ? "max-w-6xl" : "max-w-3xl"}`}
         >
 
           {/* El paso ya no vive dentro de una tarjeta: es la pantalla.

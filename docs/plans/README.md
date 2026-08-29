@@ -10,7 +10,7 @@ Salieron de una auditoría de animación sobre el commit `8919019`, contrastando
 
 | # | Plan | Gravedad | Estado |
 |---|---|---|---|
-| 001 | [El cambio de paso deja de pelear consigo mismo](001-cambio-de-paso-deja-de-pelear.md) | ALTA | TODO |
+| 001 | [El cambio de paso deja de pelear consigo mismo](001-cambio-de-paso-deja-de-pelear.md) | ALTA | **DONE** |
 | 002 | [El motor de escena escribe en el elemento que consume](002-motor-de-escena-escribe-en-el-consumidor.md) | MEDIA | TODO |
 | 003 | [Un solo vocabulario de movimiento](003-un-solo-vocabulario-de-movimiento.md) | MEDIA | TODO |
 | 004 | [El pase de fotos responde al gesto](004-el-pase-de-fotos-responde-al-gesto.md) | MEDIA | TODO |

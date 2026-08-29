@@ -1,6 +1,6 @@
 # 001 — El cambio de paso deja de pelear consigo mismo
 
-- **Status**: TODO
+- **Status**: DONE — ejecutado el 28/08/2026 sobre `fe67783`. Verificación mecánica en verde (`tsc` sin errores, `lint` limpio) y *feel check* aprobado por Bruno. El redondeo de los segmentos escalados no se percibe achatado, así que no hizo falta la alternativa.
 - **Commit**: 8919019
 - **Severity**: HIGH
 - **Category**: Rendimiento · Duración · Cohesión

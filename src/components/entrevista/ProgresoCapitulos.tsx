@@ -79,15 +79,17 @@ export function ProgresoCapitulos({
           return (
             <motion.div
               key={s.id}
+              // La caja mide 10px siempre y la escala hace la diferencia. Animar
+              // `height` obligaría a recalcular el layout en cada cuadro, por 16
+              // segmentos y encima durante el arrastre, que es justo cuando un
+              // cuadro perdido se nota.
               animate={{
-                height: esActual ? 10 : 4,
+                transform: `scaleY(${esActual ? 1 : 0.4})`,
                 opacity: esActual ? 1 : hecho ? 0.85 : 0.28,
               }}
               transition={reduceMotion ? { duration: 0.12 } : RESORTE}
-              style={{ flex: esActual ? 2.2 : 1 }}
-              className={`rounded-full ${
-                esActual || hecho ? "bg-neutral-900" : "bg-neutral-900"
-              }`}
+              style={{ flex: esActual ? 2.2 : 1, height: 10, transformOrigin: "bottom" }}
+              className="rounded-full bg-neutral-900"
             />
           );
         })}

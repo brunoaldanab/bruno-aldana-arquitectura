@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, type ReactNode } from "react";
 import { useMovimientoEscena } from "./useMovimientoEscena";
+import { SALIDA } from "@/lib/movimiento";
 
 /**
  * Franja de escena con movimiento cinematográfico.
@@ -52,7 +53,10 @@ export function EscenaCinematica({
 
   useMovimientoEscena(contenedor, reduceMotion);
 
-  const corte = { duration: 0.72, ease: [0.22, 1, 0.36, 1] as const };
+  // El contenido del paso entra en 240ms (ver EntrevistaWizard). La foto es
+  // mucho más grande y puede permitirse algo más de recorrido, pero no el triple:
+  // pasado ese punto deja de leerse como el mismo gesto y se lee como dos.
+  const corte = { duration: 0.36, ease: SALIDA };
 
   return (
     <div
@@ -64,20 +68,24 @@ export function EscenaCinematica({
           key={claveEscena}
           className="escena-capa absolute inset-0"
           style={{ "--escena-exposicion": brillo } as React.CSSProperties}
+          // La cadena `transform` completa va a la placa de video; el atajo
+          // `scale` de motion corre en el hilo principal. Y el desenfoque se
+          // mantiene bajo a propósito: es el efecto más caro que existe y acá
+          // va sobre el elemento más grande de la pantalla.
           initial={
             reduceMotion
               ? { opacity: 0 }
-              : { opacity: 0, scale: 1.14, filter: "blur(16px) brightness(0.6)" }
+              : { opacity: 0, transform: "scale(1.14)", filter: "blur(8px) brightness(0.6)" }
           }
           animate={
             reduceMotion
               ? { opacity: 1 }
-              : { opacity: 1, scale: 1, filter: "blur(0px) brightness(1)" }
+              : { opacity: 1, transform: "scale(1)", filter: "blur(0px) brightness(1)" }
           }
           exit={
             reduceMotion
               ? { opacity: 0 }
-              : { opacity: 0, scale: 1.06, filter: "blur(10px) brightness(0.5)" }
+              : { opacity: 0, transform: "scale(1.06)", filter: "blur(6px) brightness(0.5)" }
           }
           transition={corte}
         >
