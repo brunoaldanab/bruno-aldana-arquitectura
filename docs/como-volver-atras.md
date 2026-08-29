@@ -30,8 +30,11 @@ antes-de-marca
 
 Ese nombre se llama **etiqueta (tag)**. Es un marcador pegado a un commit.
 
-El rediseño vive en una rama aparte llamada **`marca-visual`**. La rama anterior,
-`propuesta-comercial`, quedó intacta.
+**Desde el 29/08/2026 el rediseño es la versión oficial:** está en `main`, la rama
+principal, y es la que se publica en internet. Las dos ramas viejas quedaron
+guardadas y no se tocan: `marca-visual` (donde se hizo el trabajo) y
+`propuesta-comercial` (la aplicación como estaba antes del rediseño).
+
 
 ---
 
@@ -48,7 +51,7 @@ Ahí los archivos vuelven a como estaban. Se puede levantar la aplicación con
 `npm run dev` y verla. Para volver al rediseño:
 
 ```bash
-git checkout marca-visual
+git checkout main
 ```
 
 `git stash` guarda aparte lo que haya sin terminar; si no hay nada sin guardar,
@@ -63,8 +66,8 @@ tiene la aplicación como estaba y no se tocó:
 git checkout propuesta-comercial
 ```
 
-El rediseño sigue existiendo entero en la rama `marca-visual`, esperando. No se
-pierde: se puede volver a él cuando sea con `git checkout marca-visual`.
+El rediseño no se pierde: sigue entero en `main`, la rama principal, y se vuelve
+a él cuando sea con `git checkout main`.
 
 ### 3. Deshacer un commit puntual
 

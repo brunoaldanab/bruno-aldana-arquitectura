@@ -68,6 +68,11 @@ npx vercel --prod
 Tarda menos de un minuto. Cuando termina, el link de siempre ya muestra la
 versión nueva; no cambia de dirección.
 
+**También se publica sola.** Vercel está conectada a GitHub, así que cada vez que
+el código llega a la rama principal (`main`) se publica una versión nueva sin
+que nadie escriba el comando. Por eso los cambios se guardan primero en una
+rama aparte y recién pasan a `main` cuando vos estás conforme.
+
 ---
 
 ## Si algo sale mal en la versión publicada
