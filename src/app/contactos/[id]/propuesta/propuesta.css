@@ -2,20 +2,35 @@
  * Hoja A4 para la propuesta.
  *
  * El PDF sale de la impresión del navegador: no hace falta ninguna biblioteca, y
- * lo que Bruno ve en pantalla es exactamente lo que se guarda. Al imprimir se
- * apaga todo el chrome de la aplicación y quedan solo las cuatro hojas.
+ * lo que se ve en pantalla es exactamente lo que se guarda.
+ *
+ * La idea del diseño en una línea: cada hoja abre con una banda oscura que lleva
+ * la misma foto de la portada, con el mismo grado frío y el título en blanco. La
+ * foto cambia según el cliente, así que lo que unifica el documento no es una
+ * imagen fija sino el tratamiento — y cada propuesta termina con su propio color
+ * sin dejar de ser el mismo formato. Debajo de la banda el papel vuelve a ser
+ * blanco, que es donde se lee cómodo.
  */
 
 .propuesta {
   --hoja-ancho: 210mm;
   --hoja-alto: 297mm;
   --margen: 16mm;
+  --banda-alto: 46mm;
+
   --tinta: #17191c;
-  --tinta-suave: #565d66;
-  --tenue: #9aa0a8;
+  --tinta-suave: #3d4249;
+  --tenue: #767d86;
   --linea: #dee1e5;
   --acento: #3d6bef;
   --papel: #ffffff;
+  --noche: #0e0f11;
+  --noche-texto: #f7f8f9;
+  --noche-tenue: #9aa0a8;
+
+  /* El mismo grado de la aplicación: las fotos vienen de fuentes distintas y
+     esto las lleva a todas a la misma familia negro/plomo. */
+  --grado: saturate(0.42) contrast(1.14) brightness(0.6);
 
   display: flex;
   flex-direction: column;
@@ -27,175 +42,293 @@
 
 .hoja {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: var(--hoja-ancho);
   min-height: var(--hoja-alto);
-  padding: var(--margen);
   background: var(--papel);
   color: var(--tinta);
   box-shadow: 0 2px 4px rgba(14, 15, 17, 0.08), 0 24px 48px -16px rgba(14, 15, 17, 0.28);
   overflow: hidden;
-  break-inside: avoid;
 }
 
-/* El filo de acento, el mismo recurso que ya usaba el PDF anterior. */
-.hoja::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3mm;
-  background: var(--acento);
+/* ---------- La marca, siempre en blanco sobre la banda ---------- */
+
+.marca { display: flex; align-items: center; gap: 2.6mm; }
+
+.marca-logo {
+  width: 8mm;
+  height: 8mm;
+  object-fit: contain;
 }
 
-/* La portada es la única hoja oscura, y sangra la foto de punta a punta. */
-.hoja-portada {
-  padding: 0;
-  background: #0e0f11;
-  color: #f7f8f9;
+.marca-nombre {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  font-family: var(--font-display), sans-serif;
+  font-size: 8.5pt;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--noche-texto);
 }
 
-.portada-foto {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* El mismo grado frío que usa la aplicación, para que la portada pertenezca
-     al mismo sistema visual que la ficha de entrevista. */
-  filter: saturate(0.5) contrast(1.1) brightness(0.62);
-}
-
-.portada-velo {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(14, 15, 17, 0.96) 20%, rgba(14, 15, 17, 0.35) 70%, rgba(14, 15, 17, 0.55));
-}
-
-.portada-contenido {
-  position: relative;
-  padding: var(--margen);
-  display: flex;
-  flex-direction: column;
-  gap: 6mm;
+.marca-nombre em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 6.5pt;
+  letter-spacing: 0.18em;
+  color: var(--noche-tenue);
 }
 
 .rotulo {
   font-family: var(--font-mono), monospace;
-  font-size: 8pt;
+  font-size: 7.5pt;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--tenue);
 }
 
-.hoja-portada .rotulo { color: #c2c7cd; }
+.rotulo-claro { color: var(--noche-tenue); }
+
+/* ---------- Portada ---------- */
+
+.hoja-portada {
+  background: var(--noche);
+  color: var(--noche-texto);
+}
+
+.portada-foto,
+.banda-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--grado);
+}
+
+.portada-velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(14, 15, 17, 0.97) 18%,
+    rgba(14, 15, 17, 0.45) 62%,
+    rgba(14, 15, 17, 0.75)
+  );
+}
+
+.portada-contenido {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--margen);
+}
+
+.portada-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 .titulo-portada {
   font-family: var(--font-display), sans-serif;
   font-weight: 300;
-  font-size: 32pt;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin: 0;
+  font-size: 34pt;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--noche-texto);
+  margin: 0 0 8mm;
+  max-width: 130mm;
   text-wrap: balance;
 }
 
 .datos-portada {
   display: flex;
   flex-wrap: wrap;
-  gap: 3mm 10mm;
+  gap: 4mm 12mm;
   padding-top: 5mm;
-  border-top: 1px solid rgba(247, 248, 249, 0.25);
+  border-top: 1px solid rgba(247, 248, 249, 0.22);
 }
 
 .dato-etiqueta {
-  font-family: var(--font-mono), monospace;
-  font-size: 7pt;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #9aa0a8;
   display: block;
-  margin-bottom: 1mm;
-}
-
-.dato-valor { font-size: 11pt; font-weight: 500; }
-
-/* --- Hojas de contenido --- */
-
-.cabecera-hoja {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding-bottom: 4mm;
-  margin-bottom: 8mm;
-  border-bottom: 1px solid var(--linea);
-}
-
-.titulo-seccion {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 400;
-  font-size: 18pt;
-  letter-spacing: -0.015em;
-  margin: 0 0 5mm;
-}
-
-.propuesta h3 {
   font-family: var(--font-mono), monospace;
-  font-size: 8pt;
+  font-size: 6.5pt;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--tinta-suave);
-  margin: 0 0 3mm;
-  font-weight: 500;
+  color: var(--noche-tenue);
+  margin-bottom: 1.2mm;
 }
 
-.propuesta p { font-size: 10pt; line-height: 1.6; margin: 0 0 4mm; }
-.propuesta ul { font-size: 10pt; line-height: 1.6; margin: 0 0 5mm; padding-left: 5mm; }
-.propuesta li { margin-bottom: 1.5mm; }
+.dato-valor { font-size: 11pt; font-weight: 500; color: var(--noche-texto); }
 
-.dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+/* ---------- La banda de las hojas interiores ---------- */
 
-.cita {
+.banda {
+  position: relative;
+  height: var(--banda-alto);
+  flex: none;
+  background: var(--noche);
+  overflow: hidden;
+}
+
+/* Más velo que en la portada: acá la foto acompaña, no protagoniza. */
+.banda-velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(14, 15, 17, 0.94) 15%,
+    rgba(14, 15, 17, 0.78) 60%,
+    rgba(14, 15, 17, 0.88)
+  );
+}
+
+/* El filo de acento cierra la banda y la ata al resto del sistema. */
+.banda::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1.2mm;
+  background: var(--acento);
+  z-index: 2;
+}
+
+.banda-contenido {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 9mm var(--margen) 8mm;
+}
+
+.banda-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.banda-titulo {
   font-family: var(--font-display), sans-serif;
   font-weight: 300;
-  font-size: 20pt;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  margin: 0 0 6mm;
+  font-size: 21pt;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--noche-texto);
+  margin: 0;
   text-wrap: balance;
 }
 
-.etiquetas { display: flex; flex-wrap: wrap; gap: 2mm; margin-bottom: 6mm; }
+/* ---------- Cuerpo de la hoja ---------- */
 
-.etiqueta {
-  font-size: 9pt;
-  padding: 1.5mm 3.5mm;
-  border-radius: 99px;
-  background: #eef0f2;
-  color: var(--tinta);
+.cuerpo {
+  flex: 1;
+  padding: 10mm var(--margen) 0;
 }
 
-.paleta { display: flex; gap: 2mm; margin-bottom: 6mm; }
-.color { flex: 1; }
-.color-muestra { height: 14mm; border-radius: 2mm; border: 1px solid rgba(14, 15, 17, 0.08); }
-.color-nombre { font-size: 7.5pt; color: var(--tinta-suave); margin-top: 1.5mm; display: block; }
+.entradilla {
+  font-size: 10.5pt;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+  max-width: 125mm;
+  margin: 0 0 8mm;
+}
+
+.propuesta p { font-size: 10pt; line-height: 1.55; margin: 0 0 4mm; }
+.propuesta ul { font-size: 10pt; line-height: 1.55; margin: 0 0 5mm; padding-left: 5mm; }
+.propuesta li { margin-bottom: 1.6mm; }
+
+.propuesta h3 {
+  font-family: var(--font-mono), monospace;
+  font-size: 7.5pt;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acento);
+  margin: 0 0 3.5mm;
+}
+
+.titulo-bloque { margin-top: 9mm !important; }
+
+.dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 9mm; }
+
+.paso { margin-bottom: 4mm; }
 
 .pie-hoja {
-  /* En columna y empujado al fondo, no posicionado en absoluto: una hoja de
-     resumen larga desbordaba por debajo de un pie clavado a 10mm del borde. */
   margin-top: auto;
-  padding-top: 6mm;
   display: flex;
   justify-content: space-between;
+  padding: 6mm var(--margen) 10mm;
+  font-family: var(--font-mono), monospace;
+  font-size: 6.5pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+/* ---------- Filas del resumen de reunión ---------- */
+
+/* Un bloque no se parte entre dos páginas: cortar "Cocina" a la mitad hace que
+   el documento se lea como un volcado y no como un resumen. */
+.bloque {
+  break-inside: avoid;
+  margin-bottom: 6mm;
+  padding-top: 4.5mm;
+  border-top: 1px solid var(--linea);
+}
+
+.bloque:first-of-type { border-top: 0; padding-top: 0; }
+
+.grilla-resumen { display: grid; grid-template-columns: 50mm 1fr; }
+
+.fila-k {
   font-family: var(--font-mono), monospace;
   font-size: 7pt;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--tenue);
-  padding-top: 3mm;
-  border-top: 1px solid var(--linea);
+  padding: 1.8mm 4mm 1.8mm 0;
+  line-height: 1.45;
 }
+
+.fila-v {
+  font-size: 10pt;
+  line-height: 1.5;
+  padding: 1.6mm 0;
+  color: var(--tinta);
+}
+
+.paleta { display: flex; gap: 2mm; margin: 0 0 6mm; }
+.color { flex: 1; }
+.color-muestra { height: 15mm; border: 1px solid rgba(14, 15, 17, 0.1); }
+.color-nombre { display: block; font-size: 7.5pt; color: var(--tinta-suave); margin-top: 1.5mm; }
+
+/* ---------- Bloques con fondo ---------- */
+
+.destacado,
+.franja-pago,
+.ejemplo {
+  background: #f4f6f7;
+  border-left: 1.2mm solid var(--acento);
+  padding: 5mm 6mm;
+  margin-bottom: 6mm;
+  break-inside: avoid;
+}
+
+.destacado ul:last-child,
+.destacado p:last-child,
+.franja-pago p:last-child,
+.ejemplo { margin-bottom: 0; }
+
+.ejemplo { font-size: 9.5pt; }
+
+/* ---------- Inversión ---------- */
 
 /* La inversión es lo primero que busca el ojo del cliente: se trata en grande,
    no como una nota al pie. En el PDF anterior era el título más chico. */
@@ -209,131 +342,58 @@
 
 .tabla-inversion th {
   font-family: var(--font-mono), monospace;
-  font-size: 7pt;
-  letter-spacing: 0.12em;
+  font-size: 6.5pt;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--tinta-suave);
+  color: var(--tenue);
   text-align: left;
   font-weight: 500;
-  padding-bottom: 2mm;
+  padding-bottom: 2.5mm;
   border-bottom: 1px solid var(--tinta);
 }
 
-.tabla-inversion td { padding: 4mm 0; border-bottom: 1px solid var(--linea); }
+.tabla-inversion td { padding: 4.5mm 0; border-bottom: 1px solid var(--linea); }
 .tabla-inversion .num { text-align: right; }
-.tabla-inversion .total { font-size: 14pt; font-weight: 600; }
-
-.franja-pago { background: #f7f8f9; padding: 5mm; border-radius: 2mm; margin-bottom: 5mm; }
-.franja-pago p { margin: 0; }
+.tabla-inversion .total { font-size: 17pt; font-weight: 600; letter-spacing: -0.01em; }
 
 .vencimiento {
-  border-left: 2px solid var(--acento);
+  border-left: 1.2mm solid var(--tinta);
   padding-left: 4mm;
   color: var(--tinta-suave);
-}
-
-.ejemplo { background: #f7f8f9; padding: 4mm 5mm; border-radius: 2mm; font-size: 9.5pt; }
-
-/* --- Impresión --- */
-
-/* --- Identidad en cada hoja --- */
-
-/* La hoja es una columna para que el pie caiga al fondo sin posicionarlo. */
-.hoja { display: flex; flex-direction: column; }
-
-.marca-hoja { display: flex; align-items: center; gap: 2.5mm; }
-
-.logo-hoja {
-  width: 7mm;
-  height: 7mm;
-  object-fit: contain;
-  border-radius: 1mm;
-}
-
-.marca-nombre {
-  font-family: var(--font-display), sans-serif;
-  font-size: 8pt;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  display: flex;
-  flex-direction: column;
-}
-
-.marca-nombre em {
-  font-style: normal;
-  font-weight: 400;
-  font-size: 6.5pt;
-  letter-spacing: 0.14em;
-  color: var(--tinta-suave);
-}
-
-.entradilla {
-  font-size: 10.5pt;
-  color: var(--tinta-suave);
-  max-width: 120mm;
-  margin-bottom: 7mm;
-}
-
-/* --- Filas del resumen de reunión --- */
-
-/* Un bloque no se parte entre dos páginas: cortar "Detalle — Cocina" a la mitad
-   hace que el documento se lea como un volcado y no como un resumen. */
-.bloque {
-  break-inside: avoid;
   margin-bottom: 6mm;
-  padding-top: 4mm;
-  border-top: 1px dashed var(--linea);
 }
 
-.bloque:first-of-type { border-top: 0; padding-top: 0; }
-
-.grilla-resumen {
-  display: grid;
-  grid-template-columns: 52mm 1fr;
-  gap: 0;
-}
-
-.fila-k {
-  font-family: var(--font-mono), monospace;
-  font-size: 7pt;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tenue);
-  padding: 1.6mm 4mm 1.6mm 0;
-  line-height: 1.4;
-}
-
-.fila-v {
-  font-size: 9.5pt;
-  line-height: 1.45;
-  padding: 1.4mm 0;
-  color: var(--tinta);
-}
-
-@media print {
-  /* Sin esto el navegador descarta el logo y las muestras de color. */
-  .logo-hoja { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
+/* ---------- Impresión ---------- */
 
 @page { size: A4; margin: 0; }
 
 @media print {
-  /* Fuera todo lo que no es la propuesta: encabezado de la app, botones, fondo. */
+  /* Fuera todo lo que no es la propuesta. */
   body > *:not(.propuesta-raiz) { display: none !important; }
   .no-imprimir { display: none !important; }
 
   .propuesta { gap: 0; padding: 0; background: none; }
+
   .hoja {
     box-shadow: none;
     break-after: page;
     min-height: var(--hoja-alto);
   }
+
   .hoja:last-child { break-after: auto; }
 
-  /* Sin esto el navegador descarta los fondos y la portada sale en blanco. */
-  .hoja-portada, .portada-foto, .portada-velo, .etiqueta, .color-muestra {
+  /* Sin esto el navegador descarta los fondos y salen las hojas en blanco. */
+  .hoja-portada,
+  .portada-foto,
+  .portada-velo,
+  .banda,
+  .banda-foto,
+  .banda-velo,
+  .marca-logo,
+  .destacado,
+  .franja-pago,
+  .ejemplo,
+  .color-muestra {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -341,6 +401,6 @@
 
 @media screen and (max-width: 230mm) {
   /* En el celular la hoja no entra: se deja escalar para poder revisarla. */
-  .propuesta { padding: 4mm; }
+  .propuesta { padding: 4mm; gap: 6mm; }
   .hoja { width: 100%; min-height: auto; }
 }

@@ -12,33 +12,82 @@ import {
 } from "./ResumenReunion";
 import "./propuesta.css";
 
-function PieHoja({ n }: { n: string }) {
+/**
+ * La marca, en blanco sobre la banda oscura.
+ *
+ * Va en todas las hojas: sin ella las páginas interiores no se leen como parte
+ * del mismo documento que la portada.
+ */
+function Marca() {
   return (
-    <div className="pie-hoja">
-      <span>{TEXTOS.pieDePagina}</span>
-      <span>{n}</span>
+    <div className="marca">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="marca-logo" src="/logo-ab.png" alt="" />
+      <span className="marca-nombre">
+        Bruno Aldana
+        <em>Arquitectura</em>
+      </span>
     </div>
   );
 }
 
 /**
- * El encabezado de cada hoja: el logo del estudio a la izquierda y la sección a
- * la derecha. El logo va en todas las hojas y no solo en la portada — sin él las
- * páginas interiores no se leen como parte del mismo documento.
+ * Una hoja interior.
+ *
+ * El tercio superior es una banda oscura con la misma foto de la portada, el
+ * mismo grado frío y el título en blanco: es literalmente un pedazo de la
+ * portada repetido en cada página. Como la foto cambia según el cliente, lo que
+ * unifica el documento no es una imagen fija sino el tratamiento, y cada
+ * propuesta termina teniendo su propio color sin dejar de ser el mismo formato.
+ *
+ * Debajo de la banda el papel es blanco, que es donde se lee cómodo. El contraste
+ * entre las dos zonas es el que ordena la página: arriba de qué se trata, abajo
+ * el contenido.
  */
-function CabeceraHoja({ seccion }: { seccion: string }) {
+function Hoja({
+  seccion,
+  titulo,
+  entradilla,
+  foto,
+  n,
+  children,
+}: {
+  seccion: string;
+  titulo: string;
+  entradilla?: string;
+  foto: string | null;
+  n: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="cabecera-hoja">
-      <div className="marca-hoja">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="logo-hoja" src="/logo-ab.png" alt="" />
-        <span className="marca-nombre">
-          Bruno Aldana
-          <em>Arquitectura</em>
-        </span>
+    <section className="hoja">
+      <header className="banda">
+        {foto && (
+          // La foto es un data URI en base64: next/image no le aporta nada acá,
+          // igual que en DueloStep y GalleryStep.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="banda-foto" src={foto} alt="" />
+        )}
+        <div className="banda-velo" />
+        <div className="banda-contenido">
+          <div className="banda-cabecera">
+            <Marca />
+            <span className="rotulo rotulo-claro">{seccion}</span>
+          </div>
+          <h2 className="banda-titulo">{titulo}</h2>
+        </div>
+      </header>
+
+      <div className="cuerpo">
+        {entradilla && <p className="entradilla">{entradilla}</p>}
+        {children}
       </div>
-      <span className="rotulo">{seccion}</span>
-    </div>
+
+      <div className="pie-hoja">
+        <span>{TEXTOS.pieDePagina}</span>
+        <span>{n}</span>
+      </div>
+    </section>
   );
 }
 
@@ -51,109 +100,120 @@ export function Propuesta({
   state: EntrevistaState;
   galeria: GaleriaData;
 }) {
+  const foto = datos.portada?.dataUrl ?? null;
+
   return (
     <div className="propuesta-raiz">
-      <div className="no-imprimir mx-auto flex max-w-3xl items-center justify-between px-4 pt-6">
+      <div className="no-imprimir mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 pt-6">
         <p className="text-sm text-neutral-500">
           Revisá el documento y guardalo como PDF desde el diálogo de impresión.
         </p>
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white"
+          className="shrink-0 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white"
         >
           Guardar como PDF
         </button>
       </div>
 
       <div className="propuesta">
-        {/* ---------- 01 · Portada ---------- */}
+        {/* ---------- Portada ---------- */}
         <section className="hoja hoja-portada">
-          {datos.portada && (
-            // La foto es un data URI en base64: next/image no le aporta nada acá,
-            // igual que en DueloStep y GalleryStep.
+          {foto && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="portada-foto" src={datos.portada.dataUrl} alt="" />
+            <img className="portada-foto" src={foto} alt="" />
           )}
           <div className="portada-velo" />
           <div className="portada-contenido">
-            <span className="rotulo">Propuesta de diseño</span>
-            <h1 className="titulo-portada">{datos.titulo}</h1>
-            <div className="datos-portada">
-              <div>
-                <span className="dato-etiqueta">Cliente</span>
-                <span className="dato-valor">{datos.nombreCliente}</span>
-              </div>
-              <div>
-                <span className="dato-etiqueta">Superficie</span>
-                <span className="dato-valor">{datos.m2Texto}</span>
-              </div>
-              <div>
-                <span className="dato-etiqueta">Emitida</span>
-                <span className="dato-valor">{datos.emisionTexto}</span>
-              </div>
-              <div>
-                <span className="dato-etiqueta">Válida hasta</span>
-                <span className="dato-valor">{datos.venceTexto}</span>
+            <div className="portada-cabecera">
+              <Marca />
+              <span className="rotulo rotulo-claro">Propuesta de diseño</span>
+            </div>
+
+            <div>
+              <h1 className="titulo-portada">{datos.titulo}</h1>
+              <div className="datos-portada">
+                <div>
+                  <span className="dato-etiqueta">Cliente</span>
+                  <span className="dato-valor">{datos.nombreCliente}</span>
+                </div>
+                <div>
+                  <span className="dato-etiqueta">Superficie</span>
+                  <span className="dato-valor">{datos.m2Texto}</span>
+                </div>
+                <div>
+                  <span className="dato-etiqueta">Emitida</span>
+                  <span className="dato-valor">{datos.emisionTexto}</span>
+                </div>
+                <div>
+                  <span className="dato-etiqueta">Válida hasta</span>
+                  <span className="dato-valor">{datos.venceTexto}</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* ---------- Resumen de reunión: la entrevista completa ----------
-            Son cuatro hojas y no una: la entrevista entera no entra en una
-            página, y partirla en secciones con nombre deja que cada hoja lleve
-            su encabezado con el logo en vez de quedar sin identidad. */}
-        <section className="hoja">
-          <CabeceraHoja seccion="Resumen de reunión · 1 de 4" />
-          <h2 className="titulo-seccion">Resumen de reunión</h2>
-          <p className="entradilla">
-            Esto es lo que hablamos en la visita, tal como quedó registrado. Antes de
-            dibujar una sola línea queremos estar de acuerdo en esto.
-          </p>
+            Cuatro hojas y no una: la entrevista entera no entra en una página, y
+            partirla en secciones con nombre deja que cada hoja lleve su banda. */}
+        <Hoja
+          seccion="Resumen de reunión · 1 de 4"
+          titulo="Resumen de reunión"
+          entradilla="Esto es lo que hablamos en la visita, tal como quedó registrado. Antes de dibujar una sola línea queremos estar de acuerdo en esto."
+          foto={foto}
+          n="02"
+        >
           <ResumenProyecto state={state} galeria={galeria} />
-          <PieHoja n="02" />
-        </section>
+        </Hoja>
 
-        <section className="hoja">
-          <CabeceraHoja seccion="Resumen de reunión · 2 de 4" />
-          <h2 className="titulo-seccion">Su gusto</h2>
+        <Hoja seccion="Resumen de reunión · 2 de 4" titulo="Su gusto" foto={foto} n="03">
           <ResumenGustos state={state} galeria={galeria} />
-          <PieHoja n="03" />
-        </section>
+        </Hoja>
 
-        <section className="hoja">
-          <CabeceraHoja seccion="Resumen de reunión · 3 de 4" />
-          <h2 className="titulo-seccion">Ambiente por ambiente</h2>
+        <Hoja
+          seccion="Resumen de reunión · 3 de 4"
+          titulo="Ambiente por ambiente"
+          foto={foto}
+          n="04"
+        >
           <ResumenAmbientes state={state} />
-          <PieHoja n="04" />
-        </section>
+        </Hoja>
 
-        <section className="hoja">
-          <CabeceraHoja seccion="Resumen de reunión · 4 de 4" />
-          <h2 className="titulo-seccion">Presupuesto, plazos y cierre</h2>
+        <Hoja
+          seccion="Resumen de reunión · 4 de 4"
+          titulo="Presupuesto, plazos y cierre"
+          foto={foto}
+          n="05"
+        >
           <ResumenAcuerdos state={state} />
-          <PieHoja n="05" />
-        </section>
+        </Hoja>
 
-        {/* ---------- 03 · La propuesta ---------- */}
-        <section className="hoja">
-          <CabeceraHoja seccion="Propuesta · Alcance" />
-          <h2 className="titulo-seccion">Propuesta de servicio</h2>
-          <p>{TEXTOS.intro}</p>
-
+        {/* ---------- La propuesta ---------- */}
+        <Hoja
+          seccion="Propuesta · Alcance"
+          titulo="Propuesta de servicio"
+          entradilla={TEXTOS.intro}
+          foto={foto}
+          n="06"
+        >
           <div className="dos-columnas">
             <div>
               <h3>Alcance del diseño</h3>
               <ul>
-                {TEXTOS.alcance.map((a) => <li key={a}>{a}</li>)}
+                {TEXTOS.alcance.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
               </ul>
             </div>
             <div>
               <h3>Metodología</h3>
               {TEXTOS.metodologia.map((m) => (
-                <p key={m.n}>
-                  <strong>{m.n} · {m.titulo}</strong>
+                <p key={m.n} className="paso">
+                  <strong>
+                    {m.n} · {m.titulo}
+                  </strong>
                   <br />
                   {m.texto}
                 </p>
@@ -161,20 +221,21 @@ export function Propuesta({
             </div>
           </div>
 
-          <h3>Qué recibís</h3>
-          <ul>
-            {TEXTOS.queRecibis.map((q) => <li key={q}>{q}</li>)}
-            <li>Entrega en <strong>{datos.plazoDias} días hábiles</strong>.</li>
-          </ul>
+          <div className="destacado">
+            <h3>Qué recibís</h3>
+            <ul>
+              {TEXTOS.queRecibis.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+              <li>
+                Entrega en <strong>{datos.plazoDias} días hábiles</strong>.
+              </li>
+            </ul>
+          </div>
+        </Hoja>
 
-          <PieHoja n="06" />
-        </section>
-
-        {/* ---------- 04 · Inversión ---------- */}
-        <section className="hoja">
-          <CabeceraHoja seccion="Inversión" />
-          <h2 className="titulo-seccion">Inversión en diseño</h2>
-
+        {/* ---------- Inversión ---------- */}
+        <Hoja seccion="Inversión" titulo="Inversión en diseño" foto={foto} n="07">
           <table className="tabla-inversion">
             <thead>
               <tr>
@@ -197,8 +258,16 @@ export function Propuesta({
           <div className="franja-pago">
             <h3>Forma de pago</h3>
             <div className="dos-columnas">
-              <p><strong>30% · {datos.anticipoTexto}</strong><br />Al inicio</p>
-              <p><strong>70% · {datos.saldoTexto}</strong><br />A la entrega del proyecto final</p>
+              <p>
+                <strong>30% · {datos.anticipoTexto}</strong>
+                <br />
+                Al inicio
+              </p>
+              <p>
+                <strong>70% · {datos.saldoTexto}</strong>
+                <br />
+                A la entrega del proyecto final
+              </p>
             </div>
           </div>
 
@@ -206,29 +275,37 @@ export function Propuesta({
             Esta propuesta tiene validez hasta el <strong>{datos.venceTexto}</strong>.
           </p>
 
-          <h2 className="titulo-seccion" style={{ marginTop: "8mm" }}>
-            Dirección, coordinación y supervisión · 10%
-          </h2>
+          <h3 className="titulo-bloque">Dirección, coordinación y supervisión · 10%</h3>
           <p>{TEXTOS.supervisionIntro}</p>
 
           <div className="dos-columnas">
             <div>
               <h3>Incluye</h3>
-              <ul>{TEXTOS.supervisionIncluye.map((i) => <li key={i}>{i}</li>)}</ul>
+              <ul>
+                {TEXTOS.supervisionIncluye.map((i) => (
+                  <li key={i}>{i}</li>
+                ))}
+              </ul>
             </div>
             <div>
               <h3>No forma parte de la base del 10%</h3>
-              <ul>{TEXTOS.supervisionExcluye.map((e) => <li key={e}>{e}</li>)}</ul>
+              <ul>
+                {TEXTOS.supervisionExcluye.map((e) => (
+                  <li key={e}>{e}</li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          <p className="ejemplo"><strong>Ejemplo.</strong> {TEXTOS.supervisionEjemplo}</p>
+          <p className="ejemplo">
+            <strong>Ejemplo.</strong> {TEXTOS.supervisionEjemplo}
+          </p>
 
-          <h3>Inicio</h3>
-          <p>{TEXTOS.inicio}</p>
-
-          <PieHoja n="07" />
-        </section>
+          <div className="destacado">
+            <h3>Cómo arrancamos</h3>
+            <p>{TEXTOS.inicio}</p>
+          </div>
+        </Hoja>
       </div>
     </div>
   );
