@@ -92,6 +92,9 @@ export function DatosGeneralesStep({
             placeholder="Ej: 120 m²"
             className={inputClass}
           />
+          <p className="mt-1.5 text-xs text-neutral-500">
+            De acá sale el precio de la propuesta. Escribí solo el número.
+          </p>
         </label>
         <label className="block">
           <span className={labelClass}>{integrantesLabel}</span>
