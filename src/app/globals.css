@@ -374,3 +374,19 @@ body {
 body > * {
   width: 100%;
 }
+
+/*
+ * Impresión del plano del relevamiento. En pantalla la app es grafito; en el
+ * papel va el fondo claro y la tinta grafito del manual de marca.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f1113 !important;
+  }
+}

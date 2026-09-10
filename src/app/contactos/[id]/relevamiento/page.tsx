@@ -25,7 +25,9 @@ export default async function RelevamientoPage({ params }: { params: Promise<{ i
 
   return (
     <>
-      <AppHeader />
+      <div className="print:hidden">
+        <AppHeader />
+      </div>
       <RelevamientoApp
         contactoId={id}
         nombre={contacto.nombre}

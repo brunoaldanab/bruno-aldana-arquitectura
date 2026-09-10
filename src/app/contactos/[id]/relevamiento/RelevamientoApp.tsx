@@ -15,6 +15,8 @@ import { PlanoSvg } from "./PlanoSvg";
 import { PanelParedes } from "./PanelParedes";
 import { PanelAberturas } from "./PanelAberturas";
 import { ControlCierre } from "./ControlCierre";
+import { descargarJson } from "@/lib/relevamiento/descarga";
+import { VistaPlano } from "./VistaPlano";
 
 const TEXTO_SYNC: Record<EstadoSync, string> = {
   cargando: "Abriendo…",
@@ -43,6 +45,7 @@ export function RelevamientoApp({ contactoId, nombre, direccion, ambientesEntrev
   const [elegido, setElegido] = useState<string | null>(null);
   const [pestana, setPestana] = useState<Pestana>("paredes");
   const [nuevoAmbiente, setNuevoAmbiente] = useState("");
+  const [vista, setVista] = useState<"editar" | "plano">("editar");
 
   useEffect(() => {
     let vigente = true;
@@ -78,6 +81,7 @@ export function RelevamientoApp({ contactoId, nombre, direccion, ambientesEntrev
   }
 
   const actual = rel;
+  if (vista === "plano") return <VistaPlano relevamiento={actual} onVolver={() => setVista("editar")} />;
   const nivel = actual.niveles[0];
   const ambiente = nivel.ambientes.find((a) => a.id === elegido) ?? nivel.ambientes[0];
   const nombres = Object.fromEntries(nivel.ambientes.map((a) => [a.id, a.nombre]));
@@ -151,6 +155,10 @@ export function RelevamientoApp({ contactoId, nombre, direccion, ambientesEntrev
         {superficie !== null ? `${superficie.toLocaleString("es-BO", { maximumFractionDigits: 2 })} m²` : "La superficie aparece cuando el ambiente cierra"}
         {perimetro !== null ? ` · perímetro ${perimetro} cm` : ""}
       </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button type="button" className={opcion(false)} onClick={() => setVista("plano")}>Ver plano para imprimir</button>
+        <button type="button" className={opcion(false)} onClick={() => descargarJson(actual)}>Descargar archivo para Revit</button>
+      </div>
 
       <div className="mt-8 mb-6 flex flex-wrap gap-2">
         <button type="button" className={opcion(pestana === "paredes")} onClick={() => setPestana("paredes")}>Paredes</button>
