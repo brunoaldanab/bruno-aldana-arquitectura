@@ -290,12 +290,9 @@ export function Propuesta({
               {datos.lineas ? (
                 datos.lineas.map((l) => (
                   <tr key={l.ambiente}>
-                    <td>
-                      {l.ambiente}
-                      {l.minimoAplicado && <span className="nota-fila">mínimo por ambiente</span>}
-                    </td>
+                    <td>{l.ambiente}</td>
                     <td className="num">{String(l.m2).replace(".", ",")} m²</td>
-                    <td className="num">{l.minimoAplicado ? "—" : datos.tarifaTexto}</td>
+                    <td className="num">{datos.tarifaTexto}</td>
                     <td className="num">{formatearBs(l.cobra)}</td>
                   </tr>
                 ))

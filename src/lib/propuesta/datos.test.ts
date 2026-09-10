@@ -31,19 +31,19 @@ describe("armarPropuesta", () => {
     expect(armarPropuesta(entrada)).toEqual({ falta: "m2" });
   });
 
-  it("calcula el precio tomando el mayor entre superficie y ambientes", () => {
+  it("calcula el precio con la tarifa única por metro cuadrado", () => {
     const p = armarPropuesta(entradaBase());
     expect("falta" in p).toBe(false);
     if ("falta" in p) return;
-    expect(p.precio).toBe(5000);
-    expect(p.precioTexto).toBe("Bs 5.000");
+    expect(p.precio).toBe(4620);
+    expect(p.precioTexto).toBe("Bs 4.620");
   });
 
   it("reparte el pago en 30 y 70", () => {
     const p = armarPropuesta(entradaBase());
     if ("falta" in p) throw new Error("no debería faltar nada");
-    expect(p.anticipoTexto).toBe("Bs 1.500");
-    expect(p.saldoTexto).toBe("Bs 3.500");
+    expect(p.anticipoTexto).toBe("Bs 1.386");
+    expect(p.saldoTexto).toBe("Bs 3.234");
   });
 
   it("pone la fecha de vencimiento a diez días", () => {

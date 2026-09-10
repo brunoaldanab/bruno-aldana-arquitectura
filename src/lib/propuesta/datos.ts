@@ -52,8 +52,7 @@ export function armarPropuesta(entrada: EntradaPropuesta): PropuestaData | { fal
     : parsearM2(state.proyecto.m2);
   if (m2 === null) return { falta: "m2" };
 
-  const cantidadAmbientes = state.ambientesSeleccion.length;
-  const precio = lineas ? sumaDesglose(lineas) : precioDiseno(m2, cantidadAmbientes);
+  const precio = lineas ? sumaDesglose(lineas) : precioDiseno(m2);
   const { anticipo, saldo } = reparto(precio);
 
   const estilosCatalogo = [
@@ -89,7 +88,7 @@ export function armarPropuesta(entrada: EntradaPropuesta): PropuestaData | { fal
     m2,
     m2Texto: `${String(m2).replace(".", ",")} m²`,
     lineas,
-    cantidadAmbientes,
+    cantidadAmbientes: state.ambientesSeleccion.length,
     precio,
     precioTexto: formatearBs(precio),
     tarifaTexto: `Bs ${TARIFA_M2}/m²`,

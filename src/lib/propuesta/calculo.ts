@@ -1,7 +1,6 @@
 import {
   DIAS_HABILES_MINIMO,
   M2_POR_DIA_HABIL,
-  MINIMO_POR_AMBIENTE,
   PORCENTAJE_ANTICIPO,
   TARIFA_M2,
   VALIDEZ_DIAS,
@@ -21,11 +20,9 @@ export function parsearM2(texto: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/** Precio del diseño: el mayor entre cobrar por superficie y cobrar por ambiente. */
-export function precioDiseno(m2: number, cantidadAmbientes: number): number {
-  const porSuperficie = m2 * TARIFA_M2;
-  const porAmbiente = cantidadAmbientes * MINIMO_POR_AMBIENTE;
-  return Math.round(Math.max(porSuperficie, porAmbiente));
+/** Precio del diseño: tarifa única por metro cuadrado, sin pisos ni excepciones. */
+export function precioDiseno(m2: number): number {
+  return Math.round(m2 * TARIFA_M2);
 }
 
 /** Plazo de entrega en días hábiles. */
@@ -74,20 +71,16 @@ export function formatearFecha(fecha: Date): string {
 export interface LineaAmbiente {
   ambiente: string;
   m2: number;
-  /** Lo que daría cobrando solo por superficie. */
-  porSuperficie: number;
-  /** Lo que se cobra de verdad. */
+  /** Lo que se cobra por este ambiente: su superficie a la tarifa única. */
   cobra: number;
-  /** Verdadero cuando este ambiente no llegó al mínimo y se cobró el piso. */
-  minimoAplicado: boolean;
 }
 
 /**
  * Desglosa el precio ambiente por ambiente.
  *
- * El mínimo se aplica a cada ambiente por separado, no al proyecto entero: un
- * baño de 4 m² no da menos trabajo que una sala de 25 — da más detalle por
- * metro. Los ambientes grandes pagan por superficie y los chicos pagan el piso.
+ * Cada ambiente se cobra por su superficie a la tarifa única. El desglose existe
+ * para que el cliente vea de dónde sale el total, no para aplicar reglas
+ * distintas por ambiente.
  *
  * Devuelve `null` si falta la superficie de aunque sea un ambiente: un desglose
  * a medias cobraría de menos sin que se note.
@@ -102,9 +95,8 @@ export function desglosePorAmbiente(
   for (const ambiente of ambientes) {
     const m2 = parsearM2(superficies?.[ambiente] ?? "");
     if (m2 === null) return null;
-    const porSuperficie = Math.round(m2 * TARIFA_M2);
-    const cobra = Math.max(porSuperficie, MINIMO_POR_AMBIENTE);
-    lineas.push({ ambiente, m2, porSuperficie, cobra, minimoAplicado: cobra > porSuperficie });
+    const cobra = Math.round(m2 * TARIFA_M2);
+    lineas.push({ ambiente, m2, cobra });
   }
   return lineas;
 }

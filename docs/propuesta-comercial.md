@@ -32,41 +32,46 @@ Lo que sí vive acá es **cómo la aplicación los aplica**.
 
 ## Las dos fórmulas
 
-Los valores (60 Bs/m², el mínimo, los 10 m² por día hábil) salen del `CLAUDE.md` de la
-empresa. En el código van en un único archivo de constantes, no repartidos por los
-componentes.
+Los valores (60 Bs/m², los 10 m² por día hábil) salen del `CLAUDE.md` de la empresa. En
+el código van en un único archivo de constantes, no repartidos por los componentes.
 
 ### Precio del diseño
 
-Se cobra **ambiente por ambiente**, y el mínimo se aplica a cada espacio chico
-por separado:
+**Tarifa única, sin mínimos ni recargos** (decisión de Bruno del 31/08/2026):
 
 ```
-por cada ambiente:  cobra = el mayor entre (m² del ambiente × 60 Bs) y 1.000 Bs
+por cada ambiente:  cobra = m² del ambiente × 60 Bs
 precio = la suma de todos los ambientes
 ```
 
-| Ambiente | Por m² | Cobra |
-|---|---|---|
-| Baño 4 m² | 240 | **1.000** (mínimo) |
-| Cocina 9 m² | 540 | **1.000** (mínimo) |
-| Dormitorio 12 m² | 720 | **1.000** (mínimo) |
-| Living 25 m² | 1.500 | **1.500** |
-| **Total** | | **4.500** |
+| Ambiente | Cobra |
+|---|---|
+| Baño 4 m² | 240 |
+| Cocina 9 m² | 540 |
+| Dormitorio 12 m² | 720 |
+| Living 25 m² | 1.500 |
+| **Total** | **3.000** |
 
-**Por qué por ambiente y no sobre el total:** un baño de 4 m² no da menos trabajo
-que una sala de 25 — da más detalle por metro. El cruce está en 16,67 m²
-(1.000 ÷ 60): abajo de eso, un ambiente cobrado por m² factura menos que el piso.
+El desglose por ambiente ya no cambia el número —da lo mismo que multiplicar el total
+por la tarifa—, pero se mantiene porque **le explica al cliente de dónde sale cada
+boliviano** en vez de darle un número y punto.
 
-Esto exige la superficie de **cada** ambiente, que se carga en el paso de
-selección de ambientes de la entrevista. Si falta la de alguno, el desglose se
-descarta entero y se cae en una aproximación sobre el total del proyecto —
-`el mayor entre (m² totales × 60) y (cantidad de ambientes × 1.000)`. Un
-desglose a medias cobraría de menos sin que se note.
+Sigue exigiendo la superficie de **cada** ambiente. Si falta la de alguno, se cae en el
+total del proyecto por la misma tarifa.
 
-El documento imprime el desglose abierto, una fila por ambiente, marcando cuáles
-pagaron el mínimo. Le explica al cliente de dónde sale cada boliviano en vez de
-darle un número y punto.
+#### Por qué se sacó el mínimo por ambiente
+
+Hasta el 31/08/2026 cada ambiente tenía un piso de 1.000 Bs, pensado para que un baño de
+4 m² no se cobrara como si diera menos trabajo que una sala de 25. Se sacó porque hacía
+que **la landing y esta aplicación dieran precios distintos para el mismo proyecto**: un
+departamento de 70 m² en cinco ambientes daba 4.200 Bs en la calculadora publicada y
+5.880 Bs en la propuesta, un 40 % más. Un precio publicado que después sube destruye
+exactamente la confianza que la página existe para comprar.
+
+**Lo que hay que vigilar:** un ambiente chico ya no tiene piso, así que rediseñar un
+baño de 4 m² son 240 Bs. Si eso resulta muy bajo para el trabajo real, el arreglo es
+subir la tarifa —que se ve en los dos lados— y no volver a poner un mínimo que solo
+aparece en la propuesta.
 
 ### Plazo de entrega
 
@@ -224,8 +229,9 @@ Explícitamente **no** entra en este trabajo:
 
 ## Preguntas abiertas
 
-- **El mínimo por ambiente.** Quedó en 1.000 Bs. Revisar después de las primeras
-  propuestas reales: si los proyectos de varios ambientes chicos asustan, bajarlo a 700.
+- **El piso de los ambientes chicos.** El mínimo por ambiente se eliminó el 31/08/2026 y
+  la tarifa quedó única. Queda por ver si 240 Bs por un baño de 4 m² paga el trabajo
+  real; si no, se sube la tarifa para todos, no se reinstala el mínimo.
 - **La fórmula del plazo** (1 día hábil cada 10 m², mínimo 5) sale de un solo dato: 70 m²
   en 7 días hábiles. Confirmar contra proyectos reales antes de darla por buena.
 - **Formato de salida.** Falta decidir cómo se genera el PDF: impresión del navegador

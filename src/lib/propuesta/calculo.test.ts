@@ -12,24 +12,23 @@ import {
 } from "./calculo";
 
 describe("precioDiseno", () => {
-  it("cobra por superficie cuando los m² mandan", () => {
-    expect(precioDiseno(150, 6)).toBe(9000);
+  it("cobra la tarifa por metro cuadrado", () => {
+    expect(precioDiseno(150)).toBe(9000);
   });
 
-  it("cobra el mínimo por ambiente cuando son varios ambientes chicos", () => {
-    expect(precioDiseno(35, 4)).toBe(4000);
+  it("cobra lo mismo por metro aunque el ambiente sea muy chico", () => {
+    expect(precioDiseno(4)).toBe(240);
   });
 
-  it("aplica el mínimo a un solo ambiente chico", () => {
-    expect(precioDiseno(4, 1)).toBe(1000);
+  it("da 4.200 Bs en el proyecto promedio de 70 m²", () => {
+    expect(precioDiseno(70)).toBe(4200);
   });
 
-  it("toma el mayor de los dos en la oficina de 77 m² con 5 ambientes", () => {
-    expect(precioDiseno(77, 5)).toBe(5000);
-  });
-
-  it("funciona aunque todavía no se hayan elegido ambientes", () => {
-    expect(precioDiseno(70, 0)).toBe(4200);
+  /* El mismo número que muestra la calculadora de la landing. Que los dos den
+     igual es la razón por la que se sacó el piso por ambiente: un precio
+     publicado que después sube rompe la confianza que la página quiere comprar. */
+  it("coincide con la calculadora de la landing en 77 m²", () => {
+    expect(precioDiseno(77)).toBe(4620);
   });
 });
 
@@ -105,18 +104,21 @@ describe("desglosePorAmbiente", () => {
   const ambientes = ["Baño", "Cocina", "Dormitorio", "Living"];
   const superficies = { "Baño": "4", Cocina: "9", Dormitorio: "12", Living: "25" };
 
-  it("cobra el piso en los chicos y por superficie en los grandes", () => {
+  it("cobra cada ambiente por su superficie, sin pisos", () => {
     const lineas = desglosePorAmbiente(ambientes, superficies);
-    expect(lineas?.map((l) => l.cobra)).toEqual([1000, 1000, 1000, 1500]);
+    expect(lineas?.map((l) => l.cobra)).toEqual([240, 540, 720, 1500]);
   });
 
-  it("marca cuáles no llegaron al mínimo", () => {
-    const lineas = desglosePorAmbiente(ambientes, superficies);
-    expect(lineas?.map((l) => l.minimoAplicado)).toEqual([true, true, true, false]);
+  it("suma 3.000 en el caso de los cuatro ambientes", () => {
+    expect(sumaDesglose(desglosePorAmbiente(ambientes, superficies)!)).toBe(3000);
   });
 
-  it("suma 4.500 en el caso de los cuatro ambientes", () => {
-    expect(sumaDesglose(desglosePorAmbiente(ambientes, superficies)!)).toBe(4500);
+  /* Lo mismo que daría cobrar el total de una: el desglose muestra de dónde sale
+     el número, no cambia el número. */
+  it("suma igual que cobrar el total de corrido", () => {
+    const lineas = desglosePorAmbiente(ambientes, superficies)!;
+    const metros = lineas.reduce((total, l) => total + l.m2, 0);
+    expect(sumaDesglose(lineas)).toBe(precioDiseno(metros));
   });
 
   it("cobra todo por superficie cuando ningún ambiente es chico", () => {
