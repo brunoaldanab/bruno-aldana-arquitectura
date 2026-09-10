@@ -14,5 +14,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|gif|ico)$).*)"],
+  // sw.js y el manifiesto quedan fuera: sin eso, el iPhone recibe la página de
+  // login en lugar del service worker y la app nunca se puede instalar.
+  matcher: ["/((?!login|sw\\.js|manifest\\.webmanifest|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|gif|ico)$).*)"],
 };

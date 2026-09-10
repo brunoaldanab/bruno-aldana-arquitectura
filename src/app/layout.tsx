@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { RegistroServiceWorker } from "@/components/RegistroServiceWorker";
 
 /**
  * Las dos familias del manual de marca y ninguna más.
@@ -41,7 +42,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${archivo.variable} ${jetbrainsMono.variable} h-full antialiased [color-scheme:dark]`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">{children}</body>
+      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">
+        {children}
+        <RegistroServiceWorker />
+      </body>
     </html>
   );
 }
