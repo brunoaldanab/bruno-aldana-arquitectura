@@ -27,6 +27,7 @@ model Contacto {
 
   cotizaciones Cotizacion[]
   entrevistas  Entrevista[]
+  relevamiento Relevamiento?
 }
 
 enum MonedaCotizacion {
@@ -116,4 +117,18 @@ model PaletaOficinaCustom {
   colores   Json
   uso       String
   createdAt DateTime @default(now())
+}
+
+/// El relevamiento de la visita: toda la casa en un solo documento con formato
+/// "ba-relevamiento" (src/lib/relevamiento/formato.ts). Uno por contacto.
+/// `version` sube con cada guardado y permite detectar que el teléfono trabajó
+/// sobre una copia vieja.
+model Relevamiento {
+  id         String   @id @default(cuid())
+  contactoId String   @unique
+  contacto   Contacto @relation(fields: [contactoId], references: [id])
+  data       Json
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
