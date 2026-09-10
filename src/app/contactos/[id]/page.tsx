@@ -61,6 +61,9 @@ export default async function ContactoDetailPage({ params }: { params: Promise<{
             <Button href={`/contactos/${contacto.id}/entrevista`} variant="secondary" size="sm">
               Ficha de entrevista
             </Button>
+            <Button href={`/contactos/${contacto.id}/relevamiento`} variant="secondary" size="sm">
+              Relevamiento
+            </Button>
             <Button href={`/contactos/${contacto.id}/editar`} variant="secondary" size="sm">
               Editar
             </Button>
