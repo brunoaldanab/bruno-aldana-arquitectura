@@ -14,7 +14,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // sw.js y el manifiesto quedan fuera: sin eso, el iPhone recibe la página de
-  // login en lugar del service worker y la app nunca se puede instalar.
-  matcher: ["/((?!login|sw\\.js|manifest\\.webmanifest|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|gif|ico)$).*)"],
+  // Quedan fuera del login: la página de visita y el service worker, que no tienen
+  // datos y tienen que abrir sin señal; el manifiesto, para instalar la app; y la
+  // API de visita, que verifica la sesión por su cuenta (src/lib/sesionApi.ts).
+  matcher: ["/((?!login|visita|api/visita|sw\\.js|manifest\\.webmanifest|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|gif|ico)$).*)"],
 };
