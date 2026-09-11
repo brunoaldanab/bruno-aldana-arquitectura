@@ -40,7 +40,9 @@ export const aberturaSchema = z.object({
   tipo: tipoAberturaSchema,
   muroId: id,
   cara: nombreCaraSchema,
-  desde: medidaSchema,
+  // Puede ser negativo solo si al partir el muro la abertura quedó cortada:
+  // el control lo marca como error en vez de esconderlo (ajuste 16).
+  desde: z.object({ valor: entero, tomada: z.boolean() }),
   ancho: medidaSchema,
   alto: medidaSchema,
   antepecho: medidaSchema,
