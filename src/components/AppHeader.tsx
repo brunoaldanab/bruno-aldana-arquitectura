@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [{ href: "/contactos", label: "Contactos" }];
+const NAV = [
+  { href: "/contactos", label: "Contactos" },
+  { href: "/visita", label: "Visita" },
+];
 
 /**
  * La barra que se ve en cada pantalla del día.
