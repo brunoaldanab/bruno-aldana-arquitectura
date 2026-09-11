@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { use, useActionState } from "react";
 import { login } from "./actions";
 import { inputClass, labelClass, errorClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/Button";
 import { FondoCinematico } from "@/components/FondoCinematico";
 import { fondos } from "@/lib/images";
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams: Promise<{ volver?: string | string[] }> }) {
+  const { volver } = use(searchParams);
   const [state, formAction, pending] = useActionState(login, undefined);
 
   return (
@@ -40,6 +41,7 @@ export default function LoginPage() {
 
       <div className="flex items-center justify-center bg-neutral-950 px-4 py-16">
         <form action={formAction} className="w-full max-w-sm">
+          <input type="hidden" name="volver" value={typeof volver === "string" ? volver : "/"} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/firma-horizontal-blanco.svg"

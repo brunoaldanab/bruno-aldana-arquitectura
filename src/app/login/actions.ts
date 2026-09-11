@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, COOKIE_NAME, MAX_AGE_SECONDS } from "@/lib/session";
+import { destinoSeguro } from "@/lib/destino";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -43,7 +44,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     maxAge: MAX_AGE_SECONDS,
   });
 
-  redirect("/");
+  redirect(destinoSeguro(formData.get("volver")));
 }
 
 export async function logout() {
