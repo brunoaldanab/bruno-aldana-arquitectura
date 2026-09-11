@@ -4,19 +4,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.pexels.com" }],
   },
-  // Según la guía de PWA de Next 16: el service worker nunca se guarda en caché,
-  // así el iPhone recibe siempre la última versión.
-  async headers() {
-    return [
-      {
-        source: "/sw.js",
-        headers: [
-          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
-          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
-          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
-        ],
-      },
-    ];
+  // La versión de la publicación queda escrita dentro del service worker
+  // (src/app/sw.js/route.ts): cada deploy instala uno nuevo, que guarda la app nueva
+  // en el teléfono y descarta la copia vieja. Los encabezados de /sw.js los pone la ruta.
+  env: {
+    VERSION_APP: process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`,
   },
 };
 

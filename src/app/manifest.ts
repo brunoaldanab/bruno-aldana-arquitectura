@@ -10,8 +10,9 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Bruno Aldana · Arquitectura",
     short_name: "Bruno Aldana",
-    description: "Contactos, entrevistas y relevamiento del estudio.",
-    start_url: "/contactos",
+    description: "La visita a obra: contactos y relevamiento, también sin señal.",
+    start_url: "/visita",
+    scope: "/",
     display: "standalone",
     background_color: "#0F1113",
     theme_color: "#0F1113",
