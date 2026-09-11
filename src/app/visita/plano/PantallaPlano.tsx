@@ -214,7 +214,8 @@ export function PantallaPlano({
       <div className="relative flex min-h-0 flex-1 flex-col">
         <LienzoPlano
           nivel={nivel}
-          claveEncuadre={`${nivelGuardado.id}:${centrar}`}
+          // Se vuelve a encuadrar cuando aparece el primer ambiente: se dibujó sobre un cuadro vacío de 6 m.
+          claveEncuadre={`${nivelGuardado.id}:${centrar}:${nivelGuardado.ambientes.length > 0}`}
           dibujar={(escala) =>
             modo === "planta" ? (
               <DibujoPlanta nivel={nivel} escala={escala} seleccion={sel} cierres={cierres} trazo={trazo?.punto ?? null} mostrarNodos={herramienta === "muro"} />

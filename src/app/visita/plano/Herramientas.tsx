@@ -53,7 +53,7 @@ export function Herramientas({
       )}
       <button type="button" aria-label="Deshacer" disabled={!puedeDeshacer} onClick={onDeshacer} className={pastilla(false)}>↶</button>
       <button type="button" aria-label="Rehacer" disabled={!puedeRehacer} onClick={onRehacer} className={pastilla(false)}>↷</button>
-      <button type="button" aria-label="Centrar el plano" onClick={onCentrar} className={pastilla(false)}>⌖</button>
+      <button type="button" aria-label="Centrar el plano" onClick={onCentrar} className={pastilla(false)}>Centrar</button>
     </nav>
   );
 }

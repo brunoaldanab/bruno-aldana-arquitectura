@@ -60,6 +60,14 @@ describe("cotas, selección y arrastre", () => {
     expect(seleccionDeCota(cuarto, "amb9:0")).toBeNull();
   });
 
+  it("recién cerrado el ambiente con Muro, tocar una cota la abre y vuelve a Tocar; con un trazo a medias, sigue dibujando", () => {
+    const abierta = aplicarToque(estado(cuarto, "muro"), { x: 200, y: 30 }, 10, "amb1:0");
+    expect(abierta).toMatchObject({ seleccion: { tipo: "muro", id: "m1" }, herramienta: "tocar", trazo: null });
+    const trazo = { extremo: { x: 100, y: 100 }, punto: { x: 100, y: 100 }, primero: null };
+    const dibujando = aplicarToque(estado(cuarto, "muro", { trazo }), { x: 200, y: 100 }, 10, "amb1:0");
+    expect(dibujando.nivel.muros.length).toBe(cuarto.muros.length + 1);
+  });
+
   it("una selección de algo borrado deja de valer", () => {
     expect(seleccionVigente(cuarto, { tipo: "abertura", id: "a1" })).toBeNull();
     expect(seleccionVigente(cuarto, { tipo: "ambiente", id: "amb1" })).toEqual({ tipo: "ambiente", id: "amb1" });

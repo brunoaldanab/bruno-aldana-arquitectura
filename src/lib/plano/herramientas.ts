@@ -73,7 +73,12 @@ function toqueMuro(e: EstadoToque, p: Punto, radio: number): ResultadoToque {
 
 export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: string | null = null): ResultadoToque {
   const nada = { nivel: e.nivel, seleccion: null, trazo: null, herramienta: e.herramienta };
-  if (cota && e.modo === "planta" && e.herramienta === "tocar") return { ...nada, seleccion: seleccionDeCota(e.nivel, cota) };
+  // Tocar una cota abre su medida con cualquier herramienta de planta, salvo con un muro a medio trazar:
+  // después de cerrar un ambiente con Muro, lo siguiente es medirlo.
+  if (cota && e.modo === "planta" && !e.trazo) {
+    const seleccion = seleccionDeCota(e.nivel, cota);
+    if (seleccion) return { ...nada, seleccion, herramienta: "tocar" };
+  }
 
   switch (e.herramienta) {
     case "tocar":
