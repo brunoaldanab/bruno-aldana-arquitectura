@@ -109,7 +109,7 @@ export function anteriorCara(nivel: Nivel, ref: RefCara): RefCara {
 }
 
 /** Donde se cortan dos caras seguidas; si son paralelas, cada una termina en la proyección del nodo. */
-function esquinaEntre(nivel: Nivel, llega: RefCara, sale: RefCara, delLadoDe: "llega" | "sale"): Punto {
+export function esquinaEntre(nivel: Nivel, llega: RefCara, sale: RefCara, delLadoDe: "llega" | "sale"): Punto {
   const a = lineaCara(nivel, llega);
   const b = lineaCara(nivel, sale);
   const corte = llega.muroId === sale.muroId ? null : interseccion(a.punto, a.direccion, b.punto, b.direccion);
