@@ -1,5 +1,6 @@
 // src/lib/visita/contactos.ts
 import { z } from "zod";
+import { operacionRelevamientoSchema } from "./relevamientos";
 
 /**
  * El contacto tal como viaja entre el teléfono y el servidor en el modo visita.
@@ -26,8 +27,16 @@ export interface ContactoLocal extends ContactoVisita {
   pendiente: boolean;
 }
 
-export const operacionSchema = z.object({ tipo: z.literal("contacto"), contacto: contactoVisitaSchema });
+export const operacionContactoSchema = z.object({ tipo: z.literal("contacto"), contacto: contactoVisitaSchema });
+
+/** Lo que espera en la cola: un contacto o un relevamiento entero. */
+export const operacionSchema = z.discriminatedUnion("tipo", [operacionContactoSchema, operacionRelevamientoSchema]);
 export type Operacion = z.infer<typeof operacionSchema>;
+export type OperacionContacto = Extract<Operacion, { tipo: "contacto" }>;
+export type OperacionRelevamiento = Extract<Operacion, { tipo: "relevamiento" }>;
+
+export const idDeOperacion = (op: Operacion): string => (op.tipo === "contacto" ? op.contacto.id : op.contactoId);
+export const claveOperacion = (op: Operacion): string => `${op.tipo}:${idDeOperacion(op)}`;
 
 export type CamposContacto = {
   nombre: string;
@@ -76,9 +85,13 @@ export function fusionarContactos(locales: ContactoLocal[], remotos: ContactoVis
   return [...porId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-/** Si un contacto se editó varias veces sin señal, alcanza con subir su última versión. */
+/**
+ * Si un contacto o un relevamiento se editó varias veces sin señal, alcanza con subir
+ * su última versión. Se compacta por tipo e id: el contacto y el relevamiento de un
+ * mismo cliente comparten id y son cosas distintas.
+ */
 export function compactarCola(ops: Operacion[]): Operacion[] {
   const ultima = new Map<string, number>();
-  ops.forEach((op, i) => ultima.set(op.contacto.id, i));
-  return ops.filter((op, i) => ultima.get(op.contacto.id) === i);
+  ops.forEach((op, i) => ultima.set(claveOperacion(op), i));
+  return ops.filter((op, i) => ultima.get(claveOperacion(op)) === i);
 }
