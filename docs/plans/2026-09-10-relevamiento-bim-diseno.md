@@ -77,8 +77,11 @@ con rutas de Next: cada ruta de Next pide datos al servidor al navegar y falla s
   `/_next/static/...` (programas y hojas de estilo), lee las hojas de estilo para sumar las
   tipografías que referencian, y guarda todo junto con el HTML, el manifiesto y el ícono. Si falta
   una sola pieza, la instalación falla y se reintenta: nunca queda una copia a medias.
-- **Al pedir `/visita` sin señal**, entrega el HTML guardado. Con señal, pide la red primero y
-  actualiza la copia.
+- **Al pedir `/visita`**, entrega siempre primero la copia guardada, haya o no señal. *(Ajustado
+  al escribir el plan del paso 1: la idea original era pedir la red primero cuando hay señal,
+  pero en una obra con señal débil eso deja la pantalla en blanco esperando. La versión nueva
+  llega igual, porque cada publicación trae un service worker nuevo que guarda la página nueva
+  al instalarse.)*
 - **No guarda** respuestas de la API ni de otras páginas.
 - **Actualización:** silenciosa. La versión nueva queda lista y se usa al próximo abrir.
 
