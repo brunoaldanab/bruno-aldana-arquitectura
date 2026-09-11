@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/Button";
 import { labelClass } from "@/components/ui/field";
 import type { ContactoLocal } from "@/lib/visita/contactos";
 
-export function FichaContacto({ contacto: c, onEditar, onVolver }: {
+export function FichaContacto({ contacto: c, onEditar, onRelevamiento, onVolver }: {
   contacto: ContactoLocal;
   onEditar: () => void;
+  onRelevamiento: () => void;
   onVolver: () => void;
 }) {
   const datos: [string, string | null][] = [
@@ -26,6 +27,7 @@ export function FichaContacto({ contacto: c, onEditar, onVolver }: {
         <Button size="sm" variant="secondary" onClick={onEditar}>Editar</Button>
       </div>
       {c.pendiente && <p className="dato text-neutral-400">Con cambios sin subir</p>}
+      <Button onClick={onRelevamiento}>Relevamiento</Button>
       <dl className="grid gap-5 rounded-2xl border border-white/8 bg-neutral-900 p-6">
         {datos.map(([etiqueta, valor]) => (
           <div key={etiqueta}>

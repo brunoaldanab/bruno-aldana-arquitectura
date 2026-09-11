@@ -1,0 +1,19 @@
+/* La hoja es lo único que se mueve en la pantalla del plano: entra desde abajo en 200 ms. */
+.hoja {
+  animation: entrar 200ms var(--ease-out) both;
+}
+
+@keyframes entrar {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja {
+    animation: none;
+  }
+}

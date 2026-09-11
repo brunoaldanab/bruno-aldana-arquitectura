@@ -12,6 +12,7 @@ import { FichaContacto } from "./FichaContacto";
 import { FormularioContacto } from "./FormularioContacto";
 import { IndicadorSync } from "./IndicadorSync";
 import { ListaContactos } from "./ListaContactos";
+import { PantallaPlano } from "./plano/PantallaPlano";
 
 const REINTENTO_MS = 60_000;
 
@@ -31,12 +32,16 @@ export function VisitaApp() {
   const ruta = search === null ? null : leerRuta(search);
   const [contactos, setContactos] = useState<ContactoLocal[] | null>(null);
   const [estado, setEstado] = useState<EstadoSync | null>(null);
+  // Cuántas veces bajó del servidor una versión nueva del relevamiento de cada contacto.
+  const [recargas, setRecargas] = useState<Record<string, number>>({});
   const [sinc] = useState(() =>
     crearSincronizadorVisita({
       almacen: crearAlmacenIndexedDB(),
       api: crearApiFetch(),
       alCambiarEstado: setEstado,
       alCambiarContactos: setContactos,
+      alCambiarRelevamientos: (ids) =>
+        setRecargas((previas) => Object.fromEntries([...Object.entries(previas), ...ids.map((id) => [id, (previas[id] ?? 0) + 1])])),
     }),
   );
 
@@ -60,6 +65,19 @@ export function VisitaApp() {
   }, [sinc]);
 
   const contacto = ruta && "id" in ruta ? contactos?.find((c) => c.id === ruta.id) : undefined;
+
+  // El plano ocupa la pantalla entera: no lleva el encabezado de la visita.
+  if (ruta?.vista === "relevamiento" && contacto) {
+    return (
+      <PantallaPlano
+        contacto={contacto}
+        sinc={sinc}
+        estado={estado}
+        recarga={recargas[contacto.id] ?? 0}
+        onVolver={() => ir({ vista: "contacto", id: contacto.id })}
+      />
+    );
+  }
 
   let contenido: React.ReactNode;
   if (ruta === null || contactos === null) {
@@ -100,7 +118,14 @@ export function VisitaApp() {
       />
     );
   } else {
-    contenido = <FichaContacto contacto={contacto} onEditar={() => ir({ vista: "editar", id: contacto.id })} onVolver={() => ir({ vista: "contactos" })} />;
+    contenido = (
+      <FichaContacto
+        contacto={contacto}
+        onEditar={() => ir({ vista: "editar", id: contacto.id })}
+        onRelevamiento={() => ir({ vista: "relevamiento", id: contacto.id })}
+        onVolver={() => ir({ vista: "contactos" })}
+      />
+    );
   }
 
   return (
