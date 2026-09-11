@@ -19,7 +19,10 @@ describe("navegación de la visita", () => {
   });
 
   it("ida y vuelta sin perder nada", () => {
-    const rutas: Ruta[] = [{ vista: "contactos" }, { vista: "nuevo" }, { vista: "contacto", id: "x-1" }, { vista: "editar", id: "x-1" }];
+    expect(rutaAUrl({ vista: "relevamiento", id: "abc" })).toBe("/visita?contacto=abc&vista=relevamiento");
+    const rutas: Ruta[] = [
+      { vista: "contactos" }, { vista: "nuevo" }, { vista: "contacto", id: "x-1" }, { vista: "editar", id: "x-1" }, { vista: "relevamiento", id: "x-1" },
+    ];
     for (const r of rutas) expect(leerRuta(rutaAUrl(r).replace("/visita", ""))).toEqual(r);
   });
 });
