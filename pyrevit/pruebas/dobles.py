@@ -112,6 +112,9 @@ class Parametro(object):
     def AsDouble(self):
         return self.valor
 
+    def AsString(self):
+        return self.valor if isinstance(self.valor, type(u"")) else u""
+
     def Set(self, valor):
         self.valor = valor
         REGISTRO.parametros.append((self.nombre, valor))
@@ -144,6 +147,24 @@ class Elemento(object):
 
 
 class TipoConNombre(Elemento):
+    """Un tipo, con la trampa que le costó a Bruno la segunda prueba.
+
+    En Revit, leer `WallType.Name` o `FamilySymbol.Name` desde Python falla: la
+    propiedad viene heredada de `ElementType`, que la vuelve a declarar, y el
+    puente con .NET no la resuelve. El nombre sí se puede leer por su parámetro.
+    El doble copia ese comportamiento para que las pruebas lo vean.
+    """
+
+    def __init__(self, nombre=u"", parametros=None):
+        _contador[0] += 1
+        self.Id = ElementId(_contador[0])
+        self._parametros = parametros or {}
+        self._parametros[u"%s" % BuiltInParameter.SYMBOL_NAME_PARAM] = Parametro(u"nombre de tipo", nombre)
+
+    @property
+    def Name(self):
+        raise AttributeError(u"Name")
+
     def Duplicate(self, nombre):
         copia = type(self)(nombre, dict(self._parametros))
         REGISTRO.anotar(u"duplicado", nombre)
@@ -174,7 +195,7 @@ class FamilySymbol(TipoConNombre):
         TipoConNombre.__init__(self, nombre, parametros)
         self.categoria = categoria
         self.IsActive = False
-        self.FamilyName = nombre
+        self.FamilyName = u"%s" % nombre
 
     def Activate(self):
         self.IsActive = True

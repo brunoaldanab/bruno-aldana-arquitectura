@@ -25,6 +25,17 @@ CATEGORIA = {
     u"viga": DB.BuiltInCategory.OST_StructuralFraming,
 }
 
+#: Cómo se nombra cada categoría cuando hay que pedirle a Bruno que cargue una familia.
+NOMBRE_LARGO = {
+    u"dispositivos-electricos": u"tomacorrientes",
+    u"dispositivos-de-iluminacion": u"llaves de luz",
+    u"dispositivos-de-comunicacion": u"salidas de TV, red o teléfono",
+    u"viga": u"vigas",
+    u"columna": u"columnas arquitectónicas",
+    u"puerta": u"puertas",
+    u"ventana": u"ventanas",
+}
+
 #: Los nombres con que cada parámetro aparece según el idioma de la plantilla.
 #: La de Bruno es la de Gigi Arruda, que está en portugués.
 NOMBRES_ANCHO = [u"Width", u"Ancho", u"Largura"]
@@ -44,14 +55,51 @@ def simbolos(doc, categoria):
     )
 
 
-def nombre_de(elemento):
-    """El nombre de un elemento, en el motor CPython de pyRevit.
+#: Los parámetros donde vive el nombre según la clase de elemento.
+NOMBRE_EN_PARAMETRO = [
+    DB.BuiltInParameter.SYMBOL_NAME_PARAM,  # tipos de familia
+    DB.BuiltInParameter.ALL_MODEL_TYPE_NAME,  # tipos de sistema
+    DB.BuiltInParameter.DATUM_TEXT,  # niveles y ejes
+]
 
-    El rodeo `Element.Name.GetValue(elemento)` es el que hace falta en
-    IronPython y **acá revienta**: en CPython `Element.Name` es el descriptor de
-    la propiedad y no tiene `GetValue`. Con CPython alcanza `elemento.Name`.
+
+def nombre_de(elemento):
+    """El nombre de un elemento, probando las tres formas que hay de pedirlo.
+
+    Leer un nombre en Revit desde Python es sorprendentemente frágil, y las dos
+    pruebas de Bruno del 14/09/2026 lo mostraron una tras otra:
+
+    1. `Element.Name.GetValue(elemento)` es el rodeo de **IronPython** y en el
+       motor CPython de pyRevit revienta con "getset_descriptor".
+    2. `elemento.Name` funciona en un nivel, pero **no en un tipo**: `WallType`
+       y `FamilySymbol` heredan la propiedad de `ElementType`, que la vuelve a
+       declarar, y el puente entre Python y .NET no la resuelve. Daba un simple
+       "Name".
+
+    Por eso acá se prueban las tres en orden y se devuelve la primera que
+    conteste. Un nombre que no se puede leer devuelve una cadena vacía, que
+    nunca coincide con un nombre buscado: el tipo se crea de nuevo en vez de
+    tumbar el elemento.
     """
-    return elemento.Name
+    try:
+        return elemento.Name
+    except Exception:
+        pass
+    try:
+        # La forma de pedirle a Python el valor de una propiedad de .NET.
+        return DB.Element.Name.__get__(elemento)
+    except Exception:
+        pass
+    for incorporado in NOMBRE_EN_PARAMETRO:
+        try:
+            p = elemento.get_Parameter(incorporado)
+            if p is not None:
+                texto = p.AsString()
+                if texto:
+                    return texto
+        except Exception:
+            continue
+    return u""
 
 
 def por_nombre(elementos, nombre):
@@ -102,7 +150,8 @@ def tipo_de_abertura(doc, orden, cache):
     cargados = simbolos(doc, orden.categoria)
     if not cargados:
         raise SinTipo(
-            u"No hay ninguna familia de %s cargada en el proyecto." % (u"puertas" if orden.categoria == u"puerta" else u"ventanas")
+            u"El proyecto no tiene ninguna familia de %s. Cargá una con Insertar → Cargar familia y volvé a "
+            u"apretar el botón." % NOMBRE_LARGO[orden.categoria]
         )
 
     ya_esta = por_nombre(cargados, orden.nombre)
@@ -123,7 +172,10 @@ def tipo_de_columna(doc, orden, cache):
         return cache[orden.nombre]
     cargados = simbolos(doc, u"columna")
     if not cargados:
-        raise SinTipo(u"No hay ninguna familia de columnas arquitectónicas cargada.")
+        raise SinTipo(
+            u"El proyecto no tiene ninguna familia de columnas arquitectónicas. Cargá una con Insertar → "
+            u"Cargar familia y volvé a apretar el botón."
+        )
     ya_esta = por_nombre(cargados, orden.nombre)
     if ya_esta:
         cache[orden.nombre] = ya_esta
@@ -141,7 +193,10 @@ def tipo_electrico(doc, categoria, cache):
         return cache[categoria]
     cargados = simbolos(doc, categoria)
     if not cargados:
-        raise SinTipo(u"No hay ninguna familia de la categoría %s cargada." % categoria.replace(u"-", u" "))
+        raise SinTipo(
+            u"El proyecto no tiene ninguna familia de %s. Cargá una con Insertar → Cargar familia y volvé a "
+            u"apretar el botón." % NOMBRE_LARGO.get(categoria, categoria.replace(u"-", u" "))
+        )
     cache[categoria] = cargados[0]
     return _activado(cargados[0])
 
@@ -151,7 +206,10 @@ def tipo_de_viga(doc, cache):
         return cache[u"viga"]
     cargados = simbolos(doc, u"viga")
     if not cargados:
-        raise SinTipo(u"No hay ninguna familia de vigas cargada.")
+        raise SinTipo(
+            u"El proyecto no tiene ninguna familia de vigas. Cargá una con Insertar → Cargar familia y volvé "
+            u"a apretar el botón."
+        )
     cache[u"viga"] = cargados[0]
     return _activado(cargados[0])
 
