@@ -57,24 +57,27 @@ def unitario(a, b):
 def normal_por_defecto(u):
     """Hacia dónde mira un elemento recién insertado en un muro que va en `u`.
 
-    Revit orienta la cara de lo hospedado con la dirección de la curva girada
-    un cuarto de vuelta en sentido horario. Ese lado es exactamente la cara
-    "derecha" de la pantalla (ver `normal_cara`), y de ahí sale si una puerta
-    hay que darla vuelta o no.
+    Revit orienta lo hospedado con la dirección de la curva girada un cuarto de
+    vuelta **en sentido antihorario**: un muro que va hacia +X deja su cara
+    mirando hacia +Y. No es una deducción: se midió adentro de Revit el
+    14/09/2026, creando un muro y una puerta de prueba, después de que la
+    primera corrida dejara la puerta y los enchufes mirando para afuera del
+    cuarto.
     """
-    return (u[1], -u[0])
+    return (-u[1], u[0])
 
 
 def normal_cara(u, cara):
     """La normal de la cara "izquierda" o "derecha" del muro, en Revit.
 
-    En la pantalla la cara izquierda queda del lado de `(uy, -ux)` con la `y`
+    En la pantalla la cara izquierda queda del lado de `(uy, -ux)`, con la `y`
     hacia abajo; al dar vuelta la `y` eso se convierte en `(uy, ux)`, que es
-    justo lo contrario de la normal por defecto. De ahí la regla de una sola
-    línea: la cara derecha es la que Revit usa sola, la izquierda va invertida.
+    exactamente la normal por defecto de Revit. De ahí la regla de una sola
+    línea: **la cara izquierda es la que Revit usa sola, la derecha va
+    invertida.**
     """
     n = normal_por_defecto(u)
-    return n if cara == "derecha" else (-n[0], -n[1])
+    return n if cara == "izquierda" else (-n[0], -n[1])
 
 
 def nombre_tipo_muro(espesor_cm):

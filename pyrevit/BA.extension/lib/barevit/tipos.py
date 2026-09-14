@@ -23,6 +23,17 @@ CATEGORIA = {
     u"dispositivos-de-iluminacion": DB.BuiltInCategory.OST_LightingDevices,
     u"dispositivos-de-comunicacion": DB.BuiltInCategory.OST_CommunicationDevices,
     u"viga": DB.BuiltInCategory.OST_StructuralFraming,
+    u"columna-estructural": DB.BuiltInCategory.OST_StructuralColumns,
+}
+
+#: Dónde más buscar cuando la categoría exacta no tiene ninguna familia cargada.
+#: Sale de la plantilla de Gigi, que no trae columnas arquitectónicas —sí
+#: estructurales— ni dispositivos de comunicación, pero sí eléctricos.
+RESPALDO = {
+    u"columna": [u"columna-estructural"],
+    u"dispositivos-de-comunicacion": [u"dispositivos-electricos", u"dispositivos-de-iluminacion"],
+    u"dispositivos-de-iluminacion": [u"dispositivos-electricos"],
+    u"dispositivos-electricos": [u"dispositivos-de-iluminacion"],
 }
 
 #: Cómo se nombra cada categoría cuando hay que pedirle a Bruno que cargue una familia.
@@ -47,8 +58,24 @@ class SinTipo(Exception):
     """No hay ningún tipo de esa clase en el proyecto y no se puede inventar uno."""
 
 
-def simbolos(doc, categoria):
-    """Todos los tipos de familia cargados de esa categoría."""
+def simbolos(doc, categoria, con_respaldo=True):
+    """Los tipos de familia cargados de esa categoría, o de la que la reemplaza.
+
+    Un enchufe colocado con una familia de la categoría vecina sigue estando en
+    el lugar exacto y con su código anotado, que es lo que Bruno necesita del
+    relevamiento. Quedarse sin el punto sería peor.
+    """
+    encontrados = _de_categoria(doc, categoria)
+    if encontrados or not con_respaldo:
+        return encontrados
+    for otra in RESPALDO.get(categoria, []):
+        encontrados = _de_categoria(doc, otra)
+        if encontrados:
+            return encontrados
+    return []
+
+
+def _de_categoria(doc, categoria):
     bic = CATEGORIA[categoria]
     return list(
         DB.FilteredElementCollector(doc).OfCategory(bic).OfClass(DB.FamilySymbol).ToElements()

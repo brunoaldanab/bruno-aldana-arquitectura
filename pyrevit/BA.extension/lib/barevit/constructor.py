@@ -199,10 +199,13 @@ class Constructor(object):
 
     def _ambientes(self, ordenes):
         piso = None
+        motivo = None
         try:
             piso = buscador.tipo_por_defecto(self.doc, DB.FloorType, u"piso")
-        except buscador.SinTipo as e:
-            self.resultado.aviso(u"%s No se crearon los pisos." % e)
+        except Exception as e:
+            # Cualquier cosa que impida encontrar el tipo: se anota una vez y
+            # cada piso queda listado con su motivo, nunca en silencio.
+            motivo = u"%s" % e
 
         def crear(orden):
             nivel = self._nivel(orden)
@@ -212,8 +215,8 @@ class Constructor(object):
                 self.resultado.creado(u"OrdenAmbiente", orden.nombre)
                 return
             if piso is None:
-                return
-            losa = DB.Floor.Create(self.doc, _bucles(orden.contorno, 0.0), piso.Id, nivel.Id)
+                raise Exception(motivo or u"No hay ningún tipo de piso para usar.")
+            losa = DB.Floor.Create(self.doc, _bucles(orden.contorno, nivel.Elevation), piso.Id, nivel.Id)
             _fijar(losa, DB.BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM, orden.desnivel)
             self.resultado.creado(u"OrdenPiso", orden.nombre)
 
@@ -222,13 +225,13 @@ class Constructor(object):
     def _techos(self, ordenes):
         try:
             tipo = buscador.tipo_por_defecto(self.doc, DB.CeilingType, u"cielo raso")
-        except buscador.SinTipo as e:
+        except Exception as e:
             self.resultado.aviso(u"%s No se crearon los techos." % e)
             return
 
         def crear(orden):
             nivel = self._nivel(orden)
-            techo = DB.Ceiling.Create(self.doc, _bucles(orden.contorno, 0.0), tipo.Id, nivel.Id)
+            techo = DB.Ceiling.Create(self.doc, _bucles(orden.contorno, nivel.Elevation), tipo.Id, nivel.Id)
             _fijar(techo, DB.BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM, orden.altura)
             self.techos[orden.id] = techo
             self.resultado.creado(u"OrdenTecho", orden.id)
@@ -362,15 +365,23 @@ def _comentario(elemento, codigo, notas):
 
 
 def _bucles(contorno, z):
-    """El contorno como el `CurveLoop` cerrado que piden los pisos y los techos."""
-    from System.Collections.Generic import List
+    """El contorno como el `CurveLoop` cerrado que piden los pisos y los techos.
 
+    Revit espera una lista con tipo de .NET. Si importarla falla —pasa según
+    cómo esté armado el motor de Python— se manda una lista común: el puente
+    con .NET la convierte solo. Una de las dos anda siempre.
+    """
     puntos = [XYZ(p[0], p[1], z) for p in contorno]
     bucle = DB.CurveLoop()
     for i, p in enumerate(puntos):
         siguiente = puntos[(i + 1) % len(puntos)]
         if p.DistanceTo(siguiente) > 1e-6:
             bucle.Append(DB.Line.CreateBound(p, siguiente))
-    bucles = List[DB.CurveLoop]()
-    bucles.Add(bucle)
-    return bucles
+    try:
+        from System.Collections.Generic import List
+
+        bucles = List[DB.CurveLoop]()
+        bucles.Add(bucle)
+        return bucles
+    except Exception:
+        return [bucle]

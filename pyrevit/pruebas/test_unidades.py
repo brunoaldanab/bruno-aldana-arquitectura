@@ -24,17 +24,18 @@ class Conversiones(unittest.TestCase):
 
 
 class Orientacion(unittest.TestCase):
-    """La regla de una sola línea: la cara derecha es la que Revit usa sola."""
+    """La regla de una sola línea: la cara izquierda es la que Revit usa sola."""
 
-    def test_la_normal_por_defecto_es_la_direccion_girada_un_cuarto_de_vuelta(self):
-        self.assertEqual(unidades.normal_por_defecto((1.0, 0.0)), (0.0, -1.0))
-        self.assertEqual(unidades.normal_por_defecto((0.0, 1.0)), (1.0, 0.0))
+    def test_un_muro_hacia_mas_x_deja_su_cara_mirando_hacia_mas_y(self):
+        # Medido adentro de Revit el 14/09/2026 con un muro y una puerta de prueba.
+        self.assertEqual(unidades.normal_por_defecto((1.0, 0.0)), (0.0, 1.0))
+        self.assertEqual(unidades.normal_por_defecto((0.0, 1.0)), (-1.0, 0.0))
 
-    def test_la_cara_derecha_coincide_con_la_normal_por_defecto(self):
+    def test_la_cara_izquierda_coincide_con_la_normal_por_defecto(self):
         u = unidades.unitario((0.0, 0.0), (1.0, 0.0))
-        self.assertEqual(unidades.normal_cara(u, u"derecha"), unidades.normal_por_defecto(u))
+        self.assertEqual(unidades.normal_cara(u, u"izquierda"), unidades.normal_por_defecto(u))
 
-    def test_la_cara_izquierda_es_la_contraria(self):
+    def test_las_dos_caras_son_contrarias(self):
         u = (1.0, 0.0)
         izquierda = unidades.normal_cara(u, u"izquierda")
         derecha = unidades.normal_cara(u, u"derecha")

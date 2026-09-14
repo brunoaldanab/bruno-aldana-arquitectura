@@ -10,6 +10,9 @@ que quedaron a ojo.
 
 No modifica ni borra nada de lo que ya existía en el modelo: solo agrega.
 """
+import io
+import os
+
 from pyrevit import forms, revit, script
 
 from barelevamiento import informe as informes
@@ -30,6 +33,23 @@ def resumen(plan):
             singular, plural = informes.NOMBRES[clase]
             lineas.append(u"%s %s" % (len(ordenes), singular if len(ordenes) == 1 else plural))
     return u"\n".join(lineas)
+
+
+def guardar_informe(ruta_relevamiento, texto):
+    """Deja el informe en un .txt al lado del relevamiento.
+
+    La ventana de pyRevit se cierra y con ella se va el detalle de lo que no
+    entró. En un archivo queda, y se puede mandar o leer después sin volver a
+    correr el botón.
+    """
+    try:
+        base = os.path.splitext(ruta_relevamiento)[0]
+        destino = u"%s - informe.txt" % base
+        with io.open(destino, u"w", encoding=u"utf-8") as f:
+            f.write(texto)
+        return destino
+    except Exception:
+        return None
 
 
 def principal():
@@ -73,7 +93,11 @@ def principal():
             salida.print_md(u"# No se pudo traer el relevamiento\n\n%s" % e)
             return
 
-    salida.print_md(informes.texto(plan, resultado))
+    texto = informes.texto(plan, resultado)
+    salida.print_md(texto)
+    guardado = guardar_informe(ruta, texto)
+    if guardado:
+        salida.print_md(u"\n---\n*El informe quedó guardado en* `%s`" % guardado)
 
 
 principal()

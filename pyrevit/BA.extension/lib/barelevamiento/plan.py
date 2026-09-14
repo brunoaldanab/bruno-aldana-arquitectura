@@ -237,14 +237,14 @@ def _aberturas(nivel):
 
 
 def _invertir_cara(abertura):
-    """Una puerta que abre hacia la cara izquierda hay que darla vuelta.
+    """Una puerta que abre hacia la cara derecha hay que darla vuelta.
 
     Revit inserta lo hospedado mirando hacia la normal por defecto del muro, que
-    es exactamente la cara "derecha" de la pantalla (ver `unidades.normal_cara`).
-    Si no se cargó hacia dónde abre, no se toca nada: darla vuelta a ciegas es
-    peor que dejarla como la puso Revit.
+    es la cara "izquierda" de la pantalla (ver `unidades.normal_cara`). Si no se
+    cargó hacia dónde abre, no se toca nada: darla vuelta a ciegas es peor que
+    dejarla como la puso Revit.
     """
-    return abertura.get(u"abreHacia") == u"izquierda"
+    return abertura.get(u"abreHacia") == u"derecha"
 
 
 def _invertir_mano(abertura):
@@ -400,7 +400,7 @@ def _electricos(nivel):
                 punto=unidades.punto(g[u"punto"]),
                 # Mira hacia adentro del ambiente, que es la cara donde se colocó.
                 normal=unidades.normal_cara(direccion, e[u"cara"]),
-                invertir_cara=(e[u"cara"] == u"izquierda"),
+                invertir_cara=(e[u"cara"] == u"derecha"),
                 altura=unidades.pies(e[u"altura"][u"valor"]),
                 altura_cm=e[u"altura"][u"valor"],
                 notas=e.get(u"notas") or u"",

@@ -76,8 +76,12 @@ class CuartoDeBruno(unittest.TestCase):
         antepechos = [v for n, v in self.registro.parametros if n == u"antepecho"]
         self.assertIn(100 / 30.48, antepechos)
 
-    def test_no_da_vuelta_nada_que_no_haga_falta(self):
-        self.assertEqual(self.registro.volteos, [], u"la puerta abre hacia la cara derecha, que es la de Revit")
+    def test_la_puerta_y_los_enchufes_de_la_cara_derecha_se_dan_vuelta(self):
+        # Todo el cuarto se relevó desde adentro, que es la cara derecha de sus
+        # muros: Revit los inserta mirando al otro lado y hay que voltearlos.
+        # Son la puerta y los cinco puntos: la ventana no tiene cargado hacia
+        # dónde abre, y sin ese dato no se la toca.
+        self.assertEqual(len([v for v in self.registro.volteos if v[1] == u"cara"]), 6)
 
 
 class CasaDeEjemplo(unittest.TestCase):
