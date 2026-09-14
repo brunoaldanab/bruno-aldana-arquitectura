@@ -11,21 +11,25 @@ o el botón deja de entender lo que le mandan.
 
 ---
 
-## Instalarlo una sola vez
+## Instalarlo
 
-1. Abrir Revit y entrar a la pestaña **pyRevit**.
-2. Apretar **Settings** (la configuración).
-3. En **Custom Extension Directories** apretar **Add Folder** y elegir esta carpeta:
+**Ya está instalado** desde el 14/09/2026: la carpeta quedó registrada en pyRevit
+y pyRevit la reconoce. Lo único que falta para verla es que Revit vuelva a leer
+sus extensiones: **pestaña pyRevit → Reload**, o cerrar y abrir Revit.
 
-   ```
-   E:\BRUNO_CLAUDE\BA_ARQUITECTURA\app-entrevistas\pyrevit
-   ```
+Aparece entonces una pestaña nueva, **BA**, con el panel **Relevamiento** y el
+botón adentro. La carpeta que ya estaba cargada (`pyRevitExtensions`, con
+AldanaFurniture y ConsolaParametrica) sigue igual: esto se suma, no la reemplaza.
 
-4. Apretar **Save Settings and Reload**.
+Si alguna vez hay que volver a registrarla —en otra computadora, o si se pierde
+la configuración— se hace desde la terminal con una línea:
 
-Aparece una pestaña nueva, **BA**, con el panel **Relevamiento** y el botón
-adentro. La carpeta que ya estaba cargada (`pyRevitExtensions`, con AldanaFurniture
-y ConsolaParametrica) sigue igual: esto se suma, no la reemplaza.
+```
+pyrevit extensions paths add "E:\BRUNO_CLAUDE\BA_ARQUITECTURA\app-entrevistas\pyrevit"
+```
+
+o a mano, en Revit: pestaña **pyRevit** → **Settings** → **Custom Extension
+Directories** → **Add Folder** → elegir esa carpeta → **Save Settings and Reload**.
 
 ## Usarlo
 
@@ -88,6 +92,11 @@ pyrevit/
 La idea de fondo es **plan puro, ejecución tonta**: todo lo que se puede
 equivocar —unidades, coordenadas, hacia dónde abre una puerta— se resuelve en
 `plan.py`, que no toca Revit. El constructor solo ejecuta.
+
+`pruebas/dobles.py` es un Revit de mentira: deja correr el constructor entero sin
+abrir Revit y canta cualquier método mal escrito o parámetro inventado. No
+reemplaza a la prueba adentro del modelo —no sabe de geometría real— pero evita
+el error más caro, que es apretar el botón y que no pase nada.
 
 Las pruebas corren con el Python de la computadora, sin abrir Revit:
 
