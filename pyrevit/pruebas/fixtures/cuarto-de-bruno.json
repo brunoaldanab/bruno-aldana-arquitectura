@@ -1,0 +1,781 @@
+{
+  "formato": "ba-relevamiento",
+  "version": 2,
+  "unidades": "cm",
+  "proyecto": {
+    "contactoId": "bruno",
+    "nombre": "Cuarto de Bruno",
+    "direccion": "Santa Cruz de la Sierra",
+    "fechaRelevamiento": "2026-09-14"
+  },
+  "niveles": [
+    {
+      "id": "nivel-1",
+      "nombre": "Planta baja",
+      "cotaPiso": 0,
+      "alturaGeneral": {
+        "valor": 263,
+        "tomada": true
+      },
+      "nodos": [
+        {
+          "id": "n1",
+          "x": -7.5,
+          "y": -7.5
+        },
+        {
+          "id": "n2",
+          "x": 412.5,
+          "y": -7.5
+        },
+        {
+          "id": "n3",
+          "x": 412.5,
+          "y": 463.5
+        },
+        {
+          "id": "n4",
+          "x": -7.5,
+          "y": 463.5
+        }
+      ],
+      "muros": [
+        {
+          "id": "m1",
+          "desde": "n1",
+          "hasta": "n2",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 405,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m2",
+          "desde": "n2",
+          "hasta": "n3",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 456,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m3",
+          "desde": "n3",
+          "hasta": "n4",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 405,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m4",
+          "desde": "n4",
+          "hasta": "n1",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 456,
+              "tomada": true
+            }
+          }
+        }
+      ],
+      "aberturas": [
+        {
+          "id": "a1",
+          "codigo": "P1",
+          "tipo": "puerta",
+          "muroId": "m1",
+          "cara": "derecha",
+          "desde": {
+            "valor": 30,
+            "tomada": true
+          },
+          "ancho": {
+            "valor": 80,
+            "tomada": true
+          },
+          "alto": {
+            "valor": 210,
+            "tomada": true
+          },
+          "antepecho": {
+            "valor": 0,
+            "tomada": true
+          },
+          "apertura": "batiente",
+          "abreHacia": "derecha",
+          "bisagra": "inicio",
+          "notas": ""
+        },
+        {
+          "id": "a2",
+          "codigo": "V1",
+          "tipo": "ventana",
+          "muroId": "m2",
+          "cara": "derecha",
+          "desde": {
+            "valor": 120,
+            "tomada": true
+          },
+          "ancho": {
+            "valor": 150,
+            "tomada": true
+          },
+          "alto": {
+            "valor": 110,
+            "tomada": true
+          },
+          "antepecho": {
+            "valor": 100,
+            "tomada": true
+          },
+          "apertura": "corrediza",
+          "abreHacia": null,
+          "bisagra": null,
+          "notas": ""
+        }
+      ],
+      "columnas": [
+        {
+          "id": "c1",
+          "x": 25,
+          "y": 430,
+          "ancho": {
+            "valor": 30,
+            "tomada": true
+          },
+          "profundidad": {
+            "valor": 30,
+            "tomada": true
+          },
+          "rotacion": 0,
+          "altura": null
+        }
+      ],
+      "electricos": [
+        {
+          "id": "e1",
+          "codigo": "L1",
+          "tipo": "int-simple",
+          "muroId": "m1",
+          "cara": "derecha",
+          "desde": {
+            "valor": 120,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 125,
+            "tomada": false
+          },
+          "notas": ""
+        },
+        {
+          "id": "e2",
+          "codigo": "T1",
+          "tipo": "toma-doble",
+          "muroId": "m4",
+          "cara": "derecha",
+          "desde": {
+            "valor": 90,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 30,
+            "tomada": false
+          },
+          "notas": ""
+        },
+        {
+          "id": "e3",
+          "codigo": "T2",
+          "tipo": "toma-doble",
+          "muroId": "m3",
+          "cara": "derecha",
+          "desde": {
+            "valor": 200,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 30,
+            "tomada": false
+          },
+          "notas": ""
+        },
+        {
+          "id": "e4",
+          "codigo": "D1",
+          "tipo": "datos-tv",
+          "muroId": "m3",
+          "cara": "derecha",
+          "desde": {
+            "valor": 260,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 30,
+            "tomada": false
+          },
+          "notas": ""
+        },
+        {
+          "id": "e5",
+          "codigo": "F1",
+          "tipo": "fuerza-aire",
+          "muroId": "m2",
+          "cara": "derecha",
+          "desde": {
+            "valor": 60,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 220,
+            "tomada": false
+          },
+          "notas": ""
+        }
+      ],
+      "ambientes": [
+        {
+          "id": "amb1",
+          "nombre": "Cuarto",
+          "contorno": [
+            {
+              "muroId": "m1",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m4",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m3",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m2",
+              "cara": "derecha"
+            }
+          ],
+          "desnivelPiso": 0
+        }
+      ],
+      "techos": [
+        {
+          "id": "t1",
+          "ambienteId": "amb1",
+          "tipo": "cielo-falso",
+          "contorno": [
+            {
+              "x": 405,
+              "y": 0
+            },
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 0,
+              "y": 456
+            },
+            {
+              "x": 405,
+              "y": 456
+            }
+          ],
+          "altura": {
+            "valor": 240,
+            "tomada": false
+          },
+          "padreId": null,
+          "margen": null
+        },
+        {
+          "id": "t2",
+          "ambienteId": "amb1",
+          "tipo": "cajon",
+          "contorno": [
+            {
+              "x": 365,
+              "y": 40
+            },
+            {
+              "x": 40,
+              "y": 40
+            },
+            {
+              "x": 40,
+              "y": 416
+            },
+            {
+              "x": 365,
+              "y": 416
+            }
+          ],
+          "altura": {
+            "valor": 220,
+            "tomada": false
+          },
+          "padreId": "t1",
+          "margen": {
+            "valor": 40,
+            "tomada": false
+          }
+        }
+      ],
+      "molduras": [
+        {
+          "id": "mol1",
+          "ambienteId": "amb1",
+          "caras": [
+            {
+              "muroId": "m1",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m4",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m3",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m2",
+              "cara": "derecha"
+            }
+          ],
+          "ancho": {
+            "valor": 10,
+            "tomada": false
+          },
+          "caida": {
+            "valor": 10,
+            "tomada": false
+          }
+        }
+      ],
+      "vigas": []
+    }
+  ],
+  "calculado": {
+    "niveles": [
+      {
+        "id": "nivel-1",
+        "muros": [
+          {
+            "id": "m1",
+            "inicio": {
+              "x": -7.5,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 412.5,
+              "y": -7.5
+            },
+            "largo": 420
+          },
+          {
+            "id": "m2",
+            "inicio": {
+              "x": 412.5,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 412.5,
+              "y": 463.5
+            },
+            "largo": 471
+          },
+          {
+            "id": "m3",
+            "inicio": {
+              "x": 412.5,
+              "y": 463.5
+            },
+            "fin": {
+              "x": -7.5,
+              "y": 463.5
+            },
+            "largo": 420
+          },
+          {
+            "id": "m4",
+            "inicio": {
+              "x": -7.5,
+              "y": 463.5
+            },
+            "fin": {
+              "x": -7.5,
+              "y": -7.5
+            },
+            "largo": 471
+          }
+        ],
+        "caras": [
+          {
+            "muroId": "m1",
+            "cara": "izquierda",
+            "desde": {
+              "x": -15,
+              "y": -15
+            },
+            "hasta": {
+              "x": 420,
+              "y": -15
+            }
+          },
+          {
+            "muroId": "m1",
+            "cara": "derecha",
+            "desde": {
+              "x": 0,
+              "y": 0
+            },
+            "hasta": {
+              "x": 405,
+              "y": 0
+            }
+          },
+          {
+            "muroId": "m2",
+            "cara": "izquierda",
+            "desde": {
+              "x": 420,
+              "y": -15
+            },
+            "hasta": {
+              "x": 420,
+              "y": 471
+            }
+          },
+          {
+            "muroId": "m2",
+            "cara": "derecha",
+            "desde": {
+              "x": 405,
+              "y": 0
+            },
+            "hasta": {
+              "x": 405,
+              "y": 456
+            }
+          },
+          {
+            "muroId": "m3",
+            "cara": "izquierda",
+            "desde": {
+              "x": 420,
+              "y": 471
+            },
+            "hasta": {
+              "x": -15,
+              "y": 471
+            }
+          },
+          {
+            "muroId": "m3",
+            "cara": "derecha",
+            "desde": {
+              "x": 405,
+              "y": 456
+            },
+            "hasta": {
+              "x": 0,
+              "y": 456
+            }
+          },
+          {
+            "muroId": "m4",
+            "cara": "izquierda",
+            "desde": {
+              "x": -15,
+              "y": 471
+            },
+            "hasta": {
+              "x": -15,
+              "y": -15
+            }
+          },
+          {
+            "muroId": "m4",
+            "cara": "derecha",
+            "desde": {
+              "x": 0,
+              "y": 456
+            },
+            "hasta": {
+              "x": 0,
+              "y": 0
+            }
+          }
+        ],
+        "aberturas": [
+          {
+            "id": "a1",
+            "centro": {
+              "x": 70,
+              "y": -7.5
+            },
+            "hastaEsquina": 295
+          },
+          {
+            "id": "a2",
+            "centro": {
+              "x": 412.5,
+              "y": 195
+            },
+            "hastaEsquina": 186
+          }
+        ],
+        "electricos": [
+          {
+            "id": "e1",
+            "punto": {
+              "x": 120,
+              "y": 0
+            }
+          },
+          {
+            "id": "e2",
+            "punto": {
+              "x": 0,
+              "y": 366
+            }
+          },
+          {
+            "id": "e3",
+            "punto": {
+              "x": 205,
+              "y": 456
+            }
+          },
+          {
+            "id": "e4",
+            "punto": {
+              "x": 145,
+              "y": 456
+            }
+          },
+          {
+            "id": "e5",
+            "punto": {
+              "x": 405,
+              "y": 60
+            }
+          }
+        ],
+        "ambientes": [
+          {
+            "id": "amb1",
+            "contorno": [
+              {
+                "x": 405,
+                "y": 0
+              },
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 0,
+                "y": 456
+              },
+              {
+                "x": 405,
+                "y": 456
+              }
+            ],
+            "superficie": 18.468,
+            "perimetro": 1722,
+            "puntoInterior": {
+              "x": 202.5,
+              "y": 228
+            }
+          }
+        ],
+        "controles": [
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "L1 · Llave de 1 tecla: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "L1 · Llave de 1 tecla: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "T1 · Tomacorriente doble: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "T1 · Tomacorriente doble: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "T2 · Tomacorriente doble: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e3"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "T2 · Tomacorriente doble: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e3"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "D1 · Salida de TV: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e4"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "D1 · Salida de TV: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e4"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "F1 · Aire acondicionado: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e5"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "F1 · Aire acondicionado: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e5"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Zona de techo t1: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "techo",
+              "id": "t1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Zona de techo t2: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "techo",
+              "id": "t2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Bandeja t2: margen",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "techo",
+              "id": "t2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Moldura mol1: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "moldura",
+              "id": "mol1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Moldura mol1: caída",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "moldura",
+              "id": "mol1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

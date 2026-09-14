@@ -49,6 +49,15 @@ describe("archivo para Revit", () => {
     expect(nombreArchivo(relevamientoDelCuarto())).toBe("relevamiento-cuarto-bruno-2026-09-10.json");
   });
 
+  it("escribe las dos esquinas de cada cara, que es lo que usa la moldura en Revit", () => {
+    const r = conCalculado(relevamientoDelCuarto());
+    const caras = r.calculado!.niveles[0].caras;
+    expect(caras).toHaveLength(r.niveles[0].muros.length * 2);
+    const interior = caras.find((c) => c.muroId === "m1" && c.cara === "derecha")!;
+    expect(interior.desde).toEqual({ x: 0, y: 0 });
+    expect(interior.hasta.y).toBe(0);
+  });
+
   it("un relevamiento guardado antes de los enchufes y las bandejas se abre igual", () => {
     const viejo = JSON.parse(JSON.stringify(relevamientoDelCuarto())) as Record<string, unknown>;
     const nivel = (viejo.niveles as Record<string, unknown>[])[0];

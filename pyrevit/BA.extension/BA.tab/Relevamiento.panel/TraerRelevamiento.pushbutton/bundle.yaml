@@ -1,0 +1,7 @@
+title: Traer relevamiento
+tooltip: >
+  Lee el archivo de relevamiento que sale del telefono y crea en el proyecto
+  abierto los muros, puertas, ventanas, vanos, columnas, ambientes con su piso,
+  cielos falsos con sus bandejas, molduras, vigas y puntos electricos.
+  No modifica ni borra nada de lo que ya existe.
+author: Bruno Aldana - Arquitectura

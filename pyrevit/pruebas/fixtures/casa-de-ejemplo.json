@@ -1,0 +1,1198 @@
+{
+  "formato": "ba-relevamiento",
+  "version": 2,
+  "unidades": "cm",
+  "proyecto": {
+    "contactoId": "ejemplo",
+    "nombre": "Casa de ejemplo",
+    "direccion": "Santa Cruz de la Sierra",
+    "fechaRelevamiento": "2026-09-14"
+  },
+  "niveles": [
+    {
+      "id": "nivel-1",
+      "nombre": "Planta baja",
+      "cotaPiso": 0,
+      "alturaGeneral": {
+        "valor": 250,
+        "tomada": true
+      },
+      "nodos": [
+        {
+          "id": "n1",
+          "x": -7.5,
+          "y": -7.5
+        },
+        {
+          "id": "n2",
+          "x": 305,
+          "y": -7.5
+        },
+        {
+          "id": "n3",
+          "x": 507.5,
+          "y": -7.5
+        },
+        {
+          "id": "n4",
+          "x": 507.5,
+          "y": 255
+        },
+        {
+          "id": "n5",
+          "x": 507.5,
+          "y": 407.5
+        },
+        {
+          "id": "n6",
+          "x": 305,
+          "y": 407.5
+        },
+        {
+          "id": "n7",
+          "x": -7.5,
+          "y": 407.5
+        },
+        {
+          "id": "n8",
+          "x": 305,
+          "y": 255
+        }
+      ],
+      "muros": [
+        {
+          "id": "m1",
+          "desde": "n1",
+          "hasta": "n2",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 300,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m2",
+          "desde": "n2",
+          "hasta": "n3",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 190,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m3",
+          "desde": "n3",
+          "hasta": "n4",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 250,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m4",
+          "desde": "n4",
+          "hasta": "n5",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 140,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m5",
+          "desde": "n5",
+          "hasta": "n6",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 190,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m6",
+          "desde": "n6",
+          "hasta": "n7",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 300,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m7",
+          "desde": "n7",
+          "hasta": "n1",
+          "espesor": {
+            "valor": 15,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": null,
+            "derecha": {
+              "valor": 400,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m8",
+          "desde": "n2",
+          "hasta": "n8",
+          "espesor": {
+            "valor": 10,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": {
+              "valor": 250,
+              "tomada": true
+            },
+            "derecha": null
+          }
+        },
+        {
+          "id": "m9",
+          "desde": "n8",
+          "hasta": "n6",
+          "espesor": {
+            "valor": 10,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": {
+              "valor": 140,
+              "tomada": true
+            },
+            "derecha": {
+              "valor": 400,
+              "tomada": true
+            }
+          }
+        },
+        {
+          "id": "m10",
+          "desde": "n8",
+          "hasta": "n4",
+          "espesor": {
+            "valor": 10,
+            "tomada": true
+          },
+          "altura": null,
+          "caras": {
+            "izquierda": {
+              "valor": 190,
+              "tomada": true
+            },
+            "derecha": {
+              "valor": 190,
+              "tomada": true
+            }
+          }
+        }
+      ],
+      "aberturas": [
+        {
+          "id": "a1",
+          "codigo": "P1",
+          "tipo": "puerta",
+          "muroId": "m8",
+          "cara": "derecha",
+          "desde": {
+            "valor": 260,
+            "tomada": false
+          },
+          "ancho": {
+            "valor": 80,
+            "tomada": false
+          },
+          "alto": {
+            "valor": 200,
+            "tomada": false
+          },
+          "antepecho": {
+            "valor": 0,
+            "tomada": true
+          },
+          "apertura": "batiente",
+          "abreHacia": "derecha",
+          "bisagra": "fin",
+          "notas": ""
+        },
+        {
+          "id": "a2",
+          "codigo": "P2",
+          "tipo": "puerta",
+          "muroId": "m10",
+          "cara": "izquierda",
+          "desde": {
+            "valor": 40,
+            "tomada": false
+          },
+          "ancho": {
+            "valor": 70,
+            "tomada": false
+          },
+          "alto": {
+            "valor": 200,
+            "tomada": false
+          },
+          "antepecho": {
+            "valor": 0,
+            "tomada": true
+          },
+          "apertura": "batiente",
+          "abreHacia": null,
+          "bisagra": null,
+          "notas": ""
+        },
+        {
+          "id": "a3",
+          "codigo": "A1",
+          "tipo": "vano",
+          "muroId": "m9",
+          "cara": "izquierda",
+          "desde": {
+            "valor": 20,
+            "tomada": false
+          },
+          "ancho": {
+            "valor": 100,
+            "tomada": false
+          },
+          "alto": {
+            "valor": 210,
+            "tomada": false
+          },
+          "antepecho": {
+            "valor": 0,
+            "tomada": true
+          },
+          "apertura": null,
+          "abreHacia": null,
+          "bisagra": null,
+          "notas": ""
+        },
+        {
+          "id": "a4",
+          "codigo": "V1",
+          "tipo": "ventana",
+          "muroId": "m7",
+          "cara": "derecha",
+          "desde": {
+            "valor": 150,
+            "tomada": false
+          },
+          "ancho": {
+            "valor": 120,
+            "tomada": false
+          },
+          "alto": {
+            "valor": 120,
+            "tomada": false
+          },
+          "antepecho": {
+            "valor": 90,
+            "tomada": false
+          },
+          "apertura": "corrediza",
+          "abreHacia": null,
+          "bisagra": null,
+          "notas": ""
+        }
+      ],
+      "columnas": [],
+      "electricos": [
+        {
+          "id": "e1",
+          "codigo": "L1",
+          "tipo": "int-doble",
+          "muroId": "m8",
+          "cara": "derecha",
+          "desde": {
+            "valor": 350,
+            "tomada": false
+          },
+          "altura": {
+            "valor": 125,
+            "tomada": false
+          },
+          "notas": ""
+        }
+      ],
+      "ambientes": [
+        {
+          "id": "amb1",
+          "nombre": "Dormitorio",
+          "contorno": [
+            {
+              "muroId": "m1",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m7",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m6",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m9",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m8",
+              "cara": "derecha"
+            }
+          ],
+          "desnivelPiso": 0
+        },
+        {
+          "id": "amb2",
+          "nombre": "Baño",
+          "contorno": [
+            {
+              "muroId": "m2",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m8",
+              "cara": "izquierda"
+            },
+            {
+              "muroId": "m10",
+              "cara": "izquierda"
+            },
+            {
+              "muroId": "m3",
+              "cara": "derecha"
+            }
+          ],
+          "desnivelPiso": 0
+        },
+        {
+          "id": "amb3",
+          "nombre": "Pasillo",
+          "contorno": [
+            {
+              "muroId": "m4",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m10",
+              "cara": "derecha"
+            },
+            {
+              "muroId": "m9",
+              "cara": "izquierda"
+            },
+            {
+              "muroId": "m5",
+              "cara": "derecha"
+            }
+          ],
+          "desnivelPiso": 0
+        }
+      ],
+      "techos": [
+        {
+          "id": "t1",
+          "ambienteId": "amb1",
+          "tipo": "losa",
+          "contorno": [
+            {
+              "x": 300,
+              "y": 0
+            },
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 0,
+              "y": 400
+            },
+            {
+              "x": 300,
+              "y": 400
+            }
+          ],
+          "altura": {
+            "valor": 250,
+            "tomada": false
+          },
+          "padreId": null,
+          "margen": null
+        }
+      ],
+      "molduras": [],
+      "vigas": [
+        {
+          "id": "v1",
+          "inicio": {
+            "x": -7.5,
+            "y": 255
+          },
+          "fin": {
+            "x": 305,
+            "y": 255
+          },
+          "ancho": {
+            "valor": 15,
+            "tomada": false
+          },
+          "peralte": {
+            "valor": 30,
+            "tomada": false
+          }
+        }
+      ]
+    }
+  ],
+  "calculado": {
+    "niveles": [
+      {
+        "id": "nivel-1",
+        "muros": [
+          {
+            "id": "m1",
+            "inicio": {
+              "x": -7.5,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 305,
+              "y": -7.5
+            },
+            "largo": 312.5
+          },
+          {
+            "id": "m2",
+            "inicio": {
+              "x": 305,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 507.5,
+              "y": -7.5
+            },
+            "largo": 202.5
+          },
+          {
+            "id": "m3",
+            "inicio": {
+              "x": 507.5,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 507.5,
+              "y": 255
+            },
+            "largo": 262.5
+          },
+          {
+            "id": "m4",
+            "inicio": {
+              "x": 507.5,
+              "y": 255
+            },
+            "fin": {
+              "x": 507.5,
+              "y": 407.5
+            },
+            "largo": 152.5
+          },
+          {
+            "id": "m5",
+            "inicio": {
+              "x": 507.5,
+              "y": 407.5
+            },
+            "fin": {
+              "x": 305,
+              "y": 407.5
+            },
+            "largo": 202.5
+          },
+          {
+            "id": "m6",
+            "inicio": {
+              "x": 305,
+              "y": 407.5
+            },
+            "fin": {
+              "x": -7.5,
+              "y": 407.5
+            },
+            "largo": 312.5
+          },
+          {
+            "id": "m7",
+            "inicio": {
+              "x": -7.5,
+              "y": 407.5
+            },
+            "fin": {
+              "x": -7.5,
+              "y": -7.5
+            },
+            "largo": 415
+          },
+          {
+            "id": "m8",
+            "inicio": {
+              "x": 305,
+              "y": -7.5
+            },
+            "fin": {
+              "x": 305,
+              "y": 255
+            },
+            "largo": 262.5
+          },
+          {
+            "id": "m9",
+            "inicio": {
+              "x": 305,
+              "y": 255
+            },
+            "fin": {
+              "x": 305,
+              "y": 407.5
+            },
+            "largo": 152.5
+          },
+          {
+            "id": "m10",
+            "inicio": {
+              "x": 305,
+              "y": 255
+            },
+            "fin": {
+              "x": 507.5,
+              "y": 255
+            },
+            "largo": 202.5
+          }
+        ],
+        "caras": [
+          {
+            "muroId": "m1",
+            "cara": "izquierda",
+            "desde": {
+              "x": -15,
+              "y": -15
+            },
+            "hasta": {
+              "x": 305,
+              "y": -15
+            }
+          },
+          {
+            "muroId": "m1",
+            "cara": "derecha",
+            "desde": {
+              "x": 0,
+              "y": 0
+            },
+            "hasta": {
+              "x": 300,
+              "y": 0
+            }
+          },
+          {
+            "muroId": "m2",
+            "cara": "izquierda",
+            "desde": {
+              "x": 305,
+              "y": -15
+            },
+            "hasta": {
+              "x": 515,
+              "y": -15
+            }
+          },
+          {
+            "muroId": "m2",
+            "cara": "derecha",
+            "desde": {
+              "x": 310,
+              "y": 0
+            },
+            "hasta": {
+              "x": 500,
+              "y": 0
+            }
+          },
+          {
+            "muroId": "m3",
+            "cara": "izquierda",
+            "desde": {
+              "x": 515,
+              "y": -15
+            },
+            "hasta": {
+              "x": 515,
+              "y": 255
+            }
+          },
+          {
+            "muroId": "m3",
+            "cara": "derecha",
+            "desde": {
+              "x": 500,
+              "y": 0
+            },
+            "hasta": {
+              "x": 500,
+              "y": 250
+            }
+          },
+          {
+            "muroId": "m4",
+            "cara": "izquierda",
+            "desde": {
+              "x": 515,
+              "y": 255
+            },
+            "hasta": {
+              "x": 515,
+              "y": 415
+            }
+          },
+          {
+            "muroId": "m4",
+            "cara": "derecha",
+            "desde": {
+              "x": 500,
+              "y": 260
+            },
+            "hasta": {
+              "x": 500,
+              "y": 400
+            }
+          },
+          {
+            "muroId": "m5",
+            "cara": "izquierda",
+            "desde": {
+              "x": 515,
+              "y": 415
+            },
+            "hasta": {
+              "x": 305,
+              "y": 415
+            }
+          },
+          {
+            "muroId": "m5",
+            "cara": "derecha",
+            "desde": {
+              "x": 500,
+              "y": 400
+            },
+            "hasta": {
+              "x": 310,
+              "y": 400
+            }
+          },
+          {
+            "muroId": "m6",
+            "cara": "izquierda",
+            "desde": {
+              "x": 305,
+              "y": 415
+            },
+            "hasta": {
+              "x": -15,
+              "y": 415
+            }
+          },
+          {
+            "muroId": "m6",
+            "cara": "derecha",
+            "desde": {
+              "x": 300,
+              "y": 400
+            },
+            "hasta": {
+              "x": 0,
+              "y": 400
+            }
+          },
+          {
+            "muroId": "m7",
+            "cara": "izquierda",
+            "desde": {
+              "x": -15,
+              "y": 415
+            },
+            "hasta": {
+              "x": -15,
+              "y": -15
+            }
+          },
+          {
+            "muroId": "m7",
+            "cara": "derecha",
+            "desde": {
+              "x": 0,
+              "y": 400
+            },
+            "hasta": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "muroId": "m8",
+            "cara": "izquierda",
+            "desde": {
+              "x": 310,
+              "y": 0
+            },
+            "hasta": {
+              "x": 310,
+              "y": 250
+            }
+          },
+          {
+            "muroId": "m8",
+            "cara": "derecha",
+            "desde": {
+              "x": 300,
+              "y": 0
+            },
+            "hasta": {
+              "x": 300,
+              "y": 255
+            }
+          },
+          {
+            "muroId": "m9",
+            "cara": "izquierda",
+            "desde": {
+              "x": 310,
+              "y": 260
+            },
+            "hasta": {
+              "x": 310,
+              "y": 400
+            }
+          },
+          {
+            "muroId": "m9",
+            "cara": "derecha",
+            "desde": {
+              "x": 300,
+              "y": 255
+            },
+            "hasta": {
+              "x": 300,
+              "y": 400
+            }
+          },
+          {
+            "muroId": "m10",
+            "cara": "izquierda",
+            "desde": {
+              "x": 310,
+              "y": 250
+            },
+            "hasta": {
+              "x": 500,
+              "y": 250
+            }
+          },
+          {
+            "muroId": "m10",
+            "cara": "derecha",
+            "desde": {
+              "x": 310,
+              "y": 260
+            },
+            "hasta": {
+              "x": 500,
+              "y": 260
+            }
+          }
+        ],
+        "aberturas": [
+          {
+            "id": "a1",
+            "centro": {
+              "x": 305,
+              "y": 300
+            },
+            "hastaEsquina": -85
+          },
+          {
+            "id": "a2",
+            "centro": {
+              "x": 385,
+              "y": 255
+            },
+            "hastaEsquina": 80
+          },
+          {
+            "id": "a3",
+            "centro": {
+              "x": 305,
+              "y": 330
+            },
+            "hastaEsquina": 20
+          },
+          {
+            "id": "a4",
+            "centro": {
+              "x": -7.5,
+              "y": 190
+            },
+            "hastaEsquina": 130
+          }
+        ],
+        "electricos": [
+          {
+            "id": "e1",
+            "punto": {
+              "x": 300,
+              "y": 350
+            }
+          }
+        ],
+        "ambientes": [
+          {
+            "id": "amb1",
+            "contorno": [
+              {
+                "x": 300,
+                "y": 0
+              },
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 0,
+                "y": 400
+              },
+              {
+                "x": 300,
+                "y": 400
+              }
+            ],
+            "superficie": 12,
+            "perimetro": 1400,
+            "puntoInterior": {
+              "x": 150,
+              "y": 200
+            }
+          },
+          {
+            "id": "amb2",
+            "contorno": [
+              {
+                "x": 500,
+                "y": 0
+              },
+              {
+                "x": 310,
+                "y": 0
+              },
+              {
+                "x": 310,
+                "y": 250
+              },
+              {
+                "x": 500,
+                "y": 250
+              }
+            ],
+            "superficie": 4.75,
+            "perimetro": 880,
+            "puntoInterior": {
+              "x": 405,
+              "y": 125
+            }
+          },
+          {
+            "id": "amb3",
+            "contorno": [
+              {
+                "x": 500,
+                "y": 400
+              },
+              {
+                "x": 500,
+                "y": 260
+              },
+              {
+                "x": 310,
+                "y": 260
+              },
+              {
+                "x": 310,
+                "y": 400
+              }
+            ],
+            "superficie": 2.66,
+            "perimetro": 660,
+            "puntoInterior": {
+              "x": 405,
+              "y": 330
+            }
+          }
+        ],
+        "controles": [
+          {
+            "tipo": "error",
+            "codigo": "abertura-fuera",
+            "mensaje": "P1 se sale de su cara",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P1: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P1: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P1: alto",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P2: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P2: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "P2: alto",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a2"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "A1: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a3"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "A1: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a3"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "A1: alto",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a3"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "V1: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a4"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "V1: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a4"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "V1: alto",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a4"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "V1: antepecho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "abertura",
+              "id": "a4"
+            }
+          },
+          {
+            "tipo": "error",
+            "codigo": "electrico-fuera",
+            "mensaje": "L1 se sale de su pared",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "L1 · Llave de 2 teclas: desde la esquina",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "L1 · Llave de 2 teclas: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "electrico",
+              "id": "e1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Zona de techo t1: altura",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "techo",
+              "id": "t1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Viga v1: ancho",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "viga",
+              "id": "v1"
+            }
+          },
+          {
+            "tipo": "pendiente",
+            "codigo": "pendiente",
+            "mensaje": "Viga v1: peralte",
+            "nivelId": "nivel-1",
+            "elemento": {
+              "tipo": "viga",
+              "id": "v1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

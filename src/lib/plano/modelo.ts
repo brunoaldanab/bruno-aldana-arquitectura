@@ -207,6 +207,10 @@ export const calculadoSchema = z.object({
     z.object({
       id,
       muros: z.array(z.object({ id, inicio: puntoSchema, fin: puntoSchema, largo: z.number() })),
+      /** Las esquinas de cada cara, para las molduras que recorren solo algunos lados. */
+      caras: z
+        .array(z.object({ muroId: id, cara: nombreCaraSchema, desde: puntoSchema, hasta: puntoSchema }))
+        .default([]),
       aberturas: z.array(z.object({ id, centro: puntoSchema, hastaEsquina: z.number() })),
       electricos: z.array(z.object({ id, punto: puntoSchema })).default([]),
       ambientes: z.array(

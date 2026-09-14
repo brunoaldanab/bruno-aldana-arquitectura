@@ -1,12 +1,12 @@
 // src/lib/plano/archivo.ts
 import { nombreDeArchivo } from "@/lib/relevamiento/descarga";
-import { posicionNodo } from "./caras";
+import { esquinasCara, posicionNodo, todasLasCaras } from "./caras";
 import { revisarRelevamiento } from "./controles";
 import { centroAbertura, hastaEsquina } from "./elementos";
 import { posicionPunto } from "./electricos";
 import { relevamientoSchema, type Calculado, type Relevamiento } from "./modelo";
 import { contornoInterior, perimetro, puntoInterior, superficie } from "./superficie";
-import { distancia, redondear } from "./vector";
+import { distancia, redondear, redondearPunto } from "./vector";
 
 /**
  * El archivo "ba-relevamiento" v2 que se lleva a Revit. Además de lo que
@@ -24,6 +24,10 @@ export function calcularGeometria(r: Relevamiento): Calculado {
         const inicio = posicionNodo(n, m.desde);
         const fin = posicionNodo(n, m.hasta);
         return { id: m.id, inicio: { ...inicio }, fin: { ...fin }, largo: redondear(distancia(inicio, fin)) };
+      }),
+      caras: todasLasCaras(n).map((c) => {
+        const { desde, hasta } = esquinasCara(n, c);
+        return { ...c, desde: redondearPunto(desde), hasta: redondearPunto(hasta) };
       }),
       aberturas: n.aberturas.map((a) => ({ id: a.id, centro: centroAbertura(n, a), hastaEsquina: hastaEsquina(n, a) })),
       electricos: n.electricos.map((e) => ({ id: e.id, punto: posicionPunto(n, e) })),

@@ -31,3 +31,7 @@ Thumbs.db
 .agents/
 skills-lock.json
 .playwright-mcp/
+
+# Python de la extension de pyRevit
+__pycache__/
+*.pyc
