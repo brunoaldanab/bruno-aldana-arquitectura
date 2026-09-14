@@ -31,28 +31,38 @@ const ROJO = "var(--color-danger-600)";
 
 export const puntos = (ps: Punto[]) => ps.map((p) => `${p.x},${p.y}`).join(" ");
 
+/** Debajo de esto el número no entra sobre su propia línea y solo ensucia el plano. */
+const PX_PARA_EL_NUMERO = 30;
+const PX_PARA_LA_LINEA = 12;
+
 export function CotaSvg({ cota, k, interactiva }: { cota: Cota; k: number; interactiva: boolean }) {
   const { inicio: a, fin: b, normal: n } = cota;
   // Solo la cota de un lado de ambiente se toca: las demás salen del dibujo y no tienen medida propia.
   const toque = interactiva ? cota.toque : null;
   const color = cota.tomada ? TINTA : GRIS;
+  // El largo que la cota ocupa en la pantalla, no en el plano: es lo que decide si el número cabe.
+  const px = distancia(a, b) / k;
+  if (px < PX_PARA_LA_LINEA) return null;
+  const conNumero = px >= PX_PARA_EL_NUMERO;
   const u = unitario({ x: b.x - a.x, y: b.y - a.y });
-  const marca = { x: (u.x + n.x) * 4 * k, y: (u.y + n.y) * 4 * k };
-  const t = { x: (a.x + b.x) / 2 + n.x * 11 * k, y: (a.y + b.y) / 2 + n.y * 11 * k };
+  const marca = { x: (u.x + n.x) * 3 * k, y: (u.y + n.y) * 3 * k };
+  const t = { x: (a.x + b.x) / 2 + n.x * 8 * k, y: (a.y + b.y) / 2 + n.y * 8 * k };
   let angulo = (Math.atan2(u.y, u.x) * 180) / Math.PI;
   if (angulo > 90) angulo -= 180;
   if (angulo <= -90) angulo += 180;
   const giro = `rotate(${angulo} ${t.x} ${t.y})`;
   return (
-    <g data-cota={toque ?? undefined}>
-      <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color} strokeWidth={k} strokeDasharray={cota.tomada ? undefined : `${4 * k} ${3 * k}`} />
+    <g data-cota={conNumero ? (toque ?? undefined) : undefined}>
+      <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color} strokeWidth={0.8 * k} strokeDasharray={cota.tomada ? undefined : `${4 * k} ${3 * k}`} />
       {[a, b].map((p, i) => (
-        <line key={i} x1={p.x - marca.x} y1={p.y - marca.y} x2={p.x + marca.x} y2={p.y + marca.y} stroke={color} strokeWidth={1.2 * k} />
+        <line key={i} x1={p.x - marca.x} y1={p.y - marca.y} x2={p.x + marca.x} y2={p.y + marca.y} stroke={color} strokeWidth={k} />
       ))}
-      <text x={t.x} y={t.y} transform={giro} textAnchor="middle" dominantBaseline="central" fontSize={11 * k} fill={color} style={MONO}>
-        {cota.texto}
-      </text>
-      {toque && <rect x={t.x - 28 * k} y={t.y - 15 * k} width={56 * k} height={30 * k} transform={giro} fill="transparent" />}
+      {conNumero && (
+        <text x={t.x} y={t.y} transform={giro} textAnchor="middle" dominantBaseline="central" fontSize={8.5 * k} fill={color} style={MONO}>
+          {cota.texto}
+        </text>
+      )}
+      {conNumero && toque && <rect x={t.x - 24 * k} y={t.y - 13 * k} width={48 * k} height={26 * k} transform={giro} fill="transparent" />}
     </g>
   );
 }
@@ -80,7 +90,7 @@ function AberturaSvg({ nivel, a, k }: { nivel: Nivel; a: Abertura; k: number }) 
           </g>
         );
       })}
-      <text x={g.etiqueta.x} y={g.etiqueta.y} textAnchor="middle" dominantBaseline="central" fontSize={10 * k} fill={TINTA} style={MONO}>
+      <text x={g.etiqueta.x} y={g.etiqueta.y} textAnchor="middle" dominantBaseline="central" fontSize={8 * k} fill={TINTA} style={MONO}>
         {a.codigo}
       </text>
     </g>
@@ -88,18 +98,19 @@ function AberturaSvg({ nivel, a, k }: { nivel: Nivel; a: Abertura; k: number }) 
 }
 
 /** El enchufe o la llave: un círculo sobre la pared con su símbolo, el código y la altura. */
-function PuntoSvg({ nivel, e, k, elegido }: { nivel: Nivel; e: PuntoElectrico; k: number; elegido: boolean }) {
+function PuntoSvg({ nivel, e, k, elegido, rotulo }: { nivel: Nivel; e: PuntoElectrico; k: number; elegido: boolean; rotulo: boolean }) {
   const p = posicionPunto(nivel, e);
-  const r = 10 * k;
   return (
     <g>
-      <circle cx={p.x} cy={p.y} r={r} fill={FONDO} stroke={TINTA} strokeWidth={(elegido ? 3 : 1.4) * k} />
-      <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={9 * k} fill={TINTA} style={MONO}>
+      <circle cx={p.x} cy={p.y} r={8 * k} fill={FONDO} stroke={TINTA} strokeWidth={(elegido ? 2.6 : 1.2) * k} />
+      <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={7.5 * k} fill={TINTA} style={MONO}>
         {simboloDePunto(e)}
       </text>
-      <text x={p.x} y={p.y - 16 * k} textAnchor="middle" fontSize={8.5 * k} fill={GRIS} style={MONO}>
-        {`${e.codigo} · ${alturaDePunto(e)}`}
-      </text>
+      {rotulo && (
+        <text x={p.x} y={p.y - 13 * k} textAnchor="middle" fontSize={7 * k} fill={GRIS} style={MONO}>
+          {`${e.codigo} · ${alturaDePunto(e)}`}
+        </text>
+      )}
     </g>
   );
 }
@@ -151,10 +162,10 @@ export function DibujoPlanta({
   const cotas = !mostrarCotas
     ? []
     : [
-        ...nivel.ambientes.flatMap((amb) => cotasDeAmbiente(nivel, amb.id, 30 * k)),
-        ...cotasDeAberturas(nivel, 64 * k),
-        ...cotasDeColumnas(nivel, 16 * k),
-        ...cotasDeElectricos(nivel, 96 * k),
+        ...nivel.ambientes.flatMap((amb) => cotasDeAmbiente(nivel, amb.id, 17 * k)),
+        ...cotasDeAberturas(nivel, 36 * k),
+        ...cotasDeColumnas(nivel, 11 * k),
+        ...cotasDeElectricos(nivel, 55 * k),
       ];
   const destacado = seleccion?.tipo === "muro" || seleccion?.tipo === "abertura" ? seleccion : null;
 
@@ -196,7 +207,14 @@ export function DibujoPlanta({
         <AberturaSvg key={a.id} nivel={nivel} a={a} k={k} />
       ))}
       {nivel.electricos.map((e) => (
-        <PuntoSvg key={e.id} nivel={nivel} e={e} k={k} elegido={!impresion && seleccion?.tipo === "electrico" && seleccion.id === e.id} />
+        <PuntoSvg
+          key={e.id}
+          nivel={nivel}
+          e={e}
+          k={k}
+          rotulo={mostrarCotas}
+          elegido={!impresion && seleccion?.tipo === "electrico" && seleccion.id === e.id}
+        />
       ))}
       {cotas.map((cota) => (
         <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={!impresion} />

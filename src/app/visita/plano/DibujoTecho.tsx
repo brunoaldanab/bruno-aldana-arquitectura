@@ -125,7 +125,7 @@ export function DibujoTecho({
         );
       })}
       {mostrarCotas &&
-        cotasDeTecho(nivel, 22 * k).map((cota) => <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={false} />)}
+        cotasDeTecho(nivel, 14 * k).map((cota) => <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={false} />)}
       {trazo && <circle cx={trazo.x} cy={trazo.y} r={5 * k} fill={TINTA} />}
     </>
   );
