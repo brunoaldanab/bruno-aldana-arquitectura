@@ -42,6 +42,21 @@ class Catalogo(unittest.TestCase):
         for familia in set(self.app.values()):
             self.assertIn(familia, planificador.CATEGORIA_ELECTRICA)
 
+    def test_cada_tipo_tiene_su_nombre_en_la_familia_de_revit(self):
+        """El contrato: un tipo del catálogo, un tipo de la familia "BA Punto electrico"."""
+        self.assertEqual(sorted(self.app.keys()), sorted(planificador.TIPO_DE_PUNTO.keys()))
+
+    def test_los_nombres_empiezan_con_ba_y_no_se_repiten(self):
+        nombres = list(planificador.TIPO_DE_PUNTO.values())
+        self.assertEqual(len(set(nombres)), len(nombres), u"dos puntos no pueden compartir tipo")
+        for n in nombres:
+            self.assertTrue(n.startswith(u"BA "), n)
+
+    def test_los_nombres_no_llevan_acentos_ni_enes(self):
+        """Los nombres de tipo viajan a Revit y a un .rfa: se quedan en ASCII."""
+        for n in planificador.TIPO_DE_PUNTO.values():
+            self.assertEqual(n, n.encode(u"ascii", u"ignore").decode(u"ascii"), n)
+
 
 if __name__ == u"__main__":
     unittest.main()

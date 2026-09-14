@@ -295,7 +295,7 @@ class Constructor(object):
         def crear(orden):
             nivel = self._nivel(orden)
             muro = self._muro(orden)
-            tipo = buscador.tipo_electrico(self.doc, orden.categoria, self.tipos)
+            tipo = buscador.tipo_electrico(self.doc, orden.categoria, orden.tipo, self.tipos)
             punto = self._xyz(orden.punto, nivel, orden.altura)
             instancia = self.doc.Create.NewFamilyInstance(
                 punto, tipo, muro, nivel, DB.Structure.StructuralType.NonStructural

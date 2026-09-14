@@ -455,6 +455,10 @@ class Documento(object):
     def Regenerate(self):
         pass
 
+    def LoadFamily(self, ruta):
+        """En el doble no hay archivos: la familia propia se da por no cargable."""
+        return False
+
 
 CATEGORIA_DE = {
     u"dispositivos-electricos": BuiltInCategory.OST_ElectricalFixtures,

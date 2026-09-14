@@ -67,6 +67,37 @@ FAMILIA_DE_PUNTO = {
 }
 
 
+#: **El contrato con Revit.** Cada tipo de punto del catálogo de la app tiene un
+#: tipo con este nombre exacto en la familia "BA Punto electrico", que vive en
+#: `pyrevit/familias/`. El botón entra a buscar este nombre y nada más: no elige
+#: entre lo que haya en el proyecto, que es de donde salían todos los errores.
+#: Si acá se agrega un tipo, hay que agregarlo también a la familia.
+TIPO_DE_PUNTO = {
+    u"toma-simple": u"BA Tomacorriente simple",
+    u"toma-doble": u"BA Tomacorriente doble",
+    u"toma-triple": u"BA Tomacorriente triple",
+    u"toma-usb": u"BA Tomacorriente con USB",
+    u"toma-mesada": u"BA Tomacorriente sobre mesada",
+    u"toma-piso": u"BA Tomacorriente de piso",
+    u"int-simple": u"BA Llave de 1 tecla",
+    u"int-doble": u"BA Llave de 2 teclas",
+    u"int-triple": u"BA Llave de 3 teclas",
+    u"int-conmutador": u"BA Conmutador",
+    u"int-dimmer": u"BA Dimmer",
+    u"int-sensor": u"BA Sensor de movimiento",
+    u"mixto-int-toma": u"BA Llave mas tomacorriente",
+    u"datos-tv": u"BA Salida de TV",
+    u"datos-red": u"BA Salida de red",
+    u"datos-red-doble": u"BA Doble salida de red",
+    u"datos-telefono": u"BA Salida de telefono",
+    u"fuerza-aire": u"BA Aire acondicionado",
+    u"fuerza-termo": u"BA Termotanque",
+    u"fuerza-cocina": u"BA Cocina u horno",
+    u"fuerza-lavadora": u"BA Lavadora",
+    u"fuerza-timbre": u"BA Timbre o aplique",
+}
+
+
 class Orden(object):
     """Una cosa para crear en Revit, con todo ya calculado en pies."""
 
@@ -401,6 +432,7 @@ def _electricos(nivel):
                 nivel_id=nivel.id,
                 muro_id=e[u"muroId"],
                 clave=e[u"tipo"],
+                tipo=TIPO_DE_PUNTO[e[u"tipo"]],
                 familia=familia,
                 categoria=CATEGORIA_ELECTRICA[familia],
                 punto=unidades.punto(g[u"punto"]),

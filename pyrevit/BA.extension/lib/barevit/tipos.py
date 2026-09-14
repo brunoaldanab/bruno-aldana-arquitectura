@@ -10,7 +10,29 @@ se distingue de los tipos de la plantilla de Gigi y se pueden borrar juntos.
 Este módulo sí toca la API de Revit, así que no se prueba con `unittest`: se
 prueba abriendo el modelo.
 """
+import os
+
 from pyrevit import DB
+
+#: Las familias propias de BA, en `pyrevit/familias/` del repositorio. Se cargan
+#: solas en el proyecto que no las tenga. Son deliberadamente básicas y
+#: paramétricas: la puerta se estira a la medida que diga el relevamiento, y el
+#: punto eléctrico trae un tipo por cada punto del catálogo de la app.
+#:
+#: El porqué: mientras el botón elegía entre las familias que hubiera en el
+#: proyecto, cada plantilla distinta traía un error distinto. Con familias
+#: propias y nombres fijos, las dos puntas hablan el mismo idioma.
+CARPETA_FAMILIAS = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), u"..", u"..", u"..", u"familias")
+)
+
+FAMILIA_BA = {
+    u"puerta": u"BA Puerta",
+    u"ventana": u"BA Ventana",
+    u"dispositivos-electricos": u"BA Punto electrico",
+    u"dispositivos-de-iluminacion": u"BA Punto electrico",
+    u"dispositivos-de-comunicacion": u"BA Punto electrico",
+}
 
 #: Medio centímetro, en pies: dos espesores que difieren menos son el mismo.
 TOLERANCIA = 0.5 / 30.48
@@ -58,6 +80,35 @@ class SinTipo(Exception):
     """No hay ningún tipo de esa clase en el proyecto y no se puede inventar uno."""
 
 
+def familia_ba(doc, categoria):
+    """Los tipos de la familia propia de BA, cargándola si el proyecto no la tiene.
+
+    Devuelve una lista vacía si esa categoría no tiene familia propia todavía o
+    si el archivo no está: ahí el que llama sigue con lo que haya en el proyecto.
+    """
+    nombre = FAMILIA_BA.get(categoria)
+    if not nombre:
+        return []
+    cargados = [s for s in _de_categoria(doc, categoria) if _familia_de(s) == nombre]
+    if cargados:
+        return cargados
+    ruta = os.path.join(CARPETA_FAMILIAS, u"%s.rfa" % nombre)
+    if not os.path.isfile(ruta):
+        return []
+    try:
+        doc.LoadFamily(ruta)
+    except Exception:
+        return []
+    return [s for s in _de_categoria(doc, categoria) if _familia_de(s) == nombre]
+
+
+def _familia_de(simbolo):
+    try:
+        return simbolo.FamilyName
+    except Exception:
+        return u""
+
+
 def simbolos(doc, categoria, con_respaldo=True):
     """Los tipos de familia cargados de esa categoría, o de la que la reemplaza.
 
@@ -65,6 +116,9 @@ def simbolos(doc, categoria, con_respaldo=True):
     el lugar exacto y con su código anotado, que es lo que Bruno necesita del
     relevamiento. Quedarse sin el punto sería peor.
     """
+    propios = familia_ba(doc, categoria)
+    if propios:
+        return propios
     encontrados = _de_categoria(doc, categoria)
     if encontrados or not con_respaldo:
         return encontrados
@@ -214,17 +268,28 @@ def tipo_de_columna(doc, orden, cache):
     return _activado(nuevo)
 
 
-def tipo_electrico(doc, categoria, cache):
-    """Cualquier familia de esa categoría sirve: el relevamiento marca dónde va, no cuál es."""
-    if categoria in cache:
-        return cache[categoria]
-    cargados = simbolos(doc, categoria)
+def tipo_electrico(doc, categoria, nombre_tipo, cache):
+    """El tipo exacto de la familia BA —"BA Tomacorriente doble"— o lo que haya.
+
+    Primero se busca el tipo con ese nombre, que es el contrato entre la app y
+    Revit. Si el proyecto no tiene la familia propia y hay que usar otra, se
+    toma cualquiera de la categoría: el punto queda en el lugar exacto y con su
+    código, que es lo que el relevamiento necesita.
+    """
+    if nombre_tipo in cache:
+        return cache[nombre_tipo]
+    propios = familia_ba(doc, categoria)
+    exacto = por_nombre(propios, nombre_tipo)
+    if exacto is not None:
+        cache[nombre_tipo] = exacto
+        return _activado(exacto)
+    cargados = propios or simbolos(doc, categoria)
     if not cargados:
         raise SinTipo(
             u"El proyecto no tiene ninguna familia de %s. Cargá una con Insertar → Cargar familia y volvé a "
             u"apretar el botón." % NOMBRE_LARGO.get(categoria, categoria.replace(u"-", u" "))
         )
-    cache[categoria] = cargados[0]
+    cache[nombre_tipo] = cargados[0]
     return _activado(cargados[0])
 
 
