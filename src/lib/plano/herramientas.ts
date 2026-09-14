@@ -14,7 +14,7 @@ import {
 } from "./elementos";
 import { arrastrarPuntoElectrico, colocarPuntoElectrico, TIPO_POR_DEFECTO } from "./electricos";
 import type { Nivel } from "./modelo";
-import { agregarMuro, ajustarPunto, moverNodo, type Extremo } from "./operaciones";
+import { agregarMuro, ajustarPunto, enRecto, moverNodo, type Extremo } from "./operaciones";
 import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
 import { seleccionDeMuro, tocarPlanta, tocarTecho, type Seleccion } from "./toque";
 import { areaConSigno, distancia, por, suma, type Punto } from "./vector";
@@ -51,7 +51,15 @@ export const HERRAMIENTAS: Record<Modo, Herramienta[]> = {
  */
 export type Trazo = { extremo: Extremo; punto: Punto; primero: string | null; puntos?: Punto[] } | null;
 
-export type EstadoToque = { nivel: Nivel; modo: Modo; herramienta: Herramienta; trazo: Trazo; codigosOtros: string[] };
+export type EstadoToque = {
+  nivel: Nivel;
+  modo: Modo;
+  herramienta: Herramienta;
+  trazo: Trazo;
+  codigosOtros: string[];
+  /** Fuerza los trazos horizontales o verticales. Viene prendido. */
+  recto?: boolean;
+};
 export type ResultadoToque = {
   nivel: Nivel;
   seleccion: Seleccion | null;
@@ -119,7 +127,7 @@ export function seleccionVigente(nivel: Nivel, sel: Seleccion | null): Seleccion
 }
 
 function toqueMuro(e: EstadoToque, p: Punto, radio: number): ResultadoToque {
-  const aj = ajustarPunto(e.nivel, e.trazo?.punto ?? null, p, { radio });
+  const aj = ajustarPunto(e.nivel, e.trazo?.punto ?? null, p, { radio, recto: e.recto });
   const extremo: Extremo = aj.nodoId ? { nodoId: aj.nodoId } : aj.punto;
   if (!e.trazo) {
     return { nivel: e.nivel, seleccion: null, herramienta: "muro", trazo: { extremo, punto: aj.punto, primero: aj.nodoId } };
@@ -133,7 +141,10 @@ function toqueMuro(e: EstadoToque, p: Punto, radio: number): ResultadoToque {
   return { nivel: r.nivel, seleccion: null, herramienta: "muro", trazo };
 }
 
-export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: string | null = null): ResultadoToque {
+export function aplicarToque(e: EstadoToque, p_: Punto, radio: number, cota: string | null = null): ResultadoToque {
+  // Con el modo recto, lo que se encadena —muros, vigas y el contorno a dedo— sale ortogonal.
+  const encadena = e.herramienta === "viga" || e.herramienta === "dibujar";
+  const p = e.recto && encadena && e.trazo ? enRecto(e.trazo.punto, p_) : p_;
   const nada = { nivel: e.nivel, seleccion: null, trazo: null, herramienta: e.herramienta };
   // Tocar una cota abre su medida con cualquier herramienta de planta, salvo con un muro a medio trazar:
   // después de cerrar un ambiente con Muro, lo siguiente es medirlo.

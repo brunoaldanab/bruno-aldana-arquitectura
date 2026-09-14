@@ -32,6 +32,8 @@ export function Herramientas({
   onCentrar,
   cotas,
   onCotas,
+  recto,
+  onRecto,
 }: {
   modo: Modo;
   herramienta: Herramienta;
@@ -45,6 +47,8 @@ export function Herramientas({
   onCentrar: () => void;
   cotas: boolean;
   onCotas: () => void;
+  recto: boolean;
+  onRecto: () => void;
 }) {
   return (
     <nav aria-label="Herramientas" className="flex flex-wrap justify-center gap-1.5 border-t border-white/10 px-3 pt-3 pb-[max(1.1rem,env(safe-area-inset-bottom))]">
@@ -61,6 +65,9 @@ export function Herramientas({
       <button type="button" aria-label="Deshacer" disabled={!puedeDeshacer} onClick={onDeshacer} className={pastilla(false)}>↶</button>
       <button type="button" aria-label="Rehacer" disabled={!puedeRehacer} onClick={onRehacer} className={pastilla(false)}>↷</button>
       <button type="button" aria-label="Centrar el plano" onClick={onCentrar} className={pastilla(false)}>Centrar</button>
+      <button type="button" aria-pressed={recto} onClick={onRecto} className={pastilla(recto)}>
+        Recto
+      </button>
       <button type="button" aria-pressed={cotas} onClick={onCotas} className={pastilla(cotas)}>
         Cotas
       </button>

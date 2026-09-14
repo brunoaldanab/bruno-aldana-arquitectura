@@ -76,6 +76,7 @@ export function PantallaPlano({
   const [enfocar, setEnfocar] = useState(false);
   const [borrador, setBorrador] = useState<Nivel | null>(null);
   const [cotas, setCotas] = useState(true);
+  const [recto, setRecto] = useState(true);
   const [pendientesAbiertas, setPendientesAbiertas] = useState(false);
   const [avisoToque, setAvisoToque] = useState("");
   const [imprimir, setImprimir] = useState(false);
@@ -135,6 +136,7 @@ export function PantallaPlano({
     herramienta,
     trazo,
     codigosOtros: codigosDeOtrosNiveles(r, nivelGuardado.id),
+    recto,
   });
 
   function alTocar(p: Punto, radio: number, cota: string | null) {
@@ -308,6 +310,8 @@ export function PantallaPlano({
           onCentrar={() => setCentrar((c) => c + 1)}
           cotas={cotas}
           onCotas={() => setCotas((v) => !v)}
+          recto={recto}
+          onRecto={() => setRecto((v) => !v)}
         />
         {avisoToque && !hoja && (
           <p

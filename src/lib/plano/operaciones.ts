@@ -18,12 +18,23 @@ export type Extremo = { nodoId: string } | Punto;
 const RADIO_IMAN = 20;
 const TOLERANCIA_ANGULO = (5 * Math.PI) / 180;
 
+/**
+ * Con el modo recto, el muro sale horizontal o vertical: se conserva la
+ * componente más larga del recorrido y se anula la otra. En el celular apuntar
+ * a mano alzada no da, y los muros de una casa son casi siempre ortogonales.
+ */
+export function enRecto(origen: Punto | null, toque: Punto): Punto {
+  if (!origen) return toque;
+  const v = resta(toque, origen);
+  return Math.abs(v.x) >= Math.abs(v.y) ? { x: toque.x, y: origen.y } : { x: origen.x, y: toque.y };
+}
+
 /** Lo que hace el dedo al dibujar: engancha a un nodo, ajusta el ángulo y se pega al eje de un muro. */
 export function ajustarPunto(
   nivel: Nivel,
   origen: Punto | null,
   toque: Punto,
-  opciones: { angulo?: boolean; radio?: number } = {},
+  opciones: { angulo?: boolean; radio?: number; recto?: boolean } = {},
 ): { punto: Punto; nodoId: string | null; muroId: string | null } {
   const radio = opciones.radio ?? RADIO_IMAN;
   const cercano = nivel.nodos
@@ -33,7 +44,10 @@ export function ajustarPunto(
   if (cercano) return { punto: { x: cercano.n.x, y: cercano.n.y }, nodoId: cercano.n.id, muroId: null };
 
   let punto = toque;
-  if (origen && opciones.angulo !== false) {
+  // El imán al nodo manda sobre el modo recto: así el recorrido siempre puede cerrar.
+  if (origen && opciones.recto) {
+    punto = enRecto(origen, toque);
+  } else if (origen && opciones.angulo !== false) {
     const v = resta(toque, origen);
     const angulo = Math.atan2(v.y, v.x);
     const redondo = Math.round(angulo / (Math.PI / 4)) * (Math.PI / 4);

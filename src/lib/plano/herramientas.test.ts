@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { cargarMedidaElemento } from "./elementos";
 import { aplicarArrastre, aplicarToque, iniciarArrastre, seleccionDeCota, seleccionVigente, type EstadoToque, type Herramienta } from "./herramientas";
+import { posicionNodo } from "./caras";
 import { nivelVacio, type Nivel } from "./modelo";
 import { cuartoDeBruno } from "./prueba-casos";
 import { superficie } from "./superficie";
@@ -85,5 +86,41 @@ describe("cotas, selección y arrastre", () => {
     // Con los cuatro lados medidos, torcer una esquina 22 cm deja el ambiente abierto: conserva el dibujo (ajuste 14 del motor).
     const suelto = aplicarArrastre(cuartoDeBruno(), nodo, { x: -30.4, y: -7.4 }, true);
     expect(suelto.nodos.find((n) => n.id === "n1")).toEqual({ id: "n1", x: -30, y: -7 });
+  });
+});
+
+describe("modo recto", () => {
+  it("un toque torcido deja el muro horizontal o vertical, el que más se parezca", () => {
+    const base = { nivel: nivelVacio("nivel-1", "Planta baja"), modo: "planta" as const, herramienta: "muro" as const, codigosOtros: [], recto: true };
+    const uno = aplicarToque({ ...base, trazo: null }, { x: 0, y: 0 }, 10);
+    // 300 a la derecha y 20 hacia abajo: sale recto a la derecha.
+    const dos = aplicarToque({ ...base, trazo: uno.trazo }, { x: 300, y: 20 }, 10);
+    const muro = dos.nivel.muros[0];
+    expect(posicionNodo(dos.nivel, muro.desde)).toEqual({ x: 0, y: 0 });
+    expect(posicionNodo(dos.nivel, muro.hasta)).toEqual({ x: 300, y: 0 });
+  });
+
+  it("sin modo recto, un toque bien torcido deja el muro donde cayó el dedo", () => {
+    const base = { nivel: nivelVacio("nivel-1", "Planta baja"), modo: "planta" as const, herramienta: "muro" as const, codigosOtros: [], recto: false };
+    const uno = aplicarToque({ ...base, trazo: null }, { x: 0, y: 0 }, 10);
+    // 18 grados: lejos de 0 y de 45, así que no lo endereza ningún ajuste.
+    const dos = aplicarToque({ ...base, trazo: uno.trazo }, { x: 300, y: 100 }, 10);
+    expect(posicionNodo(dos.nivel, dos.nivel.muros[0].hasta)).toEqual({ x: 300, y: 100 });
+    // Con modo recto, ese mismo toque sale horizontal.
+    const recto = aplicarToque({ ...base, recto: true, trazo: uno.trazo }, { x: 300, y: 100 }, 10);
+    expect(posicionNodo(recto.nivel, recto.nivel.muros[0].hasta)).toEqual({ x: 300, y: 0 });
+  });
+
+  it("el imán al nodo manda sobre el modo recto: el recorrido siempre puede cerrar", () => {
+    const base = { nivel: nivelVacio("nivel-1", "Planta baja"), modo: "planta" as const, herramienta: "muro" as const, codigosOtros: [], recto: true };
+    let r = aplicarToque({ ...base, trazo: null }, { x: 0, y: 0 }, 20);
+    r = aplicarToque({ ...base, nivel: r.nivel, trazo: r.trazo }, { x: 300, y: 0 }, 20);
+    r = aplicarToque({ ...base, nivel: r.nivel, trazo: r.trazo }, { x: 300, y: 300 }, 20);
+    r = aplicarToque({ ...base, nivel: r.nivel, trazo: r.trazo }, { x: 0, y: 300 }, 20);
+    // El último toque cae a 10 cm del primer nodo: se engancha ahí y cierra el ambiente.
+    r = aplicarToque({ ...base, nivel: r.nivel, trazo: r.trazo }, { x: 10, y: 6 }, 20);
+    expect(r.trazo).toBeNull();
+    expect(r.nivel.nodos).toHaveLength(4);
+    expect(r.nivel.ambientes).toHaveLength(1);
   });
 });
