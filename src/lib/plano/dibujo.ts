@@ -2,7 +2,7 @@
 import { ladosDeAmbiente, type Lado } from "./ambientes";
 import { direccionMuro, esquinasCara, extremosCara } from "./caras";
 import type { Abertura, Nivel } from "./modelo";
-import { contornoInterior, puntoEnPoligono, superficie } from "./superficie";
+import { superficie } from "./superficie";
 import { normalDerecha, normalIzquierda, por, productoCruz, resta, suma, type Punto } from "./vector";
 
 /**
@@ -75,37 +75,6 @@ export function geometriaAbertura(nivel: Nivel, a: Abertura): GeometriaAbertura 
     }
   }
   return { hueco, hojas, lineas, etiqueta };
-}
-
-export type Cota = {
-  indice: number;
-  inicio: Punto;
-  fin: Punto;
-  /** Hacia adentro del ambiente, para ubicar el texto y las líneas de referencia */
-  normal: Punto;
-  texto: string;
-  tomada: boolean;
-  lado: Lado;
-};
-
-/** Las cotas interiores de un ambiente, corridas "separacion" cm hacia adentro de cada lado. */
-export function cotasDeAmbiente(nivel: Nivel, ambienteId: string, separacion: number): Cota[] {
-  const poligono = contornoInterior(nivel, ambienteId);
-  return ladosDeAmbiente(nivel, ambienteId).map((lado, indice) => {
-    const medio = por(suma(lado.inicio, lado.fin), 0.5);
-    const izquierda = normalIzquierda(lado.direccion);
-    const normal = puntoEnPoligono(suma(medio, izquierda), poligono) ? izquierda : normalDerecha(lado.direccion);
-    const tomada = lado.medida?.tomada ?? false;
-    return {
-      indice,
-      inicio: suma(lado.inicio, por(normal, separacion)),
-      fin: suma(lado.fin, por(normal, separacion)),
-      normal,
-      texto: tomada ? String(lado.medida!.valor) : `≈ ${Math.round(lado.largo)}`,
-      tomada,
-      lado,
-    };
-  });
 }
 
 export const formatoDecimal = (n: number, decimales = 2): string => n.toFixed(decimales).replace(".", ",");

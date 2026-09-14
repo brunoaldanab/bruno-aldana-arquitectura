@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { ladosDeAmbiente } from "./ambientes";
 import { posicionNodo } from "./caras";
-import { cotasDeAmbiente, geometriaAbertura, nombresPuntas, poligonoMuro, textoSuperficie } from "./dibujo";
+import { cotasDeAmbiente } from "./cotas";
+import { geometriaAbertura, nombresPuntas, poligonoMuro, textoSuperficie } from "./dibujo";
 import { agregarNivel, arrastrarAbertura, cargarLadoConPunta, colocarAbertura, editarZonaTecho, proyectarEnEje } from "./edicion";
 import { agregarZonaTecho } from "./elementos";
 import { relevamientoVacio } from "./modelo";

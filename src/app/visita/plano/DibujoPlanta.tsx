@@ -1,5 +1,6 @@
 // src/app/visita/plano/DibujoPlanta.tsx
-import { cotasDeAmbiente, geometriaAbertura, poligonoMuro, textoSuperficie, type Cota } from "@/lib/plano/dibujo";
+import { cotasDeAberturas, cotasDeAmbiente, cotasDeColumnas, type Cota } from "@/lib/plano/cotas";
+import { geometriaAbertura, poligonoMuro, textoSuperficie } from "@/lib/plano/dibujo";
 import type { Abertura, Nivel } from "@/lib/plano/modelo";
 import type { Cierre } from "@/lib/plano/resolver";
 import { contornoInterior, puntoInterior } from "@/lib/plano/superficie";
@@ -21,8 +22,10 @@ const ROJO = "var(--color-danger-600)";
 
 export const puntos = (ps: Punto[]) => ps.map((p) => `${p.x},${p.y}`).join(" ");
 
-function CotaSvg({ cota, ambienteId, k, interactiva }: { cota: Cota; ambienteId: string; k: number; interactiva: boolean }) {
+export function CotaSvg({ cota, k, interactiva }: { cota: Cota; k: number; interactiva: boolean }) {
   const { inicio: a, fin: b, normal: n } = cota;
+  // Solo la cota de un lado de ambiente se toca: las demás salen del dibujo y no tienen medida propia.
+  const toque = interactiva ? cota.toque : null;
   const color = cota.tomada ? TINTA : GRIS;
   const u = unitario({ x: b.x - a.x, y: b.y - a.y });
   const marca = { x: (u.x + n.x) * 4 * k, y: (u.y + n.y) * 4 * k };
@@ -32,7 +35,7 @@ function CotaSvg({ cota, ambienteId, k, interactiva }: { cota: Cota; ambienteId:
   if (angulo <= -90) angulo += 180;
   const giro = `rotate(${angulo} ${t.x} ${t.y})`;
   return (
-    <g data-cota={interactiva ? `${ambienteId}:${cota.indice}` : undefined}>
+    <g data-cota={toque ?? undefined}>
       <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color} strokeWidth={k} strokeDasharray={cota.tomada ? undefined : `${4 * k} ${3 * k}`} />
       {[a, b].map((p, i) => (
         <line key={i} x1={p.x - marca.x} y1={p.y - marca.y} x2={p.x + marca.x} y2={p.y + marca.y} stroke={color} strokeWidth={1.2 * k} />
@@ -40,7 +43,7 @@ function CotaSvg({ cota, ambienteId, k, interactiva }: { cota: Cota; ambienteId:
       <text x={t.x} y={t.y} transform={giro} textAnchor="middle" dominantBaseline="central" fontSize={11 * k} fill={color} style={MONO}>
         {cota.texto}
       </text>
-      {interactiva && <rect x={t.x - 28 * k} y={t.y - 15 * k} width={56 * k} height={30 * k} transform={giro} fill="transparent" />}
+      {toque && <rect x={t.x - 28 * k} y={t.y - 15 * k} width={56 * k} height={30 * k} transform={giro} fill="transparent" />}
     </g>
   );
 }
@@ -92,6 +95,7 @@ export function DibujoPlanta({
   cierres,
   trazo,
   mostrarNodos = false,
+  mostrarCotas = true,
   impresion = false,
 }: {
   nivel: Nivel;
@@ -100,9 +104,18 @@ export function DibujoPlanta({
   cierres: Cierre[];
   trazo: Punto | null;
   mostrarNodos?: boolean;
+  mostrarCotas?: boolean;
   impresion?: boolean;
 }) {
   const k = 1 / escala;
+  // Las de los lados van pegadas al muro; las de las aberturas, más adentro para no pisarlas.
+  const cotas = !mostrarCotas
+    ? []
+    : [
+        ...nivel.ambientes.flatMap((amb) => cotasDeAmbiente(nivel, amb.id, 30 * k)),
+        ...cotasDeAberturas(nivel, 64 * k),
+        ...cotasDeColumnas(nivel, 16 * k),
+      ];
   const destacado = seleccion?.tipo === "muro" || seleccion?.tipo === "abertura" ? seleccion : null;
 
   const base = (
@@ -142,11 +155,9 @@ export function DibujoPlanta({
       {nivel.aberturas.map((a) => (
         <AberturaSvg key={a.id} nivel={nivel} a={a} k={k} />
       ))}
-      {nivel.ambientes.map((amb) =>
-        cotasDeAmbiente(nivel, amb.id, 30 * k).map((cota) => (
-          <CotaSvg key={`${amb.id}:${cota.indice}`} cota={cota} ambienteId={amb.id} k={k} interactiva={!impresion} />
-        )),
-      )}
+      {cotas.map((cota) => (
+        <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={!impresion} />
+      ))}
     </>
   );
 

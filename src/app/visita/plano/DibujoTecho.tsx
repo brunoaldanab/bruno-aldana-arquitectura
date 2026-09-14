@@ -1,11 +1,12 @@
 // src/app/visita/plano/DibujoTecho.tsx
 import { direccionCara, extremosCara } from "@/lib/plano/caras";
+import { cotasDeTecho } from "@/lib/plano/cotas";
 import { poligonoMuro } from "@/lib/plano/dibujo";
 import type { Nivel, ZonaTecho } from "@/lib/plano/modelo";
 import { contornoInterior, puntoInterior } from "@/lib/plano/superficie";
 import type { Seleccion } from "@/lib/plano/toque";
 import { normalIzquierda, por, resta, suma, unitario, type Punto } from "@/lib/plano/vector";
-import { MONO, puntos } from "./DibujoPlanta";
+import { CotaSvg, MONO, puntos } from "./DibujoPlanta";
 
 export const NOMBRE_TECHO: Record<ZonaTecho["tipo"], string> = { losa: "Losa", "cielo-falso": "Cielo falso", cajon: "Cajón" };
 
@@ -29,7 +30,19 @@ function Etiqueta({ en, texto, k }: { en: Punto; texto: string; k: number }) {
 }
 
 /** La misma planta de fondo; encima, las zonas con su altura, las molduras y las vigas. */
-export function DibujoTecho({ nivel, escala, seleccion, trazo }: { nivel: Nivel; escala: number; seleccion: Seleccion | null; trazo: Punto | null }) {
+export function DibujoTecho({
+  nivel,
+  escala,
+  seleccion,
+  trazo,
+  mostrarCotas = true,
+}: {
+  nivel: Nivel;
+  escala: number;
+  seleccion: Seleccion | null;
+  trazo: Punto | null;
+  mostrarCotas?: boolean;
+}) {
   const k = 1 / escala;
   const elegido = (tipo: Seleccion["tipo"], id: string) => seleccion?.tipo === tipo && seleccion.id === id;
   return (
@@ -111,6 +124,8 @@ export function DibujoTecho({ nivel, escala, seleccion, trazo }: { nivel: Nivel;
           </g>
         );
       })}
+      {mostrarCotas &&
+        cotasDeTecho(nivel, 22 * k).map((cota) => <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={false} />)}
       {trazo && <circle cx={trazo.x} cy={trazo.y} r={5 * k} fill={TINTA} />}
     </>
   );

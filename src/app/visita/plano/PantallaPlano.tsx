@@ -70,6 +70,7 @@ export function PantallaPlano({
   const [seleccion, setSeleccion] = useState<Seleccion | null>(null);
   const [enfocar, setEnfocar] = useState(false);
   const [borrador, setBorrador] = useState<Nivel | null>(null);
+  const [cotas, setCotas] = useState(true);
   const [imprimir, setImprimir] = useState(false);
   const [centrar, setCentrar] = useState(0);
   const arrastre = useRef<Arrastre | null>(null);
@@ -218,9 +219,17 @@ export function PantallaPlano({
           claveEncuadre={`${nivelGuardado.id}:${centrar}:${nivelGuardado.ambientes.length > 0}`}
           dibujar={(escala) =>
             modo === "planta" ? (
-              <DibujoPlanta nivel={nivel} escala={escala} seleccion={sel} cierres={cierres} trazo={trazo?.punto ?? null} mostrarNodos={herramienta === "muro"} />
+              <DibujoPlanta
+                nivel={nivel}
+                escala={escala}
+                seleccion={sel}
+                cierres={cierres}
+                trazo={trazo?.punto ?? null}
+                mostrarNodos={herramienta === "muro"}
+                mostrarCotas={cotas}
+              />
             ) : (
-              <DibujoTecho nivel={nivel} escala={escala} seleccion={sel} trazo={trazo?.punto ?? null} />
+              <DibujoTecho nivel={nivel} escala={escala} seleccion={sel} trazo={trazo?.punto ?? null} mostrarCotas={cotas} />
             )
           }
           onToque={alTocar}
@@ -252,6 +261,8 @@ export function PantallaPlano({
             setTrazo(null);
           }}
           onCentrar={() => setCentrar((c) => c + 1)}
+          cotas={cotas}
+          onCotas={() => setCotas((v) => !v)}
         />
         {hoja && <div className="absolute inset-x-0 bottom-0 z-10">{hoja}</div>}
       </div>
