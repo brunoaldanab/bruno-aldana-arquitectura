@@ -23,6 +23,7 @@ export function HojaMuro({
   enfocar,
   onNivel,
   onSeleccion,
+  onEstirar,
   onCerrar,
 }: {
   nivel: Nivel;
@@ -30,6 +31,7 @@ export function HojaMuro({
   enfocar: boolean;
   onNivel: (cambio: (n: Nivel) => Nivel) => void;
   onSeleccion: (s: Seleccion | null) => void;
+  onEstirar: () => void;
   onCerrar: () => void;
 }) {
   const [punta, setPunta] = useState<"inicio" | "fin">("inicio");
@@ -98,6 +100,7 @@ export function HojaMuro({
       </Dos>
       <Acciones>
         <Accion onClick={partir}>Partir aquí</Accion>
+        <Accion onClick={onEstirar}>Estirar hasta otro muro</Accion>
         <Accion onClick={columna}>Agregar columna</Accion>
         <Accion
           peligro

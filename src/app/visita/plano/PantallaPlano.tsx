@@ -11,6 +11,7 @@ import {
   iniciarArrastre,
   seleccionVigente,
   terminarTrazo,
+  tocarObjetivo,
   type Arrastre,
   type EstadoToque,
   type Herramienta,
@@ -79,6 +80,7 @@ export function PantallaPlano({
   const [recto, setRecto] = useState(true);
   const [pendientesAbiertas, setPendientesAbiertas] = useState(false);
   const [avisoToque, setAvisoToque] = useState("");
+  const [estirando, setEstirando] = useState<string | null>(null);
   const [imprimir, setImprimir] = useState(false);
   const [centrar, setCentrar] = useState(0);
   const arrastre = useRef<Arrastre | null>(null);
@@ -140,6 +142,18 @@ export function PantallaPlano({
   });
 
   function alTocar(p: Punto, radio: number, cota: string | null) {
+    // Con un muro esperando, el toque siguiente elige hasta dónde estirarlo.
+    if (estirando) {
+      const r = tocarObjetivo(nivelGuardado!, estirando, p, radio);
+      if ("nivel" in r) {
+        cambiarNivel(() => r.nivel);
+        setEstirando(null);
+        setAvisoToque("");
+      } else {
+        setAvisoToque(r.aviso);
+      }
+      return;
+    }
     const res = aplicarToque(estadoToque(), p, radio, cota);
     cambiarNivel(() => res.nivel);
     setSeleccion(res.seleccion);
@@ -156,11 +170,11 @@ export function PantallaPlano({
     return a !== null;
   }
 
-  function alSoltar(p: Punto) {
+  function alSoltar(p: Punto, radio: number) {
     const a = arrastre.current;
     arrastre.current = null;
     setBorrador(null);
-    if (a) cambiarNivel((n) => aplicarArrastre(n, a, p, true));
+    if (a) cambiarNivel((n) => aplicarArrastre(n, a, p, true, radio));
   }
 
   const cerrar = () => {
@@ -168,6 +182,7 @@ export function PantallaPlano({
     setEnfocar(false);
     setPendientesAbiertas(false);
     setAvisoToque("");
+    setEstirando(null);
   };
   const sel = borrador ? null : seleccionVigente(nivelGuardado, seleccion);
   const codigosOtros = codigosDeOtrosNiveles(r, nivelGuardado.id);
@@ -193,7 +208,20 @@ export function PantallaPlano({
       />
     );
   } else if (sel?.tipo === "muro") {
-    hoja = <HojaMuro key={`${sel.id}:${sel.indice}`} {...comun} sel={sel} enfocar={enfocar} onSeleccion={setSeleccion} />;
+    hoja = (
+      <HojaMuro
+        key={`${sel.id}:${sel.indice}`}
+        {...comun}
+        sel={sel}
+        enfocar={enfocar}
+        onSeleccion={setSeleccion}
+        onEstirar={() => {
+          setEstirando(sel.id);
+          setSeleccion(null);
+          setAvisoToque("Tocá el muro hasta donde tiene que llegar");
+        }}
+      />
+    );
   } else if (sel?.tipo === "abertura") {
     const a = nivelGuardado.aberturas.find((x) => x.id === sel.id)!;
     hoja = <HojaAbertura key={a.id} {...comun} abertura={a} codigosOtros={codigosOtros} onBorrada={cerrar} />;
@@ -223,6 +251,7 @@ export function PantallaPlano({
     setEnfocar(false);
     setPendientesAbiertas(false);
     setAvisoToque("");
+    setEstirando(null);
   };
 
   return (
@@ -314,13 +343,18 @@ export function PantallaPlano({
           onRecto={() => setRecto((v) => !v)}
         />
         {avisoToque && !hoja && (
-          <p
+          <button
+            type="button"
             aria-live="polite"
-            onClick={() => setAvisoToque("")}
-            className="pointer-events-auto absolute inset-x-4 bottom-4 z-10 rounded-2xl bg-neutral-900/95 px-4 py-3 text-center text-[15px] font-light text-neutral-100 shadow-lg"
+            onClick={() => {
+              setAvisoToque("");
+              setEstirando(null);
+            }}
+            className="absolute inset-x-4 bottom-4 z-10 flex items-center justify-between gap-3 rounded-2xl bg-neutral-900/95 px-4 py-3 text-left text-[15px] font-light text-neutral-100 shadow-lg"
           >
             {avisoToque}
-          </p>
+            <span className="rotulo shrink-0 text-neutral-500">{estirando ? "Cancelar" : "Listo"}</span>
+          </button>
         )}
         {hoja && <div className="absolute inset-x-0 bottom-0 z-10">{hoja}</div>}
       </div>

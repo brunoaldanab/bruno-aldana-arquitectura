@@ -37,7 +37,7 @@ export function LienzoPlano({
   onToque: (p: Punto, radio: number, cota: string | null) => void;
   onIniciarArrastre: (p: Punto, radio: number) => boolean;
   onArrastrar: (p: Punto) => void;
-  onSoltar: (p: Punto) => void;
+  onSoltar: (p: Punto, radio: number) => void;
   onCancelarArrastre: () => void;
 }) {
   const caja = useRef<HTMLDivElement>(null);
@@ -115,7 +115,7 @@ export function LienzoPlano({
     punteros.current.delete(e.pointerId);
     const g = gesto.current;
     if (g.tipo === "uno" && vista) {
-      if (g.arrastrando) onSoltar(pantallaAPlano(vista, g.ultimo));
+      if (g.arrastrando) onSoltar(pantallaAPlano(vista, g.ultimo), RADIO_PX / vista.escala);
       else if (!g.movido) onToque(pantallaAPlano(vista, g.inicio), RADIO_PX / vista.escala, g.cota);
     }
     if (punteros.current.size === 0) gesto.current = { tipo: "nada" };

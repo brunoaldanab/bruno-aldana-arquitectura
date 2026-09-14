@@ -4,7 +4,7 @@ import { direccionMuro, esquinasCara, posicionNodo } from "./caras";
 import { ESPESOR_POR_DEFECTO, medida, siguienteId, type Muro, type NombreCara, type Nivel } from "./modelo";
 import { resolverNivel } from "./resolver";
 import { ambienteEnPunto } from "./superficie";
-import { distancia, por, productoEscalar, redondearPunto, resta, suma, unitario, type Punto } from "./vector";
+import { distancia, interseccion, por, productoEscalar, redondearPunto, resta, suma, unitario, type Punto } from "./vector";
 
 /**
  * Las ediciones del plano. Todas reciben un nivel y devuelven uno nuevo sin
@@ -62,8 +62,9 @@ export function ajustarPunto(
 }
 
 /** El muro cuyo eje pasa a menos de "radio" del punto, lejos de sus puntas. */
-function muroBajoPunto(nivel: Nivel, p: Punto, radio: number): { muroId: string; punto: Punto } | null {
+function muroBajoPunto(nivel: Nivel, p: Punto, radio: number, excluir: Set<string> = new Set()): { muroId: string; punto: Punto } | null {
   for (const m of nivel.muros) {
+    if (excluir.has(m.id)) continue;
     const a = posicionNodo(nivel, m.desde);
     const b = posicionNodo(nivel, m.hasta);
     const u = unitario(resta(b, a));
@@ -93,7 +94,13 @@ export function recalcular(anterior: Nivel, nuevo: Nivel): Nivel {
     const duena = n.ambientes.find((a) => caras.every((c) => a.contorno.some((x) => x.muroId === c.muroId && x.cara === c.cara)));
     return duena ? [{ ...m, caras, ambienteId: duena.id }] : [];
   });
-  n = { ...n, techos, molduras, aberturas: n.aberturas.filter((a) => muros.has(a.muroId)) };
+  n = {
+    ...n,
+    techos,
+    molduras,
+    aberturas: n.aberturas.filter((a) => muros.has(a.muroId)),
+    electricos: n.electricos.filter((e) => muros.has(e.muroId)),
+  };
   return resolverNivel(n).nivel;
 }
 
@@ -223,6 +230,87 @@ export function borrarMuro(nivel: Nivel, muroId: string): Nivel {
     aberturas: nivel.aberturas.filter((a) => a.muroId !== muroId),
   };
   return recalcular(nivel, nuevo);
+}
+
+/** Los muros que nacen o mueren en ese nodo. */
+export const murosDelNodo = (nivel: Nivel, nodoId: string): string[] =>
+  nivel.muros.filter((m) => m.desde === nodoId || m.hasta === nodoId).map((m) => m.id);
+
+/** Junta dos nodos en uno solo: los muros del primero pasan al segundo y el que queda sin largo se va. */
+export function unirNodos(nivel: Nivel, desdeId: string, haciaId: string): Nivel {
+  if (desdeId === haciaId || !nivel.nodos.some((n) => n.id === haciaId)) return nivel;
+  const muros = nivel.muros
+    .map((m) => ({
+      ...m,
+      desde: m.desde === desdeId ? haciaId : m.desde,
+      hasta: m.hasta === desdeId ? haciaId : m.hasta,
+    }))
+    .filter((m) => m.desde !== m.hasta);
+  const usados = new Set(muros.flatMap((m) => [m.desde, m.hasta]));
+  return recalcular(nivel, { ...nivel, muros, nodos: nivel.nodos.filter((n) => usados.has(n.id)) });
+}
+
+/** La unión en T: el nodo llega al eje de otro muro, que se parte ahí. */
+export function unirNodoConMuro(nivel: Nivel, nodoId: string, muroId: string, punto: Punto): Nivel {
+  const r = partirEnPunto(nivel, muroId, punto);
+  const conNodoMovido = {
+    ...r.nivel,
+    nodos: r.nivel.nodos.map((n) => (n.id === nodoId ? { id: n.id, ...redondearPunto(punto) } : n)),
+  };
+  return unirNodos(conNodoMovido, nodoId, r.nodoId);
+}
+
+/**
+ * Soltar un nodo arrastrado: si cae encima de otro nodo los junta, si cae sobre
+ * el eje de otro muro lo parte y se engancha ahí, y si no, lo deja donde quedó.
+ * Es lo que hace que un recorrido dibujado a dedo termine cerrando.
+ */
+export function soltarNodo(nivel: Nivel, nodoId: string, p: Punto, radio: number): Nivel {
+  const propios = new Set(murosDelNodo(nivel, nodoId));
+  const cercano = nivel.nodos
+    .filter((n) => n.id !== nodoId)
+    .map((n) => ({ n, d: distancia(n, p) }))
+    .filter((c) => c.d <= radio)
+    .sort((a, b) => a.d - b.d)[0];
+  if (cercano) return unirNodos(moverNodo(nivel, nodoId, cercano.n, false), nodoId, cercano.n.id);
+
+  const sobreMuro = muroBajoPunto(nivel, p, radio, propios);
+  if (sobreMuro) return unirNodoConMuro(nivel, nodoId, sobreMuro.muroId, sobreMuro.punto);
+
+  return moverNodo(nivel, nodoId, p, true);
+}
+
+export type MotivoEstirar = "paralelos" | "fuera";
+
+/**
+ * El "estirar hasta" de Revit: el muro crece o se recorta sobre su propia
+ * dirección hasta encontrarse con el eje del otro, y ahí se unen. Se mueve la
+ * punta más cercana al cruce; la otra no se toca.
+ */
+export function estirarMuroHasta(nivel: Nivel, muroId: string, objetivoId: string): { nivel: Nivel } | { motivo: MotivoEstirar } {
+  const m = nivel.muros.find((x) => x.id === muroId);
+  const o = nivel.muros.find((x) => x.id === objetivoId);
+  if (!m || !o || m.id === o.id) return { motivo: "paralelos" };
+  const a = posicionNodo(nivel, m.desde);
+  const b = posicionNodo(nivel, m.hasta);
+  const c = posicionNodo(nivel, o.desde);
+  const d = posicionNodo(nivel, o.hasta);
+  const corte = interseccion(a, resta(b, a), c, resta(d, c));
+  if (!corte) return { motivo: "paralelos" };
+
+  // El cruce tiene que caer sobre el muro objetivo: si no, el otro también habría que estirarlo.
+  const u = unitario(resta(d, c));
+  const t = productoEscalar(resta(corte, c), u);
+  const largoObjetivo = distancia(c, d);
+  if (t < -0.5 || t > largoObjetivo + 0.5) return { motivo: "fuera" };
+
+  const nodoId = distancia(a, corte) <= distancia(b, corte) ? m.desde : m.hasta;
+  const X = redondearPunto(corte);
+  const movido = moverNodo(nivel, nodoId, X, false);
+  // Sobre una punta del objetivo se juntan los nodos; en el medio se parte el muro.
+  if (t <= 0.5) return { nivel: unirNodos(movido, nodoId, o.desde) };
+  if (t >= largoObjetivo - 0.5) return { nivel: unirNodos(movido, nodoId, o.hasta) };
+  return { nivel: unirNodoConMuro(nivel, nodoId, objetivoId, X) };
 }
 
 export const renombrarAmbiente = (nivel: Nivel, ambienteId: string, nombre: string): Nivel => ({

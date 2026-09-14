@@ -14,9 +14,18 @@ import {
 } from "./elementos";
 import { arrastrarPuntoElectrico, colocarPuntoElectrico, TIPO_POR_DEFECTO } from "./electricos";
 import type { Nivel } from "./modelo";
-import { agregarMuro, ajustarPunto, enRecto, moverNodo, type Extremo } from "./operaciones";
+import {
+  agregarMuro,
+  ajustarPunto,
+  enRecto,
+  estirarMuroHasta,
+  moverNodo,
+  soltarNodo,
+  type Extremo,
+  type MotivoEstirar,
+} from "./operaciones";
 import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
-import { seleccionDeMuro, tocarPlanta, tocarTecho, type Seleccion } from "./toque";
+import { muroCercano, seleccionDeMuro, tocarPlanta, tocarTecho, type Seleccion } from "./toque";
 import { areaConSigno, distancia, por, suma, type Punto } from "./vector";
 
 /**
@@ -246,9 +255,27 @@ export function iniciarArrastre(e: EstadoToque, p: Punto, radio: number): Arrast
   return sel && (sel.tipo === "nodo" || sel.tipo === "abertura" || sel.tipo === "electrico") ? { tipo: sel.tipo, id: sel.id } : null;
 }
 
-/** Mientras se arrastra solo cambia el dibujo; al soltar ("final") las medidas se vuelven a imponer. */
-export function aplicarArrastre(nivel: Nivel, a: Arrastre, p: Punto, final: boolean): Nivel {
+/**
+ * Mientras se arrastra solo cambia el dibujo; al soltar ("final") el nodo se
+ * engancha a lo que tenga cerca —otro nodo, o el eje de otro muro— y las
+ * medidas se vuelven a imponer.
+ */
+export function aplicarArrastre(nivel: Nivel, a: Arrastre, p: Punto, final: boolean, radio = 0): Nivel {
   const cm = { x: Math.round(p.x), y: Math.round(p.y) };
-  if (a.tipo === "nodo") return moverNodo(nivel, a.id, cm, final);
+  if (a.tipo === "nodo") return final ? soltarNodo(nivel, a.id, cm, radio) : moverNodo(nivel, a.id, cm, false);
   return a.tipo === "abertura" ? arrastrarAbertura(nivel, a.id, cm) : arrastrarPuntoElectrico(nivel, a.id, cm);
+}
+
+const AVISO_ESTIRAR: Record<MotivoEstirar, string> = {
+  paralelos: "Esos dos muros son paralelos: nunca se van a encontrar",
+  fuera: "Se cruzarían fuera del muro que elegiste. Estirá primero ese",
+};
+
+/** El segundo toque del "estirar hasta": elegir el muro al que tiene que llegar. */
+export function tocarObjetivo(nivel: Nivel, muroId: string, p: Punto, radio: number): { nivel: Nivel } | { aviso: string } {
+  const objetivo = muroCercano(nivel, p, radio);
+  if (!objetivo) return { aviso: "Tocá el muro hasta donde tiene que llegar" };
+  if (objetivo === muroId) return { aviso: "Ese es el mismo muro: tocá el otro" };
+  const r = estirarMuroHasta(nivel, muroId, objetivo);
+  return "nivel" in r ? { nivel: r.nivel } : { aviso: AVISO_ESTIRAR[r.motivo] };
 }
