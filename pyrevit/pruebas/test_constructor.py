@@ -76,12 +76,41 @@ class CuartoDeBruno(unittest.TestCase):
         antepechos = [v for n, v in self.registro.parametros if n == u"antepecho"]
         self.assertIn(100 / 30.48, antepechos)
 
-    def test_la_puerta_y_los_enchufes_de_la_cara_derecha_se_dan_vuelta(self):
-        # Todo el cuarto se relevó desde adentro, que es la cara derecha de sus
-        # muros: Revit los inserta mirando al otro lado y hay que voltearlos.
-        # Son la puerta y los cinco puntos: la ventana no tiene cargado hacia
-        # dónde abre, y sin ese dato no se la toca.
-        self.assertEqual(len([v for v in self.registro.volteos if v[1] == u"cara"]), 6)
+    def test_todo_termina_mirando_hacia_donde_dice_el_relevamiento(self):
+        """La prueba de la orientación: se mide, no se adivina.
+
+        Cada elemento nace mirando hacia `+X` en el Revit de mentira. El
+        constructor tiene que voltear los que quedaron al revés y dejar quietos
+        los que ya estaban bien, así que al final ninguno puede quedar mirando
+        en contra de su normal.
+        """
+        normales = dict(
+            (o.codigo, o.normal)
+            for o in self.plan.ordenes
+            if getattr(o, u"normal", None) and type(o).__name__ in (u"OrdenAbertura", u"OrdenElectrico")
+        )
+        self.assertEqual(len(normales), 7, u"dos aberturas y cinco puntos")
+        revisados = 0
+        for instancia in self.registro.instancias:
+            codigo = instancia.get_Parameter(u"BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS")
+            normal = normales.get(codigo.AsString() if codigo else None)
+            if not normal:
+                continue
+            mira = instancia.FacingOrientation
+            self.assertGreaterEqual(mira.X * normal[0] + mira.Y * normal[1], 0, u"quedó mirando al revés")
+            revisados += 1
+        self.assertEqual(revisados, 7)
+
+    def test_solo_se_voltea_lo_que_estaba_al_reves(self):
+        volteos = len([v for v in self.registro.volteos if v[1] == u"cara"])
+        al_reves = len(
+            [
+                o
+                for o in self.plan.ordenes
+                if getattr(o, u"normal", None) and o.normal[0] < 0 and type(o).__name__ in (u"OrdenAbertura", u"OrdenElectrico")
+            ]
+        )
+        self.assertEqual(volteos, al_reves)
 
 
 class CasaDeEjemplo(unittest.TestCase):

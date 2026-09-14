@@ -26,6 +26,7 @@ class Registro(object):
         self.volteos = []
         self.rotaciones = []
         self.transacciones = []
+        self.instancias = []
 
     def anotar(self, que, dato=None):
         self.creados.append((que, dato))
@@ -139,7 +140,13 @@ class Elemento(object):
     def LookupParameter(self, nombre):
         return self._parametros.get(nombre)
 
+    #: Con qué orientación nace todo lo que se inserta en el doble. En Revit
+    #: depende de la familia y del lado del eje donde cae el punto; acá es
+    #: siempre la misma, para que la prueba sepa qué esperar.
+    FacingOrientation = XYZ(1, 0, 0)
+
     def flipFacing(self):
+        self.FacingOrientation = XYZ(-self.FacingOrientation.X, -self.FacingOrientation.Y, 0)
         REGISTRO.volteos.append((self.Name, u"cara"))
 
     def flipHand(self):
@@ -367,6 +374,7 @@ class Creador(object):
              u"%s" % BuiltInParameter.STRUCTURAL_BEAM_END1_ELEVATION: Parametro(u"final")},
         )
         REGISTRO.anotar(u"instancia", argumentos)
+        REGISTRO.instancias.append(instancia)
         self.doc.agregar(instancia)
         return instancia
 

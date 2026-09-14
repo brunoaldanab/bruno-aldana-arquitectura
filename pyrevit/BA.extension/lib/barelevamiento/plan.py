@@ -229,22 +229,28 @@ def _aberturas(nivel):
             categoria=a[u"tipo"],
             tipo=unidades.nombre_tipo_abertura(a[u"ancho"][u"valor"], a[u"alto"][u"valor"]),
             apertura=a.get(u"apertura"),
-            invertir_cara=_invertir_cara(a),
+            normal=_normal_de_abertura(nivel, a),
             invertir_mano=_invertir_mano(a),
         )
         ordenes.append(OrdenAbertura(**campos))
     return ordenes
 
 
-def _invertir_cara(abertura):
-    """Una puerta que abre hacia la cara derecha hay que darla vuelta.
+def _normal_de_abertura(nivel, abertura):
+    """Hacia dónde tiene que mirar la puerta o la ventana.
 
-    Revit inserta lo hospedado mirando hacia la normal por defecto del muro, que
-    es la cara "izquierda" de la pantalla (ver `unidades.normal_cara`). Si no se
-    cargó hacia dónde abre, no se toca nada: darla vuelta a ciegas es peor que
-    dejarla como la puso Revit.
+    Si Bruno cargó hacia dónde abre, manda eso. Si no, manda la cara desde la
+    que la midió: una ventana relevada desde adentro del ambiente mira hacia
+    adentro, que es lo que uno espera al abrir el modelo.
+
+    El constructor no la usa para adivinar de antemano: coloca el elemento,
+    **mira para dónde quedó mirando** y lo da vuelta solo si hace falta. La
+    orientación con que Revit inserta algo depende de la familia y del lado del
+    eje donde cae el punto, así que calcularla de antemano acierta a veces y a
+    veces no. Medirla acierta siempre.
     """
-    return abertura.get(u"abreHacia") == u"derecha"
+    cara = abertura.get(u"abreHacia") or abertura[u"cara"]
+    return unidades.normal_cara(direccion_muro(nivel, abertura[u"muroId"]), cara)
 
 
 def _invertir_mano(abertura):
@@ -400,7 +406,6 @@ def _electricos(nivel):
                 punto=unidades.punto(g[u"punto"]),
                 # Mira hacia adentro del ambiente, que es la cara donde se colocó.
                 normal=unidades.normal_cara(direccion, e[u"cara"]),
-                invertir_cara=(e[u"cara"] == u"derecha"),
                 altura=unidades.pies(e[u"altura"][u"valor"]),
                 altura_cm=e[u"altura"][u"valor"],
                 notas=e.get(u"notas") or u"",

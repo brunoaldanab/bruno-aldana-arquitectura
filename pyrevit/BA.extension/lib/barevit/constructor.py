@@ -157,7 +157,8 @@ class Constructor(object):
                 punto, tipo, muro, nivel, DB.Structure.StructuralType.NonStructural
             )
             _fijar(instancia, DB.BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM, orden.antepecho)
-            _voltear(instancia, orden.invertir_cara, orden.invertir_mano)
+            self._orientar(instancia, orden.normal)
+            _voltear(instancia, invertir_mano=orden.invertir_mano)
             _comentario(instancia, orden.codigo, orden.notas)
             self.resultado.creado(u"OrdenAbertura", orden.codigo)
 
@@ -294,13 +295,32 @@ class Constructor(object):
             instancia = self.doc.Create.NewFamilyInstance(
                 punto, tipo, muro, nivel, DB.Structure.StructuralType.NonStructural
             )
-            _voltear(instancia, orden.invertir_cara)
+            self._orientar(instancia, orden.normal)
             _comentario(instancia, orden.codigo, orden.notas)
             self.resultado.creado(u"OrdenElectrico", orden.codigo)
 
         self._cada(ordenes, crear)
 
     # -- ayudas ------------------------------------------------------------
+
+    def _orientar(self, instancia, normal):
+        """Deja el elemento mirando hacia donde dice el relevamiento.
+
+        En vez de calcular de antemano si hay que darlo vuelta, se lo coloca, se
+        mira para dónde quedó mirando y se lo voltea solo si quedó al revés. La
+        orientación inicial depende de la familia y de dónde cae el punto
+        respecto del eje del muro, así que adivinarla acierta a veces; medirla,
+        siempre.
+        """
+        if not normal:
+            return
+        try:
+            self.doc.Regenerate()
+            mira = instancia.FacingOrientation
+            if mira.X * normal[0] + mira.Y * normal[1] < 0:
+                instancia.flipFacing()
+        except Exception:
+            pass
 
     def _nivel(self, orden):
         nivel = self.niveles.get(orden.nivel_id)

@@ -65,10 +65,19 @@ class CuartoDeBruno(unittest.TestCase):
         self.assertEqual(puerta.tipo, u"BA 80 x 210")
         self.assertAlmostEqual(puerta.antepecho, 0.0)
 
-    def test_una_puerta_que_abre_hacia_la_cara_derecha_se_da_vuelta(self):
-        # Revit inserta mirando hacia la cara izquierda: la derecha va invertida.
+    def test_la_puerta_apunta_hacia_donde_abre(self):
+        # Abre hacia la cara derecha del muro de arriba, que es la de adentro
+        # del cuarto: en Revit, hacia la y negativa.
         puerta = [a for a in self.plan.por_clase(planificador.OrdenAbertura) if a.codigo == u"P1"][0]
-        self.assertTrue(puerta.invertir_cara)
+        self.assertAlmostEqual(puerta.normal[0], 0.0)
+        self.assertAlmostEqual(puerta.normal[1], -1.0)
+
+    def test_una_ventana_sin_apertura_cargada_mira_hacia_la_cara_que_se_midio(self):
+        ventana = [a for a in self.plan.por_clase(planificador.OrdenAbertura) if a.codigo == u"V1"][0]
+        centro = (202.5 / PIE, -228 / PIE)
+        hacia_el_centro = (centro[0] - ventana.punto[0], centro[1] - ventana.punto[1])
+        escalar = ventana.normal[0] * hacia_el_centro[0] + ventana.normal[1] * hacia_el_centro[1]
+        self.assertGreater(escalar, 0, u"la ventana se midió desde adentro y tiene que mirar para adentro")
 
     def test_la_bisagra_del_arranque_deja_la_mano_como_viene(self):
         puerta = [a for a in self.plan.por_clase(planificador.OrdenAbertura) if a.codigo == u"P1"][0]
