@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { alDia } from "@/lib/plano/archivo";
+import { enderezarNivel } from "@/lib/plano/enderezar";
 import { contarPendientes } from "@/lib/plano/controles";
 import { agregarNivel, codigosDeOtrosNiveles, reemplazarNivel } from "@/lib/plano/edicion";
 import {
@@ -12,6 +13,8 @@ import {
   seleccionVigente,
   terminarTrazo,
   tocarObjetivo,
+  PEDIDO,
+  type Apuntando,
   type Arrastre,
   type EstadoToque,
   type Herramienta,
@@ -80,7 +83,7 @@ export function PantallaPlano({
   const [recto, setRecto] = useState(true);
   const [pendientesAbiertas, setPendientesAbiertas] = useState(false);
   const [avisoToque, setAvisoToque] = useState("");
-  const [estirando, setEstirando] = useState<string | null>(null);
+  const [apuntando, setApuntando] = useState<Apuntando | null>(null);
   const [imprimir, setImprimir] = useState(false);
   const [centrar, setCentrar] = useState(0);
   const arrastre = useRef<Arrastre | null>(null);
@@ -142,12 +145,12 @@ export function PantallaPlano({
   });
 
   function alTocar(p: Punto, radio: number, cota: string | null) {
-    // Con un muro esperando, el toque siguiente elige hasta dónde estirarlo.
-    if (estirando) {
-      const r = tocarObjetivo(nivelGuardado!, estirando, p, radio);
+    // Con un muro esperando, el toque siguiente elige el otro muro.
+    if (apuntando) {
+      const r = tocarObjetivo(nivelGuardado!, apuntando, p, radio);
       if ("nivel" in r) {
         cambiarNivel(() => r.nivel);
-        setEstirando(null);
+        setApuntando(null);
         setAvisoToque("");
       } else {
         setAvisoToque(r.aviso);
@@ -182,7 +185,7 @@ export function PantallaPlano({
     setEnfocar(false);
     setPendientesAbiertas(false);
     setAvisoToque("");
-    setEstirando(null);
+    setApuntando(null);
   };
   const sel = borrador ? null : seleccionVigente(nivelGuardado, seleccion);
   const codigosOtros = codigosDeOtrosNiveles(r, nivelGuardado.id);
@@ -215,10 +218,10 @@ export function PantallaPlano({
         sel={sel}
         enfocar={enfocar}
         onSeleccion={setSeleccion}
-        onEstirar={() => {
-          setEstirando(sel.id);
+        onApuntar={(accion) => {
+          setApuntando({ accion, muroId: sel.id });
           setSeleccion(null);
-          setAvisoToque("Tocá el muro hasta donde tiene que llegar");
+          setAvisoToque(PEDIDO[accion]);
         }}
       />
     );
@@ -251,7 +254,7 @@ export function PantallaPlano({
     setEnfocar(false);
     setPendientesAbiertas(false);
     setAvisoToque("");
-    setEstirando(null);
+    setApuntando(null);
   };
 
   return (
@@ -341,6 +344,10 @@ export function PantallaPlano({
           onCotas={() => setCotas((v) => !v)}
           recto={recto}
           onRecto={() => setRecto((v) => !v)}
+          onEnderezar={() => {
+            cambiarNivel((n) => enderezarNivel(n));
+            limpiar();
+          }}
         />
         {avisoToque && !hoja && (
           <button
@@ -348,12 +355,12 @@ export function PantallaPlano({
             aria-live="polite"
             onClick={() => {
               setAvisoToque("");
-              setEstirando(null);
+              setApuntando(null);
             }}
             className="absolute inset-x-4 bottom-4 z-10 flex items-center justify-between gap-3 rounded-2xl bg-neutral-900/95 px-4 py-3 text-left text-[15px] font-light text-neutral-100 shadow-lg"
           >
             {avisoToque}
-            <span className="rotulo shrink-0 text-neutral-500">{estirando ? "Cancelar" : "Listo"}</span>
+            <span className="rotulo shrink-0 text-neutral-500">{apuntando ? "Cancelar" : "Listo"}</span>
           </button>
         )}
         {hoja && <div className="absolute inset-x-0 bottom-0 z-10">{hoja}</div>}

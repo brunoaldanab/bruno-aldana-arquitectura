@@ -1,6 +1,6 @@
 // src/lib/plano/operaciones.ts
 import { actualizarAmbientes, ladosDeAmbiente } from "./ambientes";
-import { direccionMuro, esquinasCara, posicionNodo } from "./caras";
+import { direccionMuro, esquinasCara, largoCara, posicionNodo } from "./caras";
 import { ESPESOR_POR_DEFECTO, medida, siguienteId, type Muro, type NombreCara, type Nivel } from "./modelo";
 import { resolverNivel } from "./resolver";
 import { ambienteEnPunto } from "./superficie";
@@ -101,7 +101,38 @@ export function recalcular(anterior: Nivel, nuevo: Nivel): Nivel {
     aberturas: n.aberturas.filter((a) => muros.has(a.muroId)),
     electricos: n.electricos.filter((e) => muros.has(e.muroId)),
   };
-  return resolverNivel(n).nivel;
+  return acomodarEnSusCaras(resolverNivel(n).nivel);
+}
+
+const limitar = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+/**
+ * Al estirar o acortar un muro, lo que estaba encima puede quedar colgando
+ * afuera. Lo que todavía era dibujado se acomoda solo; lo que Bruno ya midió no
+ * se toca, porque cambiarle el número a una medida tomada sería inventar: eso
+ * queda como error en la lista de lo que falta.
+ */
+function acomodarEnSusCaras(nivel: Nivel): Nivel {
+  const largoDe = new Map<string, number>();
+  const largo = (muroId: string, cara: NombreCara) => {
+    const clave = `${muroId}:${cara}`;
+    if (!largoDe.has(clave)) largoDe.set(clave, largoCara(nivel, { muroId, cara }));
+    return largoDe.get(clave)!;
+  };
+
+  const aberturas = nivel.aberturas.map((a) => {
+    if (a.desde.tomada) return a;
+    const tope = Math.max(0, Math.floor(largo(a.muroId, a.cara) - a.ancho.valor));
+    const desde = limitar(a.desde.valor, 0, tope);
+    return desde === a.desde.valor ? a : { ...a, desde: { ...a.desde, valor: desde } };
+  });
+  const electricos = nivel.electricos.map((e) => {
+    if (e.desde.tomada) return e;
+    const desde = limitar(e.desde.valor, 0, Math.max(0, Math.floor(largo(e.muroId, e.cara))));
+    return desde === e.desde.valor ? e : { ...e, desde: { ...e.desde, valor: desde } };
+  });
+  const cambio = aberturas.some((a, i) => a !== nivel.aberturas[i]) || electricos.some((e, i) => e !== nivel.electricos[i]);
+  return cambio ? { ...nivel, aberturas, electricos } : nivel;
 }
 
 /** Inserta un nodo sobre el eje del muro. El primer tramo conserva el id; el segundo es un muro nuevo. */
@@ -311,6 +342,32 @@ export function estirarMuroHasta(nivel: Nivel, muroId: string, objetivoId: strin
   if (t <= 0.5) return { nivel: unirNodos(movido, nodoId, o.desde) };
   if (t >= largoObjetivo - 0.5) return { nivel: unirNodos(movido, nodoId, o.hasta) };
   return { nivel: unirNodoConMuro(nivel, nodoId, objetivoId, X) };
+}
+
+/**
+ * El "alinear" de Revit: el muro se corre de costado, sin girar ni cambiar de
+ * largo, hasta quedar sobre la misma línea que el otro. Solo tiene sentido
+ * entre muros que ya van en la misma dirección.
+ */
+export function alinearMuroCon(nivel: Nivel, muroId: string, objetivoId: string): { nivel: Nivel } | { motivo: "no-paralelos" } {
+  const m = nivel.muros.find((x) => x.id === muroId);
+  const o = nivel.muros.find((x) => x.id === objetivoId);
+  if (!m || !o || m.id === o.id) return { motivo: "no-paralelos" };
+  const a = posicionNodo(nivel, m.desde);
+  const b = posicionNodo(nivel, m.hasta);
+  const c = posicionNodo(nivel, o.desde);
+  const u = unitario(resta(posicionNodo(nivel, o.hasta), c));
+  const v = unitario(resta(b, a));
+  // Más de 15 grados de diferencia ya no es "el mismo muro torcido": es otro muro.
+  if (Math.abs(productoEscalar(u, v)) < Math.cos((15 * Math.PI) / 180)) return { motivo: "no-paralelos" };
+
+  // Cada punta se proyecta sobre la línea del otro muro; el corrimiento es el promedio,
+  // así el muro se apoya en la línea sin girar aunque no fuera exactamente paralelo.
+  const sobreLinea = (p: Punto) => suma(c, por(u, productoEscalar(resta(p, c), u)));
+  const corrimiento = por(suma(resta(sobreLinea(a), a), resta(sobreLinea(b), b)), 0.5);
+  const mover = new Set([m.desde, m.hasta]);
+  const nodos = nivel.nodos.map((n) => (mover.has(n.id) ? { id: n.id, ...redondearPunto(suma(n, corrimiento)) } : n));
+  return { nivel: recalcular(nivel, { ...nivel, nodos }) };
 }
 
 export const renombrarAmbiente = (nivel: Nivel, ambienteId: string, nombre: string): Nivel => ({

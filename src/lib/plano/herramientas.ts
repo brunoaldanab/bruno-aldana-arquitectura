@@ -17,6 +17,7 @@ import type { Nivel } from "./modelo";
 import {
   agregarMuro,
   ajustarPunto,
+  alinearMuroCon,
   enRecto,
   estirarMuroHasta,
   moverNodo,
@@ -248,9 +249,13 @@ export function terminarTrazo(e: EstadoToque): ResultadoToque {
 
 export type Arrastre = { tipo: "nodo" | "abertura" | "electrico"; id: string };
 
-/** Con Tocar, apoyar el dedo sobre un nodo o una abertura y moverlo los arrastra; en otro lado desplaza el plano. */
+/**
+ * Apoyar el dedo justo encima de un nodo, una abertura o un enchufe y moverlo
+ * los arrastra; en cualquier otro lado desplaza el plano. Funciona con cualquier
+ * herramienta menos con un trazo a medio hacer, que sigue mandando.
+ */
 export function iniciarArrastre(e: EstadoToque, p: Punto, radio: number): Arrastre | null {
-  if (e.modo !== "planta" || e.herramienta !== "tocar") return null;
+  if (e.modo !== "planta" || e.trazo !== null) return null;
   const sel = tocarPlanta(e.nivel, p, radio);
   return sel && (sel.tipo === "nodo" || sel.tipo === "abertura" || sel.tipo === "electrico") ? { tipo: sel.tipo, id: sel.id } : null;
 }
@@ -271,11 +276,22 @@ const AVISO_ESTIRAR: Record<MotivoEstirar, string> = {
   fuera: "Se cruzarían fuera del muro que elegiste. Estirá primero ese",
 };
 
-/** El segundo toque del "estirar hasta": elegir el muro al que tiene que llegar. */
-export function tocarObjetivo(nivel: Nivel, muroId: string, p: Punto, radio: number): { nivel: Nivel } | { aviso: string } {
+export type Apuntando = { accion: "estirar" | "alinear"; muroId: string };
+
+export const PEDIDO: Record<Apuntando["accion"], string> = {
+  estirar: "Tocá el muro hasta donde tiene que llegar",
+  alinear: "Tocá el muro con el que se tiene que alinear",
+};
+
+/** El segundo toque de "estirar hasta" y de "alinear con": elegir el otro muro. */
+export function tocarObjetivo(nivel: Nivel, a: Apuntando, p: Punto, radio: number): { nivel: Nivel } | { aviso: string } {
   const objetivo = muroCercano(nivel, p, radio);
-  if (!objetivo) return { aviso: "Tocá el muro hasta donde tiene que llegar" };
-  if (objetivo === muroId) return { aviso: "Ese es el mismo muro: tocá el otro" };
-  const r = estirarMuroHasta(nivel, muroId, objetivo);
+  if (!objetivo) return { aviso: PEDIDO[a.accion] };
+  if (objetivo === a.muroId) return { aviso: "Ese es el mismo muro: tocá el otro" };
+  if (a.accion === "alinear") {
+    const r = alinearMuroCon(nivel, a.muroId, objetivo);
+    return "nivel" in r ? { nivel: r.nivel } : { aviso: "Esos dos muros no van en la misma dirección" };
+  }
+  const r = estirarMuroHasta(nivel, a.muroId, objetivo);
   return "nivel" in r ? { nivel: r.nivel } : { aviso: AVISO_ESTIRAR[r.motivo] };
 }

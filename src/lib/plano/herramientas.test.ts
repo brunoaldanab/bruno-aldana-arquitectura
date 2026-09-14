@@ -80,7 +80,10 @@ describe("cotas, selección y arrastre", () => {
     const a = iniciarArrastre(estado(medida, "tocar"), { x: 300, y: 462 }, 10)!;
     expect(a).toEqual({ tipo: "abertura", id: "a1" });
     expect(aplicarArrastre(medida, a, { x: 250.4, y: 470 }, false).aberturas[0].desde).toEqual({ valor: 110, tomada: false });
-    expect(iniciarArrastre(estado(cuarto, "muro"), { x: -7, y: -7 }, 10)).toBeNull();
+    // El nodo se arrastra con cualquier herramienta, pero no con un trazo a medio hacer.
+    const conTrazo = { ...estado(cuarto, "muro"), trazo: { extremo: { x: 0, y: 0 }, punto: { x: 0, y: 0 }, primero: null } };
+    expect(iniciarArrastre(conTrazo, { x: -7, y: -7 }, 10)).toBeNull();
+    expect(iniciarArrastre(estado(cuarto, "muro"), { x: -7, y: -7 }, 10)).toEqual({ tipo: "nodo", id: "n1" });
     const nodo = iniciarArrastre(estado(cuarto, "tocar"), { x: -7, y: -7 }, 10)!;
     expect(nodo).toEqual({ tipo: "nodo", id: "n1" });
     // Con los cuatro lados medidos, torcer una esquina 22 cm deja el ambiente abierto: conserva el dibujo (ajuste 14 del motor).

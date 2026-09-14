@@ -34,6 +34,7 @@ export function Herramientas({
   onCotas,
   recto,
   onRecto,
+  onEnderezar,
 }: {
   modo: Modo;
   herramienta: Herramienta;
@@ -49,6 +50,7 @@ export function Herramientas({
   onCotas: () => void;
   recto: boolean;
   onRecto: () => void;
+  onEnderezar: () => void;
 }) {
   return (
     <nav aria-label="Herramientas" className="flex flex-wrap justify-center gap-1.5 border-t border-white/10 px-3 pt-3 pb-[max(1.1rem,env(safe-area-inset-bottom))]">
@@ -68,6 +70,11 @@ export function Herramientas({
       <button type="button" aria-pressed={recto} onClick={onRecto} className={pastilla(recto)}>
         Recto
       </button>
+      {modo === "planta" && (
+        <button type="button" onClick={onEnderezar} className={pastilla(false)}>
+          Enderezar
+        </button>
+      )}
       <button type="button" aria-pressed={cotas} onClick={onCotas} className={pastilla(cotas)}>
         Cotas
       </button>
