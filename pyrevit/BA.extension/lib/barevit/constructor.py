@@ -207,7 +207,7 @@ class Constructor(object):
         piso = None
         motivo = None
         try:
-            piso = buscador.tipo_por_defecto(self.doc, DB.FloorType, u"piso")
+            piso = buscador.tipo_por_defecto(self.doc, DB.FloorType, u"piso", DB.BuiltInCategory.OST_Floors)
         except Exception as e:
             # Cualquier cosa que impida encontrar el tipo: se anota una vez y
             # cada piso queda listado con su motivo, nunca en silencio.
@@ -230,7 +230,7 @@ class Constructor(object):
 
     def _techos(self, ordenes):
         try:
-            tipo = buscador.tipo_por_defecto(self.doc, DB.CeilingType, u"cielo raso")
+            tipo = buscador.tipo_por_defecto(self.doc, DB.CeilingType, u"cielo raso", DB.BuiltInCategory.OST_Ceilings)
         except Exception as e:
             self.resultado.aviso(u"%s No se crearon los techos." % e)
             return

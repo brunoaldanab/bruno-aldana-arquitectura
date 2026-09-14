@@ -241,13 +241,29 @@ def tipo_de_viga(doc, cache):
     return _activado(cargados[0])
 
 
-def tipo_por_defecto(doc, clase, que_es):
-    """El primer tipo de piso o de cielo raso que tenga el proyecto."""
-    tipos = list(DB.FilteredElementCollector(doc).OfClass(clase).ToElements())
-    tipos = [t for t in tipos if _es_usable(t)]
+def tipo_por_defecto(doc, clase, que_es, categoria=None):
+    """Un tipo de piso o de cielo raso del proyecto, evitando los que no sirven.
+
+    Con la plantilla de Gigi el primero de la lista era "150mm Foundation Slab",
+    una losa de cimentación: entra igual, pero no es un piso de ambiente. Por eso
+    primero se buscan los de la categoría que corresponde, y recién si no hay
+    ninguno se usa cualquiera.
+    """
+    tipos = [t for t in DB.FilteredElementCollector(doc).OfClass(clase).ToElements() if _es_usable(t)]
     if not tipos:
         raise SinTipo(u"El proyecto no tiene ningún tipo de %s." % que_es)
+    if categoria is not None:
+        propios = [t for t in tipos if _es_de_categoria(t, categoria)]
+        if propios:
+            return propios[0]
     return tipos[0]
+
+
+def _es_de_categoria(tipo, bic):
+    try:
+        return tipo.Category is not None and tipo.Category.Id.IntegerValue == int(bic)
+    except Exception:
+        return False
 
 
 def _es_usable(tipo):
