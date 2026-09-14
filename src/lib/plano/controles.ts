@@ -2,6 +2,7 @@
 import { ladosDeAmbiente } from "./ambientes";
 import { direccionMuro, largoCara, posicionNodo } from "./caras";
 import { centroAbertura, hastaEsquina } from "./elementos";
+import { tipoDe } from "./electricos";
 import type { Control, Medida, Nivel, Relevamiento } from "./modelo";
 import { resolverNivel } from "./resolver";
 import { contornoInterior, puntoEnPoligono } from "./superficie";
@@ -102,13 +103,27 @@ export function revisarNivel(nivel: Nivel): Control[] {
     pendiente(a.alto, `${a.codigo}: alto`, e);
     if (a.tipo === "ventana") pendiente(a.antepecho, `${a.codigo}: antepecho`, e);
   }
+  for (const e of nivel.electricos) {
+    const elemento = { tipo: "electrico", id: e.id };
+    const largo = largoCara(nivel, { muroId: e.muroId, cara: e.cara });
+    if (e.desde.valor < 0 || e.desde.valor > largo + TOLERANCIA_BORDE)
+      agregar("error", "electrico-fuera", `${e.codigo} se sale de su pared`, elemento);
+    const altura = (nivel.muros.find((m) => m.id === e.muroId)!.altura ?? nivel.alturaGeneral).valor;
+    if (e.altura.valor > altura)
+      agregar("error", "electrico-alto", `${e.codigo} está más alto que el muro (${altura} cm)`, elemento);
+    pendiente(e.desde, `${e.codigo} · ${tipoDe(e.tipo).nombre}: desde la esquina`, elemento);
+    pendiente(e.altura, `${e.codigo} · ${tipoDe(e.tipo).nombre}: altura`, elemento);
+  }
   for (const c of nivel.columnas) {
     const e = { tipo: "columna", id: c.id };
     pendiente(c.ancho, `Columna ${c.id}: ancho`, e);
     pendiente(c.profundidad, `Columna ${c.id}: profundidad`, e);
     pendiente(c.altura, `Columna ${c.id}: altura`, e);
   }
-  for (const t of nivel.techos) pendiente(t.altura, `Zona de techo ${t.id}: altura`, { tipo: "techo", id: t.id });
+  for (const t of nivel.techos) {
+    pendiente(t.altura, `Zona de techo ${t.id}: altura`, { tipo: "techo", id: t.id });
+    pendiente(t.margen, `Bandeja ${t.id}: margen`, { tipo: "techo", id: t.id });
+  }
   for (const m of nivel.molduras) {
     pendiente(m.ancho, `Moldura ${m.id}: ancho`, { tipo: "moldura", id: m.id });
     pendiente(m.caida, `Moldura ${m.id}: caída`, { tipo: "moldura", id: m.id });
@@ -139,7 +154,7 @@ export const contarPendientes = (nivel: Nivel): number =>
 export function revisarRelevamiento(r: Relevamiento): Control[] {
   const controles = r.niveles.flatMap(revisarNivel);
   const veces = new Map<string, number>();
-  for (const a of r.niveles.flatMap((n) => n.aberturas)) veces.set(a.codigo, (veces.get(a.codigo) ?? 0) + 1);
+  for (const a of r.niveles.flatMap((n) => [...n.aberturas, ...n.electricos])) veces.set(a.codigo, (veces.get(a.codigo) ?? 0) + 1);
   for (const [codigo, n] of veces) {
     if (n > 1) controles.push({ tipo: "error", codigo: "codigo-repetido", mensaje: `El código ${codigo} está repetido` });
   }

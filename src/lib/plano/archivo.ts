@@ -3,6 +3,7 @@ import { nombreDeArchivo } from "@/lib/relevamiento/descarga";
 import { posicionNodo } from "./caras";
 import { revisarRelevamiento } from "./controles";
 import { centroAbertura, hastaEsquina } from "./elementos";
+import { posicionPunto } from "./electricos";
 import { relevamientoSchema, type Calculado, type Relevamiento } from "./modelo";
 import { contornoInterior, perimetro, puntoInterior, superficie } from "./superficie";
 import { distancia, redondear } from "./vector";
@@ -25,6 +26,7 @@ export function calcularGeometria(r: Relevamiento): Calculado {
         return { id: m.id, inicio: { ...inicio }, fin: { ...fin }, largo: redondear(distancia(inicio, fin)) };
       }),
       aberturas: n.aberturas.map((a) => ({ id: a.id, centro: centroAbertura(n, a), hastaEsquina: hastaEsquina(n, a) })),
+      electricos: n.electricos.map((e) => ({ id: e.id, punto: posicionPunto(n, e) })),
       ambientes: n.ambientes.map((a) => {
         const contorno = contornoInterior(n, a.id);
         return {
@@ -46,6 +48,16 @@ export const conCalculado = (r: Relevamiento): Relevamiento => ({ ...r, calculad
 export const aJson = (r: Relevamiento): string => JSON.stringify(conCalculado(r), null, 2);
 
 export const nombreArchivo = (r: Relevamiento): string => nombreDeArchivo(r.proyecto.nombre, r.proyecto.fechaRelevamiento);
+
+/**
+ * Lo guardado en el teléfono antes de que existieran los puntos eléctricos y las
+ * bandejas no tiene esos campos, y se abre igual: el esquema les pone su valor
+ * por defecto. Se pasa por acá todo lo que se lee del almacén local.
+ */
+export function alDia(r: Relevamiento): Relevamiento {
+  const leido = relevamientoSchema.safeParse(r);
+  return leido.success ? leido.data : r;
+}
 
 export type Lectura =
   | { ok: true; relevamiento: Relevamiento }

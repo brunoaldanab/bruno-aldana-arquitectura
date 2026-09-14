@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { alDia } from "@/lib/plano/archivo";
 import { contarPendientes } from "@/lib/plano/controles";
 import { agregarNivel, codigosDeOtrosNiveles, reemplazarNivel } from "@/lib/plano/edicion";
 import {
@@ -9,6 +10,7 @@ import {
   aplicarToque,
   iniciarArrastre,
   seleccionVigente,
+  terminarTrazo,
   type Arrastre,
   type EstadoToque,
   type Herramienta,
@@ -28,6 +30,7 @@ import { DibujoTecho } from "./DibujoTecho";
 import { HojaAbertura } from "./HojaAbertura";
 import { HojaAmbiente } from "./HojaAmbiente";
 import { HojaMuro } from "./HojaMuro";
+import { HojaElectrico } from "./HojaElectrico";
 import { HojaColumna, HojaMoldura, HojaViga, HojaZonaTecho } from "./HojasElementos";
 import { Herramientas } from "./Herramientas";
 import { LienzoPlano } from "./LienzoPlano";
@@ -81,9 +84,9 @@ export function PantallaPlano({
     let vivo = true;
     void sinc.leerRelevamiento(contacto.id).then((local) => {
       if (!vivo) return;
-      const inicial =
-        local?.data ??
-        relevamientoVacio({ contactoId: contacto.id, nombre: contacto.nombre, direccion: contacto.direccionProyecto ?? "", fechaRelevamiento: hoy() });
+      const inicial = local?.data
+        ? alDia(local.data)
+        : relevamientoVacio({ contactoId: contacto.id, nombre: contacto.nombre, direccion: contacto.direccionProyecto ?? "", fechaRelevamiento: hoy() });
       setHistorial(crearHistorial(inicial));
     });
     return () => {
@@ -171,8 +174,11 @@ export function PantallaPlano({
     hoja = <HojaAmbiente key={sel.id} {...comun} ambienteId={sel.id} />;
   } else if (sel?.tipo === "columna") {
     hoja = <HojaColumna key={sel.id} {...comun} elemento={nivelGuardado.columnas.find((x) => x.id === sel.id)!} />;
+  } else if (sel?.tipo === "electrico") {
+    const e = nivelGuardado.electricos.find((x) => x.id === sel.id)!;
+    hoja = <HojaElectrico key={e.id} {...comun} punto={e} codigosOtros={codigosOtros} />;
   } else if (sel?.tipo === "techo") {
-    hoja = <HojaZonaTecho key={sel.id} {...comun} elemento={nivelGuardado.techos.find((x) => x.id === sel.id)!} />;
+    hoja = <HojaZonaTecho key={sel.id} {...comun} elemento={nivelGuardado.techos.find((x) => x.id === sel.id)!} onSeleccion={setSeleccion} />;
   } else if (sel?.tipo === "moldura") {
     hoja = <HojaMoldura key={sel.id} {...comun} elemento={nivelGuardado.molduras.find((x) => x.id === sel.id)!} />;
   } else if (sel?.tipo === "viga") {
@@ -249,7 +255,13 @@ export function PantallaPlano({
             limpiar();
           }}
           trazoActivo={trazo !== null}
-          onTerminar={() => setTrazo(null)}
+          onTerminar={() => {
+            const res = terminarTrazo(estadoToque());
+            cambiarNivel(() => res.nivel);
+            setSeleccion(res.seleccion);
+            setTrazo(null);
+            setHerramienta(res.herramienta);
+          }}
           puedeDeshacer={puedeDeshacer(historial)}
           puedeRehacer={puedeRehacer(historial)}
           onDeshacer={() => {

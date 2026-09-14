@@ -8,7 +8,10 @@ const NOMBRE: Record<Herramienta, string> = {
   ventana: "Ventana",
   vano: "Vano",
   columna: "Columna",
+  electrico: "Enchufe",
   zona: "Zona",
+  bandeja: "Bandeja",
+  dibujar: "A dedo",
   moldura: "Moldura",
   viga: "Viga",
 };

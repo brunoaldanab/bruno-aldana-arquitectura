@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aJson, calcularGeometria, conCalculado, leerArchivo, nombreArchivo } from "./archivo";
+import { aJson, alDia, calcularGeometria, conCalculado, leerArchivo, nombreArchivo } from "./archivo";
 import { agregarAbertura } from "./elementos";
 import { relevamientoSchema, relevamientoVacio } from "./modelo";
 import { cuartoDeBruno } from "./prueba-casos";
@@ -47,5 +47,13 @@ describe("archivo para Revit", () => {
 
   it("se nombra con el cliente y la fecha", () => {
     expect(nombreArchivo(relevamientoDelCuarto())).toBe("relevamiento-cuarto-bruno-2026-09-10.json");
+  });
+
+  it("un relevamiento guardado antes de los enchufes y las bandejas se abre igual", () => {
+    const viejo = JSON.parse(JSON.stringify(relevamientoDelCuarto())) as Record<string, unknown>;
+    const nivel = (viejo.niveles as Record<string, unknown>[])[0];
+    delete nivel.electricos;
+    const r = alDia(viejo as never);
+    expect(r.niveles[0].electricos).toEqual([]);
   });
 });

@@ -2,12 +2,20 @@
 import { ladosDeAmbiente } from "./ambientes";
 import { posicionNodo } from "./caras";
 import { arrastrarAbertura, colocarAbertura } from "./edicion";
-import { agregarColumna, agregarMoldura, agregarViga, agregarZonaTecho } from "./elementos";
+import {
+  agregarBandeja,
+  agregarColumna,
+  agregarMoldura,
+  agregarViga,
+  agregarZonaDibujada,
+  agregarZonaTecho,
+} from "./elementos";
+import { arrastrarPuntoElectrico, colocarPuntoElectrico, TIPO_POR_DEFECTO } from "./electricos";
 import type { Nivel } from "./modelo";
 import { agregarMuro, ajustarPunto, moverNodo, type Extremo } from "./operaciones";
-import { ambienteEnPunto } from "./superficie";
+import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
 import { tocarPlanta, tocarTecho, type Seleccion } from "./toque";
-import { distancia, por, suma, type Punto } from "./vector";
+import { areaConSigno, distancia, por, suma, type Punto } from "./vector";
 
 /**
  * Qué hace un toque según la herramienta elegida. La pantalla solo convierte el
@@ -16,15 +24,30 @@ import { distancia, por, suma, type Punto } from "./vector";
  */
 
 export type Modo = "planta" | "techo";
-export type Herramienta = "tocar" | "muro" | "puerta" | "ventana" | "vano" | "columna" | "zona" | "moldura" | "viga";
+export type Herramienta =
+  | "tocar"
+  | "muro"
+  | "puerta"
+  | "ventana"
+  | "vano"
+  | "columna"
+  | "electrico"
+  | "zona"
+  | "bandeja"
+  | "dibujar"
+  | "moldura"
+  | "viga";
 
 export const HERRAMIENTAS: Record<Modo, Herramienta[]> = {
-  planta: ["tocar", "muro", "puerta", "ventana", "vano", "columna"],
-  techo: ["tocar", "zona", "moldura", "viga"],
+  planta: ["tocar", "muro", "puerta", "ventana", "vano", "columna", "electrico"],
+  techo: ["tocar", "zona", "bandeja", "dibujar", "moldura", "viga"],
 };
 
-/** El trazo en curso: la punta desde donde sigue el muro encadenado, o el inicio de la viga. */
-export type Trazo = { extremo: Extremo; punto: Punto; primero: string | null } | null;
+/**
+ * El trazo en curso: la punta desde donde sigue el muro encadenado, el inicio de
+ * la viga, o los puntos ya marcados de una zona de techo dibujada a dedo.
+ */
+export type Trazo = { extremo: Extremo; punto: Punto; primero: string | null; puntos?: Punto[] } | null;
 
 export type EstadoToque = { nivel: Nivel; modo: Modo; herramienta: Herramienta; trazo: Trazo; codigosOtros: string[] };
 export type ResultadoToque = { nivel: Nivel; seleccion: Seleccion | null; trazo: Trazo; herramienta: Herramienta };
@@ -48,7 +71,8 @@ export function seleccionVigente(nivel: Nivel, sel: Seleccion | null): Seleccion
   if (!sel) return null;
   const listas: Record<Seleccion["tipo"], { id: string }[]> = {
     nodo: nivel.nodos, muro: nivel.muros, abertura: nivel.aberturas, columna: nivel.columnas,
-    ambiente: nivel.ambientes, techo: nivel.techos, moldura: nivel.molduras, viga: nivel.vigas,
+    electrico: nivel.electricos, ambiente: nivel.ambientes, techo: nivel.techos,
+    moldura: nivel.molduras, viga: nivel.vigas,
   };
   if (!listas[sel.tipo].some((e) => e.id === sel.id)) return null;
   if (sel.tipo === "muro" && sel.ambienteId && !nivel.ambientes.some((a) => a.id === sel.ambienteId))
@@ -95,6 +119,28 @@ export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: stri
       const r = agregarColumna(e.nivel, { x: p.x, y: p.y, ancho: COLUMNA_POR_DEFECTO, profundidad: COLUMNA_POR_DEFECTO });
       return { nivel: r.nivel, seleccion: { tipo: "columna", id: r.id }, trazo: null, herramienta: "tocar" };
     }
+    case "electrico": {
+      const r = colocarPuntoElectrico(e.nivel, TIPO_POR_DEFECTO, p, radio, e.codigosOtros);
+      return r ? { nivel: r.nivel, seleccion: { tipo: "electrico", id: r.id }, trazo: null, herramienta: "tocar" } : nada;
+    }
+    case "bandeja": {
+      // La bandeja nace adentro de la zona más chica que contenga el toque.
+      const zona = e.nivel.techos
+        .filter((t) => puntoEnPoligono(p, t.contorno))
+        .sort((a, b) => Math.abs(areaConSigno(a.contorno)) - Math.abs(areaConSigno(b.contorno)))[0];
+      if (!zona) return nada;
+      const r = agregarBandeja(e.nivel, zona.id);
+      return r ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" } : nada;
+    }
+    case "dibujar": {
+      const puntos = [...(e.trazo?.puntos ?? []), p];
+      // Volver al primer punto cierra la zona, igual que el muro encadenado.
+      if (puntos.length > 3 && distancia(p, puntos[0]) < 30) {
+        const r = agregarZonaDibujada(e.nivel, puntos.slice(0, -1), e.nivel.alturaGeneral.valor);
+        return r ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" } : { ...nada, herramienta: "dibujar" };
+      }
+      return { ...nada, herramienta: "dibujar", trazo: { extremo: p, punto: p, primero: null, puntos } };
+    }
     case "zona":
     case "moldura": {
       const ambienteId = ambienteEnPunto(e.nivel, p);
@@ -115,17 +161,28 @@ export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: stri
   }
 }
 
-export type Arrastre = { tipo: "nodo" | "abertura"; id: string };
+/** El botón "Terminar": cierra la zona que se venía dibujando, o suelta el trazo. */
+export function terminarTrazo(e: EstadoToque): ResultadoToque {
+  const puntos = e.trazo?.puntos ?? [];
+  if (e.herramienta === "dibujar" && puntos.length >= 3) {
+    const r = agregarZonaDibujada(e.nivel, puntos, e.nivel.alturaGeneral.valor);
+    if (r) return { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" };
+  }
+  return { nivel: e.nivel, seleccion: null, trazo: null, herramienta: e.herramienta };
+}
+
+export type Arrastre = { tipo: "nodo" | "abertura" | "electrico"; id: string };
 
 /** Con Tocar, apoyar el dedo sobre un nodo o una abertura y moverlo los arrastra; en otro lado desplaza el plano. */
 export function iniciarArrastre(e: EstadoToque, p: Punto, radio: number): Arrastre | null {
   if (e.modo !== "planta" || e.herramienta !== "tocar") return null;
   const sel = tocarPlanta(e.nivel, p, radio);
-  return sel && (sel.tipo === "nodo" || sel.tipo === "abertura") ? { tipo: sel.tipo, id: sel.id } : null;
+  return sel && (sel.tipo === "nodo" || sel.tipo === "abertura" || sel.tipo === "electrico") ? { tipo: sel.tipo, id: sel.id } : null;
 }
 
 /** Mientras se arrastra solo cambia el dibujo; al soltar ("final") las medidas se vuelven a imponer. */
 export function aplicarArrastre(nivel: Nivel, a: Arrastre, p: Punto, final: boolean): Nivel {
   const cm = { x: Math.round(p.x), y: Math.round(p.y) };
-  return a.tipo === "nodo" ? moverNodo(nivel, a.id, cm, final) : arrastrarAbertura(nivel, a.id, cm);
+  if (a.tipo === "nodo") return moverNodo(nivel, a.id, cm, final);
+  return a.tipo === "abertura" ? arrastrarAbertura(nivel, a.id, cm) : arrastrarPuntoElectrico(nivel, a.id, cm);
 }

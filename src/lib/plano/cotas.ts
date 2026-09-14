@@ -1,7 +1,8 @@
 // src/lib/plano/cotas.ts
 import { ladosDeAmbiente, type Lado } from "./ambientes";
 import { direccionCara, direccionMuro, esquinasCara, extremosCara, largoCara, todasLasCaras } from "./caras";
-import type { Abertura, Nivel, NombreCara } from "./modelo";
+import { tipoDe } from "./electricos";
+import type { Abertura, Nivel, NombreCara, PuntoElectrico } from "./modelo";
 import { contornoInterior, puntoEnPoligono } from "./superficie";
 import {
   distancia,
@@ -102,6 +103,51 @@ export function cotasDeAberturas(nivel: Nivel, separacion: number): Cota[] {
   }
   return cotas;
 }
+
+/**
+ * Los puntos eléctricos de cada cara, acotados desde la esquina hasta cada uno
+ * y de ahí a la siguiente: así en el plano se lee de corrido dónde va cada caja.
+ */
+export function cotasDeElectricos(nivel: Nivel, separacion: number): Cota[] {
+  const porCara = new Map<string, PuntoElectrico[]>();
+  for (const e of nivel.electricos) {
+    const clave = `${e.muroId}:${e.cara}`;
+    porCara.set(clave, [...(porCara.get(clave) ?? []), e]);
+  }
+
+  const cotas: Cota[] = [];
+  for (const [claveCara, lista] of porCara) {
+    const [muroId, cara] = claveCara.split(":") as [string, NombreCara];
+    if (!nivel.muros.some((m) => m.id === muroId)) continue;
+    const ref = { muroId, cara };
+    const u = direccionMuro(nivel, muroId);
+    const normal = normalIzquierda(direccionCara(nivel, ref));
+    const origen = suma(esquinasCara(nivel, ref).desde, por(normal, separacion));
+    const en = (d: number) => suma(origen, por(u, d));
+
+    let cursor = 0;
+    for (const e of [...lista].sort((a, b) => a.desde.valor - b.desde.valor)) {
+      const suyo = cursor === 0 && e.desde.tomada;
+      if (e.desde.valor - cursor >= 1)
+        cotas.push({
+          clave: `${e.id}:desde`,
+          inicio: en(cursor),
+          fin: en(e.desde.valor),
+          normal,
+          texto: texto(e.desde.valor - cursor, suyo),
+          tomada: suyo,
+          toque: null,
+        });
+      cursor = e.desde.valor;
+    }
+  }
+  return cotas;
+}
+
+/** La altura de cada punto, que en planta no se ve: va como rótulo al lado del código. */
+export const alturaDePunto = (e: PuntoElectrico): string => `${e.altura.tomada ? "" : "≈ "}h ${e.altura.valor}`;
+
+export const simboloDePunto = (e: PuntoElectrico): string => tipoDe(e.tipo).simbolo;
 
 /** Hasta dónde llega un rayo antes de chocar contra la cara de un muro. Null si no choca con ninguna. */
 function alcanceMuro(nivel: Nivel, desde: Punto, direccion: Punto): number | null {

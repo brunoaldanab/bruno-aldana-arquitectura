@@ -1,10 +1,18 @@
 // src/app/visita/plano/HojasElementos.tsx
 import { editarZonaTecho } from "@/lib/plano/edicion";
-import { borrarElemento, cargarMedidaElemento, type CamposMedida, type TipoElemento } from "@/lib/plano/elementos";
+import {
+  agregarBandeja,
+  borrarElemento,
+  cargarMargenBandeja,
+  cargarMedidaElemento,
+  type CamposMedida,
+  type TipoElemento,
+} from "@/lib/plano/elementos";
 import type { Columna, Medida, Moldura, Nivel, Viga, ZonaTecho } from "@/lib/plano/modelo";
 import { CampoMedida } from "./CampoMedida";
 import { NOMBRE_TECHO } from "./DibujoTecho";
 import { Accion, Acciones, claseTexto, Dos, Grupo, Hoja } from "./Hoja";
+import type { Seleccion } from "@/lib/plano/toque";
 import { Segmentado } from "./Segmentado";
 
 /** Las hojas chicas: columna, zona de techo, moldura y viga. Solo medidas y borrar. */
@@ -77,10 +85,22 @@ export function HojaColumna({ nivel, elemento: c, onNivel, onBorrado, onCerrar }
   );
 }
 
-export function HojaZonaTecho({ elemento: t, onNivel, onBorrado, onCerrar }: Props<ZonaTecho>) {
+export function HojaZonaTecho({
+  elemento: t,
+  onNivel,
+  onBorrado,
+  onCerrar,
+  onSeleccion,
+}: Props<ZonaTecho> & { onSeleccion: (s: Seleccion | null) => void }) {
   const medir = usarMedidor("techo", t.id, onNivel);
+
+  function bandeja() {
+    onNivel((n) => agregarBandeja(n, t.id)?.nivel ?? n);
+    onSeleccion(null);
+  }
+
   return (
-    <Hoja titulo={`Techo · ${NOMBRE_TECHO[t.tipo]}`} estado={faltan([t.altura])} onCerrar={onCerrar}>
+    <Hoja titulo={`Techo · ${NOMBRE_TECHO[t.tipo]}`} estado={faltan([t.altura, t.margen])} onCerrar={onCerrar}>
       <Grupo etiqueta="Tipo">
         <Segmentado
           etiqueta="Tipo de techo"
@@ -91,8 +111,21 @@ export function HojaZonaTecho({ elemento: t, onNivel, onBorrado, onCerrar }: Pro
       </Grupo>
       <Dos>
         <CampoMedida id="techo-altura" etiqueta="Altura" valor={tomada(t.altura)} dibujado={t.altura.valor} onCambio={medir("altura")} />
-        <span />
+        {t.margen ? (
+          <CampoMedida
+            id="techo-margen"
+            etiqueta="Margen desde la pared"
+            valor={tomada(t.margen)}
+            dibujado={t.margen.valor}
+            onCambio={(cm) => cm !== null && cm > 0 && onNivel((n) => cargarMargenBandeja(n, t.id, cm))}
+          />
+        ) : (
+          <span />
+        )}
       </Dos>
+      <Acciones>
+        <Accion onClick={bandeja}>Bandeja adentro</Accion>
+      </Acciones>
       <Borrar tipo="techo" id={t.id} onNivel={onNivel} onBorrado={onBorrado} />
     </Hoja>
   );

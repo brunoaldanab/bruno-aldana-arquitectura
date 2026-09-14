@@ -11,8 +11,21 @@ import {
   type TipoAbertura,
   type ZonaTecho,
 } from "./modelo";
-import { contornoInterior } from "./superficie";
-import { por, productoEscalar, redondear, redondearPunto, resta, suma, type Punto } from "./vector";
+import { ambienteEnPunto, contornoInterior, puntoEnPoligono } from "./superficie";
+import {
+  areaConSigno,
+  interseccion,
+  normalDerecha,
+  normalIzquierda,
+  por,
+  productoEscalar,
+  redondear,
+  redondearPunto,
+  resta,
+  suma,
+  unitario,
+  type Punto,
+} from "./vector";
 
 /**
  * Lo que va sobre los muros y los ambientes: aberturas, columnas, zonas de
@@ -103,12 +116,95 @@ export function agregarColumna(
 /** Sin contorno, la zona cubre el ambiente entero. */
 export function agregarZonaTecho(
   nivel: Nivel,
-  datos: { ambienteId: string; tipo: ZonaTecho["tipo"]; contorno?: Punto[]; altura: number },
+  datos: { ambienteId: string; tipo: ZonaTecho["tipo"]; contorno?: Punto[]; altura: number; padreId?: string; margen?: number },
 ): { nivel: Nivel; id: string } {
   const id = siguienteId(nivel.techos.map((t) => t.id), "t");
   const contorno = (datos.contorno ?? contornoInterior(nivel, datos.ambienteId)).map(redondearPunto);
-  const zona: ZonaTecho = { id, ambienteId: datos.ambienteId, tipo: datos.tipo, contorno, altura: medida(datos.altura) };
+  const zona: ZonaTecho = {
+    id,
+    ambienteId: datos.ambienteId,
+    tipo: datos.tipo,
+    contorno,
+    altura: medida(datos.altura),
+    padreId: datos.padreId ?? null,
+    margen: datos.margen === undefined ? null : medida(datos.margen),
+  };
   return { nivel: { ...nivel, techos: [...nivel.techos, zona] }, id };
+}
+
+export const MARGEN_BANDEJA = 40;
+export const CAIDA_BANDEJA = 20;
+
+/**
+ * El contorno metido "d" cm hacia adentro: cada lado se corre en paralelo y las
+ * esquinas salen de cortar los lados corridos, como se replantea una bandeja en
+ * obra. Devuelve null si el margen se come el polígono.
+ */
+export function poligonoHaciaAdentro(poligono: Punto[], d: number): Punto[] | null {
+  if (poligono.length < 3 || d <= 0) return null;
+  const horario = areaConSigno(poligono) > 0;
+  const lineas = poligono.map((p, i) => {
+    const u = unitario(resta(poligono[(i + 1) % poligono.length], p));
+    const adentro = horario ? normalDerecha(u) : normalIzquierda(u);
+    return { punto: suma(p, por(adentro, d)), u };
+  });
+  const puntos: Punto[] = [];
+  for (let i = 0; i < lineas.length; i++) {
+    const a = lineas[(i - 1 + lineas.length) % lineas.length];
+    const b = lineas[i];
+    const corte = interseccion(a.punto, a.u, b.punto, b.u);
+    if (!corte) return null;
+    puntos.push(redondearPunto(corte));
+  }
+  /*
+   * Un margen que se pasa no siempre da vuelta el recorrido: en un rectángulo
+   * los dos pares de lados se cruzan a la vez y el polígono sale del derecho,
+   * más grande y corrido afuera. Por eso la prueba es que haya achicado y que
+   * todas las esquinas nuevas caigan adentro del contorno original.
+   */
+  const area = areaConSigno(puntos);
+  if (area === 0 || area > 0 !== horario || Math.abs(area) >= Math.abs(areaConSigno(poligono))) return null;
+  if (puntos.some((p) => !puntoEnPoligono(p, poligono))) return null;
+  return puntos;
+}
+
+/** Una bandeja adentro de una zona: mismo ambiente, margen parejo y un escalón más abajo. */
+export function agregarBandeja(
+  nivel: Nivel,
+  padreId: string,
+  margen = MARGEN_BANDEJA,
+): { nivel: Nivel; id: string } | null {
+  const padre = nivel.techos.find((t) => t.id === padreId);
+  if (!padre) return null;
+  const contorno = poligonoHaciaAdentro(padre.contorno, margen);
+  if (!contorno) return null;
+  return agregarZonaTecho(nivel, {
+    ambienteId: padre.ambienteId,
+    tipo: "cajon",
+    contorno,
+    altura: Math.max(0, padre.altura.valor - CAIDA_BANDEJA),
+    padreId,
+    margen,
+  });
+}
+
+/** Cambiar el margen de una bandeja la vuelve a replantear desde su zona madre. */
+export function cargarMargenBandeja(nivel: Nivel, id: string, margen: number): Nivel {
+  const zona = nivel.techos.find((t) => t.id === id);
+  if (!zona?.padreId) return nivel;
+  const padre = nivel.techos.find((t) => t.id === zona.padreId);
+  const contorno = padre && poligonoHaciaAdentro(padre.contorno, margen);
+  if (!contorno) return nivel;
+  return { ...nivel, techos: nivel.techos.map((t) => (t.id === id ? { ...t, contorno, margen: medida(margen, true) } : t)) };
+}
+
+/** Una zona dibujada a dedo: sus puntos mandan y no tiene margen. */
+export function agregarZonaDibujada(nivel: Nivel, puntos: Punto[], altura: number): { nivel: Nivel; id: string } | null {
+  if (puntos.length < 3) return null;
+  const centro = por(puntos.reduce(suma, { x: 0, y: 0 }), 1 / puntos.length);
+  const ambienteId = ambienteEnPunto(nivel, centro) ?? nivel.ambientes[0]?.id;
+  if (!ambienteId) return null;
+  return agregarZonaTecho(nivel, { ambienteId, tipo: "cajon", contorno: puntos, altura });
 }
 
 /** Sin caras, la moldura recorre todo el contorno del ambiente. */
@@ -137,11 +233,12 @@ export function agregarViga(
   return { nivel: { ...nivel, vigas: [...nivel.vigas, viga] }, id };
 }
 
-export type TipoElemento = "abertura" | "columna" | "techo" | "moldura" | "viga";
+export type TipoElemento = "abertura" | "columna" | "electrico" | "techo" | "moldura" | "viga";
 
 export type CamposMedida = {
   abertura: "desde" | "ancho" | "alto" | "antepecho";
   columna: "ancho" | "profundidad" | "altura";
+  electrico: "desde" | "altura";
   techo: "altura";
   moldura: "ancho" | "caida";
   viga: "ancho" | "peralte";
@@ -150,6 +247,7 @@ export type CamposMedida = {
 const COLECCION = {
   abertura: "aberturas",
   columna: "columnas",
+  electrico: "electricos",
   techo: "techos",
   moldura: "molduras",
   viga: "vigas",

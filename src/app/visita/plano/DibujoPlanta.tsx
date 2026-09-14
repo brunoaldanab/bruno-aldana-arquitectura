@@ -1,7 +1,16 @@
 // src/app/visita/plano/DibujoPlanta.tsx
-import { cotasDeAberturas, cotasDeAmbiente, cotasDeColumnas, type Cota } from "@/lib/plano/cotas";
+import {
+  alturaDePunto,
+  cotasDeAberturas,
+  cotasDeAmbiente,
+  cotasDeColumnas,
+  cotasDeElectricos,
+  simboloDePunto,
+  type Cota,
+} from "@/lib/plano/cotas";
 import { geometriaAbertura, poligonoMuro, textoSuperficie } from "@/lib/plano/dibujo";
-import type { Abertura, Nivel } from "@/lib/plano/modelo";
+import { posicionPunto } from "@/lib/plano/electricos";
+import type { Abertura, Nivel, PuntoElectrico } from "@/lib/plano/modelo";
 import type { Cierre } from "@/lib/plano/resolver";
 import { contornoInterior, puntoInterior } from "@/lib/plano/superficie";
 import type { Seleccion } from "@/lib/plano/toque";
@@ -78,6 +87,23 @@ function AberturaSvg({ nivel, a, k }: { nivel: Nivel; a: Abertura; k: number }) 
   );
 }
 
+/** El enchufe o la llave: un círculo sobre la pared con su símbolo, el código y la altura. */
+function PuntoSvg({ nivel, e, k, elegido }: { nivel: Nivel; e: PuntoElectrico; k: number; elegido: boolean }) {
+  const p = posicionPunto(nivel, e);
+  const r = 10 * k;
+  return (
+    <g>
+      <circle cx={p.x} cy={p.y} r={r} fill={FONDO} stroke={TINTA} strokeWidth={(elegido ? 3 : 1.4) * k} />
+      <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={9 * k} fill={TINTA} style={MONO}>
+        {simboloDePunto(e)}
+      </text>
+      <text x={p.x} y={p.y - 16 * k} textAnchor="middle" fontSize={8.5 * k} fill={GRIS} style={MONO}>
+        {`${e.codigo} · ${alturaDePunto(e)}`}
+      </text>
+    </g>
+  );
+}
+
 function Muros({ nivel, k }: { nivel: Nivel; k: number }) {
   return (
     <>
@@ -115,6 +141,7 @@ export function DibujoPlanta({
         ...nivel.ambientes.flatMap((amb) => cotasDeAmbiente(nivel, amb.id, 30 * k)),
         ...cotasDeAberturas(nivel, 64 * k),
         ...cotasDeColumnas(nivel, 16 * k),
+        ...cotasDeElectricos(nivel, 96 * k),
       ];
   const destacado = seleccion?.tipo === "muro" || seleccion?.tipo === "abertura" ? seleccion : null;
 
@@ -154,6 +181,9 @@ export function DibujoPlanta({
       ))}
       {nivel.aberturas.map((a) => (
         <AberturaSvg key={a.id} nivel={nivel} a={a} k={k} />
+      ))}
+      {nivel.electricos.map((e) => (
+        <PuntoSvg key={e.id} nivel={nivel} e={e} k={k} elegido={!impresion && seleccion?.tipo === "electrico" && seleccion.id === e.id} />
       ))}
       {cotas.map((cota) => (
         <CotaSvg key={cota.clave} cota={cota} k={k} interactiva={!impresion} />

@@ -2,6 +2,7 @@
 import { indiceLadoDeMuro } from "./ambientes";
 import { direccionMuro, extremosCara, posicionNodo } from "./caras";
 import { centroAbertura } from "./elementos";
+import { posicionPunto } from "./electricos";
 import type { Nivel, NombreCara } from "./modelo";
 import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
 import { areaConSigno, distancia, normalIzquierda, por, productoEscalar, resta, suma, type Punto } from "./vector";
@@ -16,6 +17,7 @@ export type Seleccion =
   | { tipo: "muro"; id: string; cara: NombreCara; punto: Punto; ambienteId: string | null; indice: number | null }
   | { tipo: "abertura"; id: string }
   | { tipo: "columna"; id: string }
+  | { tipo: "electrico"; id: string }
   | { tipo: "ambiente"; id: string }
   | { tipo: "techo"; id: string }
   | { tipo: "moldura"; id: string }
@@ -83,6 +85,10 @@ export function tocarPlanta(nivel: Nivel, p: Punto, radio: number): Seleccion | 
     const medio = por(u, a.ancho.valor / 2);
     if (distanciaASegmento(p, resta(centro, medio), suma(centro, medio)) <= ejeMuro(nivel, a.muroId).espesor / 2 + radio)
       return { tipo: "abertura", id: a.id };
+  }
+
+  for (const e of nivel.electricos) {
+    if (distancia(p, posicionPunto(nivel, e)) <= ejeMuro(nivel, e.muroId).espesor / 2 + radio) return { tipo: "electrico", id: e.id };
   }
 
   for (const c of nivel.columnas) {

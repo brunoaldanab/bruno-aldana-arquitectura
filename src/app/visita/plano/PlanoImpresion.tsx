@@ -5,9 +5,11 @@ import { useState, type CSSProperties } from "react";
 import { compartirArchivo, descargarArchivo } from "@/lib/plano/archivo";
 import { revisarNivel } from "@/lib/plano/controles";
 import { textoSuperficie } from "@/lib/plano/dibujo";
+import { tipoDe } from "@/lib/plano/electricos";
 import { hastaEsquina } from "@/lib/plano/elementos";
 import type { Medida, Nivel, Relevamiento } from "@/lib/plano/modelo";
 import { resolverNivel } from "@/lib/plano/resolver";
+import { largoCara } from "@/lib/plano/caras";
 import { perimetro } from "@/lib/plano/superficie";
 import { ambienteDeCara } from "@/lib/plano/toque";
 import { cajaDeNivel } from "@/lib/plano/vista";
@@ -90,10 +92,27 @@ function NivelImpreso({ nivel }: { nivel: Nivel }) {
         ])}
       />
       <Tabla
+        titulo="Cuadro de puntos eléctricos"
+        columnas={["Código", "Qué es", "Ambiente", "Desde la esquina", "Hasta la otra", "Altura", "Nota"]}
+        filas={nivel.electricos.map((e) => [
+          e.codigo,
+          tipoDe(e.tipo).nombre,
+          nombreAmbiente(ambienteDeCara(nivel, e.muroId, e.cara)),
+          m(e.desde),
+          String(Math.max(0, Math.round(largoCara(nivel, { muroId: e.muroId, cara: e.cara }) - e.desde.valor))),
+          m(e.altura),
+          e.notas || "—",
+        ])}
+      />
+      <Tabla
         titulo="Cuadro de techos"
         columnas={["Ambiente", "Elemento", "Medidas"]}
         filas={[
-          ...nivel.techos.map((t) => [nombreAmbiente(t.ambienteId), NOMBRE_TECHO[t.tipo], `altura ${m(t.altura)}`]),
+          ...nivel.techos.map((t) => [
+            nombreAmbiente(t.ambienteId),
+            t.padreId ? `${NOMBRE_TECHO[t.tipo]} · bandeja` : NOMBRE_TECHO[t.tipo],
+            [`altura ${m(t.altura)}`, t.margen ? `margen ${m(t.margen)}` : null].filter(Boolean).join(" · "),
+          ]),
           ...nivel.molduras.map((x) => [nombreAmbiente(x.ambienteId), "Moldura", `${m(x.ancho)} × ${m(x.caida)}`]),
           ...nivel.vigas.map((v) => ["—", "Viga", `${m(v.ancho)} × ${m(v.peralte)}`]),
         ]}

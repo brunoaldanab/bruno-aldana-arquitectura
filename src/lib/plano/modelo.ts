@@ -77,6 +77,53 @@ export const zonaTechoSchema = z.object({
   tipo: z.enum(["losa", "cielo-falso", "cajon"]),
   contorno: z.array(puntoSchema).min(3),
   altura: medidaSchema,
+  /** La zona de la que nace, cuando es una bandeja adentro de otra. */
+  padreId: id.nullable().default(null),
+  /** Cuánto se mete hacia adentro del padre. Null cuando el contorno se dibujó a dedo. */
+  margen: medidaSchema.nullable().default(null),
+});
+
+/**
+ * Los puntos eléctricos que Bruno nunca relevaba y siempre le faltaban. La
+ * clave es la del catálogo de `electricos.ts`: de ahí salen el nombre, la
+ * familia y la altura que manda la norma boliviana NB 777.
+ */
+export const tipoPuntoSchema = z.enum([
+  "toma-simple",
+  "toma-doble",
+  "toma-triple",
+  "toma-usb",
+  "toma-mesada",
+  "toma-piso",
+  "int-simple",
+  "int-doble",
+  "int-triple",
+  "int-conmutador",
+  "int-dimmer",
+  "int-sensor",
+  "mixto-int-toma",
+  "datos-tv",
+  "datos-red",
+  "datos-red-doble",
+  "datos-telefono",
+  "fuerza-aire",
+  "fuerza-termo",
+  "fuerza-cocina",
+  "fuerza-lavadora",
+  "fuerza-timbre",
+]);
+
+export const puntoElectricoSchema = z.object({
+  id,
+  codigo: id,
+  tipo: tipoPuntoSchema,
+  muroId: id,
+  cara: nombreCaraSchema,
+  /** Centímetros sobre la cara, desde su esquina del nodo "desde". */
+  desde: medidaSchema,
+  /** Altura desde el piso terminado, hasta el punto medio de la caja (NB 777). */
+  altura: medidaSchema,
+  notas: z.string(),
 });
 
 export const molduraSchema = z.object({
@@ -104,6 +151,7 @@ const nivelBase = z.object({
   muros: z.array(muroSchema),
   aberturas: z.array(aberturaSchema),
   columnas: z.array(columnaSchema),
+  electricos: z.array(puntoElectricoSchema).default([]),
   ambientes: z.array(ambienteSchema),
   techos: z.array(zonaTechoSchema),
   molduras: z.array(molduraSchema),
@@ -113,7 +161,7 @@ const nivelBase = z.object({
 /** Un nivel con referencias rotas no llega nunca a Revit: se rechaza al validar. */
 export const nivelSchema = nivelBase.superRefine((n, ctx) => {
   const problema = (message: string) => ctx.addIssue({ code: "custom", message });
-  const colecciones = [n.nodos, n.muros, n.aberturas, n.columnas, n.ambientes, n.techos, n.molduras, n.vigas];
+  const colecciones = [n.nodos, n.muros, n.aberturas, n.columnas, n.electricos, n.ambientes, n.techos, n.molduras, n.vigas];
   for (const lista of colecciones) {
     const ids = lista.map((e) => e.id);
     if (new Set(ids).size !== ids.length) problema("Hay ids repetidos");
@@ -126,9 +174,15 @@ export const nivelSchema = nivelBase.superRefine((n, ctx) => {
     if (m.desde === m.hasta) problema(`El muro ${m.id} empieza y termina en el mismo nodo`);
   }
   for (const a of n.aberturas) if (!muros.has(a.muroId)) problema(`La abertura ${a.codigo} no tiene muro`);
+  for (const e of n.electricos) if (!muros.has(e.muroId)) problema(`El punto ${e.codigo} no tiene muro`);
   for (const a of n.ambientes)
     if (a.contorno.some((c) => !muros.has(c.muroId))) problema(`El ambiente ${a.nombre} usa un muro inexistente`);
-  for (const t of n.techos) if (!ambientes.has(t.ambienteId)) problema(`La zona de techo ${t.id} no tiene ambiente`);
+  const techos = new Set(n.techos.map((t) => t.id));
+  for (const t of n.techos) {
+    if (!ambientes.has(t.ambienteId)) problema(`La zona de techo ${t.id} no tiene ambiente`);
+    if (t.padreId !== null && !techos.has(t.padreId)) problema(`La bandeja ${t.id} no tiene su zona madre`);
+    if (t.padreId === t.id) problema(`La bandeja ${t.id} es su propia madre`);
+  }
   for (const m of n.molduras) {
     if (!ambientes.has(m.ambienteId)) problema(`La moldura ${m.id} no tiene ambiente`);
     if (m.caras.some((c) => !muros.has(c.muroId))) problema(`La moldura ${m.id} usa un muro inexistente`);
@@ -153,6 +207,7 @@ export const calculadoSchema = z.object({
       id,
       muros: z.array(z.object({ id, inicio: puntoSchema, fin: puntoSchema, largo: z.number() })),
       aberturas: z.array(z.object({ id, centro: puntoSchema, hastaEsquina: z.number() })),
+      electricos: z.array(z.object({ id, punto: puntoSchema })).default([]),
       ambientes: z.array(
         z.object({
           id,
@@ -191,6 +246,8 @@ export type Muro = z.infer<typeof muroSchema>;
 export type TipoAbertura = z.infer<typeof tipoAberturaSchema>;
 export type Abertura = z.infer<typeof aberturaSchema>;
 export type Columna = z.infer<typeof columnaSchema>;
+export type TipoPunto = z.infer<typeof tipoPuntoSchema>;
+export type PuntoElectrico = z.infer<typeof puntoElectricoSchema>;
 export type Ambiente = z.infer<typeof ambienteSchema>;
 export type ZonaTecho = z.infer<typeof zonaTechoSchema>;
 export type Moldura = z.infer<typeof molduraSchema>;
@@ -213,6 +270,7 @@ export function nivelVacio(idNivel: string, nombre: string, cotaPiso = 0): Nivel
     muros: [],
     aberturas: [],
     columnas: [],
+    electricos: [],
     ambientes: [],
     techos: [],
     molduras: [],

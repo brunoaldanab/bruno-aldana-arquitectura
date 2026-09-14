@@ -113,6 +113,8 @@ export const reemplazarNivel = (r: Relevamiento, nivel: Nivel): Relevamiento => 
   niveles: r.niveles.map((n) => (n.id === nivel.id ? nivel : n)),
 });
 
-/** Los códigos P1, V1 son únicos en todo el relevamiento. */
+/** Los códigos P1, V1, T1 son únicos en todo el relevamiento. */
 export const codigosDeOtrosNiveles = (r: Relevamiento, nivelId: string): string[] =>
-  r.niveles.filter((n) => n.id !== nivelId).flatMap((n) => n.aberturas.map((a) => a.codigo));
+  r.niveles
+    .filter((n) => n.id !== nivelId)
+    .flatMap((n) => [...n.aberturas.map((a) => a.codigo), ...n.electricos.map((e) => e.codigo)]);
