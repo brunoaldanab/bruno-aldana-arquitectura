@@ -20,8 +20,8 @@ from barelevamiento.lectura import leer_archivo  # noqa: E402
 from barevit.constructor import Constructor  # noqa: E402
 
 
-def construir(nombre, con_familias=True):
-    doc = dobles.documento(con_familias)
+def construir(nombre, con_familias=True, sin_volteo=()):
+    doc = dobles.documento(con_familias, sin_volteo)
     plan = planificador.armar(leer_archivo(contexto.ruta(nombre)))
     resultado = informes.Resultado()
     Constructor(doc, plan, resultado).construir()
@@ -137,6 +137,48 @@ class CasaDeEjemplo(unittest.TestCase):
 
     def test_la_viga_entra_apoyada_en_la_altura_del_nivel(self):
         self.assertEqual(self.resultado.cuenta(u"OrdenViga"), 1)
+
+
+class ComoLaPlantillaDeGigi(unittest.TestCase):
+    """Las familias eléctricas que no se dejan voltear y entran sueltas.
+
+    Es el caso real de la plantilla de Bruno, medido en Revit el 14/09/2026:
+    `CanFlipFacing` en falso y sin muro anfitrión. Darlas vuelta no hace nada,
+    así que la única forma de dejarlas mirando bien es girarlas.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.plan, cls.resultado, cls.registro = construir(
+            contexto.CUARTO,
+            sin_volteo=(u"dispositivos-electricos", u"dispositivos-de-iluminacion", u"dispositivos-de-comunicacion"),
+        )
+
+    def test_los_cinco_puntos_entran_igual(self):
+        self.assertEqual(self.resultado.cuenta(u"OrdenElectrico"), 5)
+
+    def test_se_los_gira_porque_voltearlos_no_hace_nada(self):
+        self.assertTrue(self.registro.rotaciones, u"tendría que haber girado los que quedaron torcidos")
+
+    def test_todos_terminan_mirando_hacia_su_normal(self):
+        normales = dict(
+            (o.codigo, o.normal)
+            for o in self.plan.ordenes
+            if type(o).__name__ == u"OrdenElectrico"
+        )
+        revisados = 0
+        for instancia in self.registro.instancias:
+            codigo = instancia.get_Parameter(u"BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS")
+            normal = normales.get(codigo.AsString() if codigo else None)
+            if not normal:
+                continue
+            mira = instancia.FacingOrientation
+            self.assertAlmostEqual(mira.X * normal[0] + mira.Y * normal[1], 1.0, places=6)
+            revisados += 1
+        self.assertEqual(revisados, 5)
+
+    def test_avisa_que_quedaron_sueltos(self):
+        self.assertTrue(any(u"sueltos" in a for a in self.resultado.avisos))
 
 
 class UnProyectoPelado(unittest.TestCase):

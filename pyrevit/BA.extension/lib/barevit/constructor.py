@@ -14,6 +14,8 @@ Tres reglas que no cambian:
 * **Una transacción por etapa**, todas dentro de un grupo: si una etapa entera
   se cae, las anteriores quedan hechas.
 """
+import math
+
 from pyrevit import DB
 
 from barelevamiento import plan as planificador
@@ -21,6 +23,9 @@ from barelevamiento import plan as planificador
 from . import tipos as buscador
 
 XYZ = DB.XYZ
+
+#: Por debajo de un grado, dos direcciones son la misma.
+_UN_GRADO = math.pi / 180
 
 
 class Constructor(object):
@@ -297,30 +302,57 @@ class Constructor(object):
             )
             self._orientar(instancia, orden.normal)
             _comentario(instancia, orden.codigo, orden.notas)
+            if not _tiene_anfitrion(instancia):
+                sueltos.append(orden.codigo)
             self.resultado.creado(u"OrdenElectrico", orden.codigo)
 
+        sueltos = []
         self._cada(ordenes, crear)
+        if sueltos:
+            self.resultado.aviso(
+                u"%s de %s puntos eléctricos entraron sueltos, no pegados al muro, porque su familia no se "
+                u"hospeda en paredes: están en el lugar exacto, pero si después se mueve un muro no lo siguen."
+                % (len(sueltos), len(ordenes))
+            )
 
     # -- ayudas ------------------------------------------------------------
 
     def _orientar(self, instancia, normal):
         """Deja el elemento mirando hacia donde dice el relevamiento.
 
-        En vez de calcular de antemano si hay que darlo vuelta, se lo coloca, se
-        mira para dónde quedó mirando y se lo voltea solo si quedó al revés. La
-        orientación inicial depende de la familia y de dónde cae el punto
-        respecto del eje del muro, así que adivinarla acierta a veces; medirla,
-        siempre.
+        No se calcula de antemano: se lo coloca, se le pregunta a Revit para
+        dónde quedó mirando y se lo corrige. Hay dos formas de corregirlo y
+        hacen falta las dos:
+
+        * **Darlo vuelta**, que es lo que sirve en puertas y ventanas.
+        * **Girarlo**, que es lo único que sirve en las familias eléctricas de
+          la plantilla de Gigi: vienen con `CanFlipFacing` en falso, así que
+          darlas vuelta no hace absolutamente nada, y además entran sueltas —sin
+          muro anfitrión— mirando siempre para el mismo lado.
         """
         if not normal:
             return
         try:
             self.doc.Regenerate()
-            mira = instancia.FacingOrientation
-            if mira.X * normal[0] + mira.Y * normal[1] < 0:
+            angulo = _angulo_hasta(instancia.FacingOrientation, normal)
+            if angulo is None or abs(angulo) < _UN_GRADO:
+                return
+            if abs(abs(angulo) - math.pi) < _UN_GRADO and _puede_voltearse(instancia):
                 instancia.flipFacing()
+                self.doc.Regenerate()
+                nuevo = _angulo_hasta(instancia.FacingOrientation, normal)
+                if nuevo is None or abs(nuevo) < _UN_GRADO:
+                    return
+                angulo = nuevo
+            self._girar(instancia, angulo)
         except Exception:
             pass
+
+    def _girar(self, instancia, angulo):
+        """Gira el elemento sobre su propio eje vertical."""
+        punto = instancia.Location.Point
+        eje = DB.Line.CreateBound(punto, XYZ(punto.X, punto.Y, punto.Z + 1))
+        DB.ElementTransformUtils.RotateElement(self.doc, instancia.Id, eje, angulo)
 
     def _nivel(self, orden):
         nivel = self.niveles.get(orden.nivel_id)
@@ -367,6 +399,28 @@ def _fijar(elemento, incorporado, valor):
         return False
 
 
+def _angulo_hasta(mira, normal):
+    """Cuánto hay que girar el elemento para que mire hacia `normal`.
+
+    Devuelve None si Revit todavía no sabe para dónde mira —pasa con algunas
+    familias recién insertadas—, y en ese caso no se lo toca.
+    """
+    largo = (mira.X ** 2 + mira.Y ** 2) ** 0.5
+    if largo < 1e-6:
+        return None
+    x = mira.X / largo
+    y = mira.Y / largo
+    return math.atan2(x * normal[1] - y * normal[0], x * normal[0] + y * normal[1])
+
+
+def _puede_voltearse(instancia):
+    """Las familias eléctricas de Gigi dicen que no, y hay que creerles."""
+    try:
+        return bool(instancia.CanFlipFacing)
+    except Exception:
+        return True
+
+
 def _voltear(instancia, invertir_cara=False, invertir_mano=False):
     """Da vuelta la puerta, si la familia lo permite."""
     try:
@@ -376,6 +430,13 @@ def _voltear(instancia, invertir_cara=False, invertir_mano=False):
             instancia.flipHand()
     except Exception:
         pass
+
+
+def _tiene_anfitrion(instancia):
+    try:
+        return instancia.Host is not None
+    except Exception:
+        return True
 
 
 def _comentario(elemento, codigo, notas):

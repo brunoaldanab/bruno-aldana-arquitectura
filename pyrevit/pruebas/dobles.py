@@ -145,7 +145,16 @@ class Elemento(object):
     #: siempre la misma, para que la prueba sepa qué esperar.
     FacingOrientation = XYZ(1, 0, 0)
 
+    #: Las familias eléctricas de la plantilla de Gigi no se dejan voltear: hay
+    #: que girarlas. El doble lo copia para que la prueba recorra ese camino.
+    CanFlipFacing = True
+
+    #: Sin muro anfitrión, como entran esas mismas familias.
+    Host = None
+
     def flipFacing(self):
+        if not self.CanFlipFacing:
+            return  # en Revit no avisa: simplemente no pasa nada
         self.FacingOrientation = XYZ(-self.FacingOrientation.X, -self.FacingOrientation.Y, 0)
         REGISTRO.volteos.append((self.Name, u"cara"))
 
@@ -287,6 +296,12 @@ class _ElementTransformUtils(object):
     @staticmethod
     def RotateElement(doc, elemento_id, eje, angulo):
         REGISTRO.rotaciones.append(angulo)
+        for e in doc.elementos:
+            if e.Id is elemento_id or getattr(e, u"Id", None) == elemento_id:
+                mira = e.FacingOrientation
+                cos = math.cos(angulo)
+                sen = math.sin(angulo)
+                e.FacingOrientation = XYZ(mira.X * cos - mira.Y * sen, mira.X * sen + mira.Y * cos, 0)
 
 
 class CurveLoop(object):
@@ -359,11 +374,16 @@ class FilteredElementCollector(object):
 # -- el documento -----------------------------------------------------------
 
 
+#: Categorías cuyas familias, en la plantilla de Bruno, no se dejan voltear.
+_SIN_VOLTEO = ()
+
+
 class Creador(object):
     def __init__(self, doc):
         self.doc = doc
 
     def NewFamilyInstance(self, *argumentos):
+        punto = argumentos[0] if argumentos and isinstance(argumentos[0], XYZ) else XYZ(0, 0, 0)
         instancia = Elemento(
             u"instancia",
             {u"%s" % BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM: Parametro(u"antepecho"),
@@ -373,6 +393,12 @@ class Creador(object):
              u"%s" % BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION: Parametro(u"arranque"),
              u"%s" % BuiltInParameter.STRUCTURAL_BEAM_END1_ELEVATION: Parametro(u"final")},
         )
+        instancia.Location = types.SimpleNamespace(Point=punto)
+        # Las eléctricas de Gigi: no se voltean y entran sueltas.
+        if len(argumentos) > 1 and getattr(argumentos[1], u"categoria", None) in _SIN_VOLTEO:
+            instancia.CanFlipFacing = False
+        else:
+            instancia.Host = object()
         REGISTRO.anotar(u"instancia", argumentos)
         REGISTRO.instancias.append(instancia)
         self.doc.agregar(instancia)
@@ -430,12 +456,23 @@ class Documento(object):
         pass
 
 
+CATEGORIA_DE = {
+    u"dispositivos-electricos": BuiltInCategory.OST_ElectricalFixtures,
+    u"dispositivos-de-iluminacion": BuiltInCategory.OST_LightingDevices,
+    u"dispositivos-de-comunicacion": BuiltInCategory.OST_CommunicationDevices,
+}
+
 _DOC = None
 
 
-def documento(con_familias=True):
-    """Un documento nuevo y un registro limpio."""
-    global _DOC, REGISTRO
+def documento(con_familias=True, sin_volteo=()):
+    """Un documento nuevo y un registro limpio.
+
+    `sin_volteo` son las categorías cuyas familias no se dejan voltear, como las
+    eléctricas de la plantilla de Gigi.
+    """
+    global _DOC, REGISTRO, _SIN_VOLTEO
+    _SIN_VOLTEO = tuple(CATEGORIA_DE[c] for c in sin_volteo)
     REGISTRO = Registro()
     _module_db.__dict__[u"_REGISTRO"] = REGISTRO
     _DOC = Documento(con_familias)
