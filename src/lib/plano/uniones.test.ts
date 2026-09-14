@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { aplicarArrastre } from "./herramientas";
-import { estirarMuroHasta, soltarNodo, unirNodos } from "./operaciones";
+import { soltarNodo, unirMuros, unirNodos } from "./operaciones";
 import { nivelDesdeEjes } from "./prueba-casos";
 import { posicionNodo } from "./caras";
 
@@ -46,13 +46,13 @@ describe("uniones de muros", () => {
     expect(posicionNodo(r, r.muros.find((m) => m.id === "m2")!.hasta)).toEqual({ x: 200, y: 0 });
   });
 
-  it("estirar un muro lo lleva hasta el eje del otro y los une", () => {
-    // El muro m3 no llega a m1: se estira hasta él.
+  it("unir lleva el muro hasta el eje del otro y hace la T", () => {
+    // El muro m3 no llega a m1: se estira hasta él y lo parte por el medio.
     const n = nivelDesdeEjes(
       [["n1", 0, 0], ["n2", 400, 0], ["n3", 200, 300], ["n4", 200, 120]],
       [["m1", "n1", "n2", 15], ["m3", "n3", "n4", 15]],
     );
-    const r = estirarMuroHasta(n, "m3", "m1");
+    const r = unirMuros(n, "m3", "m1");
     expect("nivel" in r).toBe(true);
     const nivel = (r as { nivel: typeof n }).nivel;
     expect(posicionNodo(nivel, nivel.muros.find((m) => m.id === "m3")!.hasta)).toEqual({ x: 200, y: 0 });
@@ -64,15 +64,24 @@ describe("uniones de muros", () => {
       [["n1", 0, 0], ["n2", 400, 0], ["n3", 0, 300], ["n4", 400, 300]],
       [["m1", "n1", "n2", 15], ["m2", "n3", "n4", 15]],
     );
-    expect(estirarMuroHasta(n, "m1", "m2")).toEqual({ motivo: "paralelos" });
+    expect(unirMuros(n, "m1", "m2")).toEqual({ motivo: "paralelos" });
   });
 
-  it("si el cruce cae fuera del muro elegido, avisa en vez de inventar la unión", () => {
+  it("si el cruce cae más allá del otro muro, los dos estiran y se juntan en esquina", () => {
+    // m1 termina en x=100 y m3 sube por x=300: el cruce queda fuera de los dos.
     const n = nivelDesdeEjes(
       [["n1", 0, 0], ["n2", 100, 0], ["n3", 300, 300], ["n4", 300, 120]],
       [["m1", "n1", "n2", 15], ["m3", "n3", "n4", 15]],
     );
-    expect(estirarMuroHasta(n, "m3", "m1")).toEqual({ motivo: "fuera" });
+    const r = unirMuros(n, "m3", "m1");
+    expect("nivel" in r).toBe(true);
+    const nivel = (r as { nivel: typeof n }).nivel;
+    // Las dos puntas terminan en el mismo nodo, en (300, 0).
+    expect(nivel.nodos).toHaveLength(3);
+    const m1 = nivel.muros.find((m) => m.id === "m1")!;
+    const m3 = nivel.muros.find((m) => m.id === "m3")!;
+    expect(posicionNodo(nivel, m1.hasta)).toEqual({ x: 300, y: 0 });
+    expect(m3.hasta).toBe(m1.hasta);
   });
 
   it("juntar dos nodos borra el muro que queda sin largo", () => {

@@ -19,11 +19,10 @@ import {
   ajustarPunto,
   alinearMuroCon,
   enRecto,
-  estirarMuroHasta,
+  unirMuros,
   moverNodo,
   soltarNodo,
   type Extremo,
-  type MotivoEstirar,
 } from "./operaciones";
 import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
 import { muroCercano, seleccionDeMuro, tocarPlanta, tocarTecho, type Seleccion } from "./toque";
@@ -271,27 +270,24 @@ export function aplicarArrastre(nivel: Nivel, a: Arrastre, p: Punto, final: bool
   return a.tipo === "abertura" ? arrastrarAbertura(nivel, a.id, cm) : arrastrarPuntoElectrico(nivel, a.id, cm);
 }
 
-const AVISO_ESTIRAR: Record<MotivoEstirar, string> = {
-  paralelos: "Esos dos muros son paralelos: nunca se van a encontrar",
-  fuera: "Se cruzarían fuera del muro que elegiste. Estirá primero ese",
-};
-
-export type Apuntando = { accion: "estirar" | "alinear"; muroId: string };
+export type Apuntando = { accion: "unir" | "alinear"; muroId: string };
 
 export const PEDIDO: Record<Apuntando["accion"], string> = {
-  estirar: "Tocá el muro hasta donde tiene que llegar",
+  unir: "Tocá el muro con el que se tiene que juntar",
   alinear: "Tocá el muro con el que se tiene que alinear",
 };
 
-/** El segundo toque de "estirar hasta" y de "alinear con": elegir el otro muro. */
+/** El segundo toque de "unir con" y de "alinear con": elegir el otro muro. */
 export function tocarObjetivo(nivel: Nivel, a: Apuntando, p: Punto, radio: number): { nivel: Nivel } | { aviso: string } {
   const objetivo = muroCercano(nivel, p, radio);
   if (!objetivo) return { aviso: PEDIDO[a.accion] };
   if (objetivo === a.muroId) return { aviso: "Ese es el mismo muro: tocá el otro" };
   if (a.accion === "alinear") {
     const r = alinearMuroCon(nivel, a.muroId, objetivo);
-    return "nivel" in r ? { nivel: r.nivel } : { aviso: "Esos dos muros no van en la misma dirección" };
+    return "nivel" in r
+      ? { nivel: r.nivel }
+      : { aviso: "Alinear es para dos tramos de la misma pared. Para que se crucen usá «Unir con otro muro»" };
   }
-  const r = estirarMuroHasta(nivel, a.muroId, objetivo);
-  return "nivel" in r ? { nivel: r.nivel } : { aviso: AVISO_ESTIRAR[r.motivo] };
+  const r = unirMuros(nivel, a.muroId, objetivo);
+  return "nivel" in r ? { nivel: r.nivel } : { aviso: "Esos dos muros son paralelos: nunca se van a cruzar" };
 }

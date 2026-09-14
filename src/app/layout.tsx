@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RegistroServiceWorker } from "@/components/RegistroServiceWorker";
@@ -25,6 +25,24 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/**
+ * Sin esto, en el iPhone el pellizco agranda toda la página —los botones, las
+ * hojas y las barras— en vez de acercar el plano, y al alejar de más la página
+ * se encoge y parece que Safari se cerró. El plano tiene su propio pellizco
+ * adentro del lienzo, así que el del navegador solo estorba.
+ *
+ * `viewportFit: "cover"` es además lo que hace que funcionen los márgenes de
+ * `env(safe-area-inset-*)` que usan las barras de arriba y de abajo.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#0F1113",
+};
+
 export const metadata: Metadata = {
   title: "Bruno Aldana · Arquitectura",
   description: "Gestión de contactos, cotizaciones y fichas de entrevista del estudio.",
@@ -40,9 +58,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${archivo.variable} ${jetbrainsMono.variable} h-full antialiased [color-scheme:dark]`}
+      className={`${archivo.variable} ${jetbrainsMono.variable} h-full overscroll-none antialiased [color-scheme:dark]`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">
+      <body className="min-h-full flex flex-col overscroll-none bg-neutral-950 text-neutral-100">
         {children}
         <RegistroServiceWorker />
       </body>

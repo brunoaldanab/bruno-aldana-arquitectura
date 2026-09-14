@@ -311,14 +311,22 @@ export function soltarNodo(nivel: Nivel, nodoId: string, p: Punto, radio: number
   return moverNodo(nivel, nodoId, p, true);
 }
 
-export type MotivoEstirar = "paralelos" | "fuera";
+export type MotivoUnir = "paralelos";
 
 /**
- * El "estirar hasta" de Revit: el muro crece o se recorta sobre su propia
- * dirección hasta encontrarse con el eje del otro, y ahí se unen. Se mueve la
- * punta más cercana al cruce; la otra no se toca.
+ * El "trim / extend to corner" de AutoCAD y Revit, que es lo que hace falta en
+ * un relevamiento: los dos muros crecen o se recortan hasta el cruce de sus
+ * ejes y ahí comparten la punta, quede el cruce donde quede.
+ *
+ * Hay dos maneras de terminar, y se elige sola:
+ * - **En T**, cuando el cruce cae adentro del otro muro: ese se parte ahí y no
+ *   cambia de largo; el que se movió es solo el primero.
+ * - **En esquina**, cuando el cruce cae más allá de una punta del otro: los dos
+ *   estiran su punta más cercana hasta el cruce, como una L.
+ *
+ * Lo único imposible son dos muros paralelos, que no se cruzan nunca.
  */
-export function estirarMuroHasta(nivel: Nivel, muroId: string, objetivoId: string): { nivel: Nivel } | { motivo: MotivoEstirar } {
+export function unirMuros(nivel: Nivel, muroId: string, objetivoId: string): { nivel: Nivel } | { motivo: MotivoUnir } {
   const m = nivel.muros.find((x) => x.id === muroId);
   const o = nivel.muros.find((x) => x.id === objetivoId);
   if (!m || !o || m.id === o.id) return { motivo: "paralelos" };
@@ -329,25 +337,25 @@ export function estirarMuroHasta(nivel: Nivel, muroId: string, objetivoId: strin
   const corte = interseccion(a, resta(b, a), c, resta(d, c));
   if (!corte) return { motivo: "paralelos" };
 
-  // El cruce tiene que caer sobre el muro objetivo: si no, el otro también habría que estirarlo.
-  const u = unitario(resta(d, c));
-  const t = productoEscalar(resta(corte, c), u);
-  const largoObjetivo = distancia(c, d);
-  if (t < -0.5 || t > largoObjetivo + 0.5) return { motivo: "fuera" };
-
-  const nodoId = distancia(a, corte) <= distancia(b, corte) ? m.desde : m.hasta;
   const X = redondearPunto(corte);
-  const movido = moverNodo(nivel, nodoId, X, false);
-  // Sobre una punta del objetivo se juntan los nodos; en el medio se parte el muro.
-  if (t <= 0.5) return { nivel: unirNodos(movido, nodoId, o.desde) };
-  if (t >= largoObjetivo - 0.5) return { nivel: unirNodos(movido, nodoId, o.hasta) };
-  return { nivel: unirNodoConMuro(nivel, nodoId, objetivoId, X) };
+  const nodoM = distancia(a, X) <= distancia(b, X) ? m.desde : m.hasta;
+  const u = unitario(resta(d, c));
+  const t = productoEscalar(resta(X, c), u);
+  const largoObjetivo = distancia(c, d);
+
+  if (t > 0.5 && t < largoObjetivo - 0.5) return { nivel: unirNodoConMuro(nivel, nodoM, objetivoId, X) };
+
+  const nodoO = t <= 0.5 ? o.desde : o.hasta;
+  if (nodoM === nodoO) return { nivel };
+  const movido = moverNodo(moverNodo(nivel, nodoM, X, false), nodoO, X, false);
+  return { nivel: unirNodos(movido, nodoM, nodoO) };
 }
 
 /**
  * El "alinear" de Revit: el muro se corre de costado, sin girar ni cambiar de
- * largo, hasta quedar sobre la misma línea que el otro. Solo tiene sentido
- * entre muros que ya van en la misma dirección.
+ * largo, hasta quedar sobre la misma línea que el otro. Es para dos tramos de
+ * una misma pared que quedaron corridos; para que dos muros se crucen y se
+ * junten está `unirMuros`.
  */
 export function alinearMuroCon(nivel: Nivel, muroId: string, objetivoId: string): { nivel: Nivel } | { motivo: "no-paralelos" } {
   const m = nivel.muros.find((x) => x.id === muroId);

@@ -9,7 +9,8 @@ import { distancia, type Punto } from "./vector";
 export type Vista = { x: number; y: number; escala: number };
 export type Caja = { minX: number; minY: number; maxX: number; maxY: number };
 
-export const ESCALA_MIN = 0.05;
+// Alejar más que esto deja el plano del tamaño de una uña y no sirve para nada.
+export const ESCALA_MIN = 0.12;
 export const ESCALA_MAX = 8;
 
 const limitar = (escala: number) => Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, escala));
