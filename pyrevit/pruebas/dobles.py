@@ -269,14 +269,21 @@ class CurveLoop(object):
         self.curvas.append(curva)
 
 
-class _ElementNombre(object):
-    @staticmethod
-    def GetValue(elemento):
-        return elemento.Name
+class _DescriptorDeNombre(object):
+    """`DB.Element.Name` en CPython es el descriptor de la propiedad, y nada más.
+
+    El rodeo de IronPython —`Element.Name.GetValue(elemento)`— revienta en el
+    motor CPython de pyRevit con "'getset_descriptor' object has no attribute
+    'GetValue'". Pasó de verdad la primera vez que Bruno apretó el botón: el
+    doble no lo reproducía y por eso las pruebas no lo vieron. Ahora sí.
+    """
+
+    def __getattr__(self, atributo):
+        raise AttributeError(u"'getset_descriptor' object has no attribute '%s'" % atributo)
 
 
 class _Element(object):
-    Name = _ElementNombre
+    Name = _DescriptorDeNombre()
 
 
 class Transaction(object):

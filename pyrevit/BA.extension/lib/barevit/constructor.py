@@ -98,7 +98,11 @@ class Constructor(object):
                 ya_esta = _cercano(existentes, orden.elevacion)
             if ya_esta is None:
                 ya_esta = DB.Level.Create(self.doc, orden.elevacion)
-                ya_esta.Name = orden.nombre
+                try:
+                    # Si el nombre ya está tomado, el nivel sirve igual con el suyo.
+                    ya_esta.Name = orden.nombre
+                except Exception:
+                    pass
                 self.resultado.creado(u"OrdenNivel", orden.nombre)
             self.niveles[orden.nivel_id] = ya_esta
 
@@ -153,10 +157,7 @@ class Constructor(object):
                 punto, tipo, muro, nivel, DB.Structure.StructuralType.NonStructural
             )
             _fijar(instancia, DB.BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM, orden.antepecho)
-            if orden.invertir_cara:
-                instancia.flipFacing()
-            if orden.invertir_mano:
-                instancia.flipHand()
+            _voltear(instancia, orden.invertir_cara, orden.invertir_mano)
             _comentario(instancia, orden.codigo, orden.notas)
             self.resultado.creado(u"OrdenAbertura", orden.codigo)
 
@@ -189,7 +190,7 @@ class Constructor(object):
             columna = self.doc.Create.NewFamilyInstance(punto, tipo, nivel, DB.Structure.StructuralType.NonStructural)
             _fijar(columna, DB.BuiltInParameter.FAMILY_TOP_LEVEL_PARAM, nivel.Id)
             _fijar(columna, DB.BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM, orden.altura)
-            if abs(orden.rotacion) > 1e-9:
+            if abs(orden.rotacion) > 1e-9:  # noqa: la rotación de una columna es opcional
                 eje = DB.Line.CreateBound(punto, XYZ(punto.X, punto.Y, punto.Z + 1))
                 DB.ElementTransformUtils.RotateElement(self.doc, columna.Id, eje, orden.rotacion)
             self.resultado.creado(u"OrdenColumna", orden.id)
@@ -290,8 +291,7 @@ class Constructor(object):
             instancia = self.doc.Create.NewFamilyInstance(
                 punto, tipo, muro, nivel, DB.Structure.StructuralType.NonStructural
             )
-            if orden.invertir_cara:
-                instancia.flipFacing()
+            _voltear(instancia, orden.invertir_cara)
             _comentario(instancia, orden.codigo, orden.notas)
             self.resultado.creado(u"OrdenElectrico", orden.codigo)
 
@@ -328,11 +328,31 @@ def _cercano(niveles, elevacion):
 
 
 def _fijar(elemento, incorporado, valor):
-    p = elemento.get_Parameter(incorporado)
-    if p is None or p.IsReadOnly:
+    """Carga un parámetro, y si Revit lo rechaza sigue de largo.
+
+    Un parámetro que no se deja escribir —porque la familia no lo tiene, o
+    porque en ese tipo es de solo lectura— no puede tumbar un muro que ya se
+    creó bien. El elemento vale más que el detalle.
+    """
+    try:
+        p = elemento.get_Parameter(incorporado)
+        if p is None or p.IsReadOnly:
+            return False
+        p.Set(valor)
+        return True
+    except Exception:
         return False
-    p.Set(valor)
-    return True
+
+
+def _voltear(instancia, invertir_cara=False, invertir_mano=False):
+    """Da vuelta la puerta, si la familia lo permite."""
+    try:
+        if invertir_cara:
+            instancia.flipFacing()
+        if invertir_mano:
+            instancia.flipHand()
+    except Exception:
+        pass
 
 
 def _comentario(elemento, codigo, notas):

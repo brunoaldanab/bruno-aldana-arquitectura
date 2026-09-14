@@ -44,9 +44,19 @@ def simbolos(doc, categoria):
     )
 
 
+def nombre_de(elemento):
+    """El nombre de un elemento, en el motor CPython de pyRevit.
+
+    El rodeo `Element.Name.GetValue(elemento)` es el que hace falta en
+    IronPython y **acá revienta**: en CPython `Element.Name` es el descriptor de
+    la propiedad y no tiene `GetValue`. Con CPython alcanza `elemento.Name`.
+    """
+    return elemento.Name
+
+
 def por_nombre(elementos, nombre):
     for e in elementos:
-        if DB.Element.Name.GetValue(e) == nombre:
+        if nombre_de(e) == nombre:
             return e
     return None
 
