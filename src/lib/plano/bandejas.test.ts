@@ -7,6 +7,8 @@ import {
   cargarMargenBandeja,
   poligonoHaciaAdentro,
 } from "./elementos";
+import { aplicarToque } from "./herramientas";
+import { nivelVacio } from "./modelo";
 import { cuartoDeBruno } from "./prueba-casos";
 import { areaConSigno } from "./vector";
 
@@ -76,5 +78,41 @@ describe("bandejas de techo", () => {
     expect(zona.ambienteId).toBe("amb1");
     expect(zona.margen).toBeNull();
     expect(zona.padreId).toBeNull();
+  });
+
+  it("el cielo falso se dibuja a dedo aunque las paredes todavía no cierren", () => {
+    const suelto = agregarZonaDibujada(
+      nivelVacio("nivel-1", "Planta baja"),
+      [
+        { x: 0, y: 0 },
+        { x: 300, y: 0 },
+        { x: 300, y: 300 },
+      ],
+      240,
+    );
+    expect(suelto).not.toBeNull();
+    expect(suelto!.nivel.techos[0].ambienteId).toBeNull();
+    // Y aparece como aviso, no como error: no impide seguir relevando.
+    const controles = revisarNivel(suelto!.nivel);
+    expect(controles.some((c) => c.codigo === "techo-sin-ambiente" && c.tipo === "aviso")).toBe(true);
+    expect(controles.some((c) => c.tipo === "error")).toBe(false);
+  });
+
+  it("cuando una herramienta de techo no puede actuar, dice por qué", () => {
+    const vacio = nivelVacio("nivel-1", "Planta baja");
+    const estado = { nivel: vacio, modo: "techo" as const, trazo: null, codigosOtros: [] };
+    expect(aplicarToque({ ...estado, herramienta: "zona" }, { x: 0, y: 0 }, 10).aviso).toMatch(/Cerrá las paredes/);
+    expect(aplicarToque({ ...estado, herramienta: "bandeja" }, { x: 0, y: 0 }, 10).aviso).toMatch(/primero poné la zona/);
+  });
+
+  it("un ambiente no puede tener dos cielos falsos: el segundo toque abre el que ya está", () => {
+    const base = conZona();
+    const r = aplicarToque(
+      { nivel: base.nivel, modo: "techo", herramienta: "zona", trazo: null, codigosOtros: [] },
+      { x: 200, y: 200 },
+      10,
+    );
+    expect(r.nivel.techos).toHaveLength(1);
+    expect(r.seleccion).toEqual({ tipo: "techo", id: base.id });
   });
 });

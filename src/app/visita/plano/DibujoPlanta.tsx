@@ -104,11 +104,24 @@ function PuntoSvg({ nivel, e, k, elegido }: { nivel: Nivel; e: PuntoElectrico; k
   );
 }
 
+/**
+ * Un muro que no cierra ningún ambiente se dibuja apagado: es la señal de que
+ * todavía no tiene cota y de que el recorrido no cerró. Apenas cierra, se llena.
+ */
 function Muros({ nivel, k }: { nivel: Nivel; k: number }) {
+  const cierran = new Set(nivel.ambientes.flatMap((a) => a.contorno.map((c) => c.muroId)));
   return (
     <>
       {nivel.muros.map((m) => (
-        <polygon key={m.id} points={puntos(poligonoMuro(nivel, m.id))} fill={TINTA} stroke={TINTA} strokeWidth={0.6 * k} strokeLinejoin="round" />
+        <polygon
+          key={m.id}
+          points={puntos(poligonoMuro(nivel, m.id))}
+          fill={TINTA}
+          fillOpacity={cierran.has(m.id) ? 1 : 0.4}
+          stroke={TINTA}
+          strokeWidth={0.6 * k}
+          strokeLinejoin="round"
+        />
       ))}
     </>
   );

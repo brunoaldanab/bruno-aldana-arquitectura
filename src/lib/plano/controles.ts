@@ -36,7 +36,7 @@ export function revisarNivel(nivel: Nivel): Control[] {
   const pendiente = (m: Medida | null, mensaje: string, elemento?: Control["elemento"]) => {
     if (m && !m.tomada) agregar("pendiente", "pendiente", mensaje, elemento);
   };
-  const nombreDe = (id: string) => nivel.ambientes.find((a) => a.id === id)?.nombre ?? id;
+  const nombreDe = (id: string | null) => nivel.ambientes.find((a) => a.id === id)?.nombre ?? id ?? "sin ambiente";
 
   // Errores de cierre: solo los ambientes con medidas pueden contradecirse.
   for (const c of resolverNivel(nivel).cierres) {
@@ -74,13 +74,17 @@ export function revisarNivel(nivel: Nivel): Control[] {
   // Zonas de techo: sus vértices dentro del ambiente y ningún vértice del ambiente dentro de la zona (ajuste 10).
   for (const t of nivel.techos) {
     const elemento = { tipo: "techo", id: t.id };
-    const existe = nivel.ambientes.some((a) => a.id === t.ambienteId);
-    const ambiente = existe ? contornoInterior(nivel, t.ambienteId) : [];
-    const fuera =
-      !existe ||
+    const existe = t.ambienteId !== null && nivel.ambientes.some((a) => a.id === t.ambienteId);
+    const ambiente = existe ? contornoInterior(nivel, t.ambienteId!) : [];
+    // Una zona sin ambiente es un aviso, no un error: se mide igual y se resuelve al cerrar las paredes.
+    if (!existe) {
+      agregar("aviso", "techo-sin-ambiente", `La zona de techo ${t.id} no cae dentro de ningún ambiente cerrado`, elemento);
+    } else if (
       t.contorno.some((p) => !puntoEnPoligono(p, ambiente) && !sobreBorde(p, ambiente)) ||
-      ambiente.some((p) => puntoEnPoligono(p, t.contorno) && !sobreBorde(p, t.contorno));
-    if (fuera) agregar("error", "techo-fuera", `La zona de techo ${t.id} se sale de ${nombreDe(t.ambienteId)}`, elemento);
+      ambiente.some((p) => puntoEnPoligono(p, t.contorno) && !sobreBorde(p, t.contorno))
+    ) {
+      agregar("error", "techo-fuera", `La zona de techo ${t.id} se sale de ${nombreDe(t.ambienteId!)}`, elemento);
+    }
     if (t.altura.valor > nivel.alturaGeneral.valor)
       agregar("aviso", "techo-alto", `La zona de techo ${t.id} está más alta que la altura general: confirmar si es doble altura`, elemento);
   }

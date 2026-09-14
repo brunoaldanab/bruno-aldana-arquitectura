@@ -14,6 +14,7 @@ export function BarraPlano({
   onNivel,
   onNuevoNivel,
   aviso,
+  onAviso,
   onVolver,
   onImprimir,
 }: {
@@ -26,6 +27,7 @@ export function BarraPlano({
   onNivel: (id: string) => void;
   onNuevoNivel: () => void;
   aviso: { texto: string; error: boolean };
+  onAviso: () => void;
   onVolver: () => void;
   onImprimir: () => void;
 }) {
@@ -55,12 +57,14 @@ export function BarraPlano({
           ))}
           <option value="+">+ Nivel</option>
         </select>
-        <span
+        <button
+          type="button"
+          onClick={onAviso}
           aria-live="polite"
           className={`rotulo rounded-full border border-dashed px-2.5 py-1.5 ${aviso.error ? "border-danger-600/60 text-danger-600" : "border-neutral-500 text-neutral-100"}`}
         >
-          {aviso.texto}
-        </span>
+          {aviso.texto} ›
+        </button>
         <button type="button" onClick={onImprimir} className="rotulo ml-auto rounded-full bg-white/[0.07] px-3 py-2 text-neutral-100">
           Plano
         </button>

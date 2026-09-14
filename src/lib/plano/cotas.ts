@@ -1,9 +1,9 @@
 // src/lib/plano/cotas.ts
 import { ladosDeAmbiente, type Lado } from "./ambientes";
-import { direccionCara, direccionMuro, esquinasCara, extremosCara, largoCara, todasLasCaras } from "./caras";
+import { direccionCara, direccionMuro, esquinasCara, extremosCara, largoCara } from "./caras";
 import { tipoDe } from "./electricos";
-import type { Abertura, Nivel, NombreCara, PuntoElectrico } from "./modelo";
-import { contornoInterior, puntoEnPoligono } from "./superficie";
+import type { Abertura, Nivel, NombreCara, PuntoElectrico, RefCara } from "./modelo";
+import { ambienteEnPunto, contornoInterior, puntoEnPoligono } from "./superficie";
 import {
   distancia,
   normalDerecha,
@@ -149,10 +149,10 @@ export const alturaDePunto = (e: PuntoElectrico): string => `${e.altura.tomada ?
 
 export const simboloDePunto = (e: PuntoElectrico): string => tipoDe(e.tipo).simbolo;
 
-/** Hasta dónde llega un rayo antes de chocar contra la cara de un muro. Null si no choca con ninguna. */
-function alcanceMuro(nivel: Nivel, desde: Punto, direccion: Punto): number | null {
+/** Hasta dónde llega un rayo antes de chocar contra una de esas caras. Null si no choca con ninguna. */
+function alcanceMuro(nivel: Nivel, caras: RefCara[], desde: Punto, direccion: Punto): number | null {
   let mejor: number | null = null;
-  for (const ref of todasLasCaras(nivel)) {
+  for (const ref of caras) {
     const { inicio, fin } = extremosCara(nivel, ref);
     const s = resta(fin, inicio);
     const c = productoCruz(direccion, s);
@@ -165,7 +165,13 @@ function alcanceMuro(nivel: Nivel, desde: Punto, direccion: Punto): number | nul
   return mejor;
 }
 
-/** Los dos lados de cada columna y su distancia a la pared más cercana en cada eje. */
+/**
+ * Los dos lados de cada columna y su distancia a la pared más cercana en cada
+ * eje. Se mide **siempre por adentro del ambiente donde está la columna**: en un
+ * relevamiento nadie puede medir una distancia que atraviesa una pared, así que
+ * los rayos solo chocan contra las caras de ese ambiente. Una columna que no
+ * está dentro de ningún ambiente solo muestra sus lados.
+ */
 export function cotasDeColumnas(nivel: Nivel, separacion: number): Cota[] {
   const cotas: Cota[] = [];
   for (const c of nivel.columnas) {
@@ -195,12 +201,14 @@ export function cotasDeColumnas(nivel: Nivel, separacion: number): Cota[] {
       toque: null,
     });
 
+    const ambienteId = ambienteEnPunto(nivel, centro);
+    const caras = nivel.ambientes.find((a) => a.id === ambienteId)?.contorno ?? [];
     for (const [eje, direccionEje] of [["x", ex], ["y", ey]] as const) {
       const media = eje === "x" ? mitad.x : mitad.y;
       let mejor: { direccion: Punto; t: number } | null = null;
       for (const signo of [1, -1]) {
         const direccion = por(direccionEje, signo);
-        const t = alcanceMuro(nivel, centro, direccion);
+        const t = alcanceMuro(nivel, caras, centro, direccion);
         if (t !== null && t > media && (mejor === null || t < mejor.t)) mejor = { direccion, t };
       }
       if (!mejor || mejor.t - media < 1) continue;

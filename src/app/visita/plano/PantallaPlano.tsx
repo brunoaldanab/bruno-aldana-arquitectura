@@ -31,6 +31,8 @@ import { HojaAbertura } from "./HojaAbertura";
 import { HojaAmbiente } from "./HojaAmbiente";
 import { HojaMuro } from "./HojaMuro";
 import { HojaElectrico } from "./HojaElectrico";
+import { HojaPendientes } from "./HojaPendientes";
+import { HojaTecho } from "./HojaTecho";
 import { HojaColumna, HojaMoldura, HojaViga, HojaZonaTecho } from "./HojasElementos";
 import { Herramientas } from "./Herramientas";
 import { LienzoPlano } from "./LienzoPlano";
@@ -74,6 +76,8 @@ export function PantallaPlano({
   const [enfocar, setEnfocar] = useState(false);
   const [borrador, setBorrador] = useState<Nivel | null>(null);
   const [cotas, setCotas] = useState(true);
+  const [pendientesAbiertas, setPendientesAbiertas] = useState(false);
+  const [avisoToque, setAvisoToque] = useState("");
   const [imprimir, setImprimir] = useState(false);
   const [centrar, setCentrar] = useState(0);
   const arrastre = useRef<Arrastre | null>(null);
@@ -140,6 +144,7 @@ export function PantallaPlano({
     setTrazo(res.trazo);
     setHerramienta(res.herramienta);
     setEnfocar(cota !== null && res.seleccion?.tipo === "muro");
+    setAvisoToque(res.aviso ?? "");
   }
 
   function alIniciarArrastre(p: Punto, radio: number) {
@@ -159,19 +164,44 @@ export function PantallaPlano({
   const cerrar = () => {
     setSeleccion(null);
     setEnfocar(false);
+    setPendientesAbiertas(false);
+    setAvisoToque("");
   };
   const sel = borrador ? null : seleccionVigente(nivelGuardado, seleccion);
   const codigosOtros = codigosDeOtrosNiveles(r, nivelGuardado.id);
   const comun = { nivel: nivelGuardado, onNivel: cambiarNivel, onCerrar: cerrar, onBorrado: cerrar };
 
+  const verPendientes = () => {
+    setSeleccion(null);
+    setEnfocar(false);
+    setPendientesAbiertas(true);
+  };
+
   let hoja: ReactNode = null;
-  if (sel?.tipo === "muro") {
+  if (pendientesAbiertas) {
+    hoja = (
+      <HojaPendientes
+        nivel={nivelGuardado}
+        onSeleccion={(s) => {
+          setPendientesAbiertas(false);
+          setSeleccion(s);
+          setEnfocar(s.tipo === "muro");
+        }}
+        onCerrar={() => setPendientesAbiertas(false)}
+      />
+    );
+  } else if (sel?.tipo === "muro") {
     hoja = <HojaMuro key={`${sel.id}:${sel.indice}`} {...comun} sel={sel} enfocar={enfocar} onSeleccion={setSeleccion} />;
   } else if (sel?.tipo === "abertura") {
     const a = nivelGuardado.aberturas.find((x) => x.id === sel.id)!;
     hoja = <HojaAbertura key={a.id} {...comun} abertura={a} codigosOtros={codigosOtros} onBorrada={cerrar} />;
   } else if (sel?.tipo === "ambiente") {
-    hoja = <HojaAmbiente key={sel.id} {...comun} ambienteId={sel.id} />;
+    hoja =
+      modo === "techo" ? (
+        <HojaTecho key={`t:${sel.id}`} {...comun} ambienteId={sel.id} onSeleccion={setSeleccion} />
+      ) : (
+        <HojaAmbiente key={sel.id} {...comun} ambienteId={sel.id} />
+      );
   } else if (sel?.tipo === "columna") {
     hoja = <HojaColumna key={sel.id} {...comun} elemento={nivelGuardado.columnas.find((x) => x.id === sel.id)!} />;
   } else if (sel?.tipo === "electrico") {
@@ -189,6 +219,8 @@ export function PantallaPlano({
     setTrazo(null);
     setSeleccion(null);
     setEnfocar(false);
+    setPendientesAbiertas(false);
+    setAvisoToque("");
   };
 
   return (
@@ -215,6 +247,7 @@ export function PantallaPlano({
           limpiar();
         }}
         aviso={textoAviso(cierres.some((c) => c.estado === "abierto"), pendientes)}
+        onAviso={verPendientes}
         onVolver={onVolver}
         onImprimir={() => setImprimir(true)}
       />
@@ -276,6 +309,15 @@ export function PantallaPlano({
           cotas={cotas}
           onCotas={() => setCotas((v) => !v)}
         />
+        {avisoToque && !hoja && (
+          <p
+            aria-live="polite"
+            onClick={() => setAvisoToque("")}
+            className="pointer-events-auto absolute inset-x-4 bottom-4 z-10 rounded-2xl bg-neutral-900/95 px-4 py-3 text-center text-[15px] font-light text-neutral-100 shadow-lg"
+          >
+            {avisoToque}
+          </p>
+        )}
         {hoja && <div className="absolute inset-x-0 bottom-0 z-10">{hoja}</div>}
       </div>
     </div>

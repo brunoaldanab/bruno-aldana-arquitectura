@@ -65,11 +65,12 @@ export function recalcular(anterior: Nivel, nuevo: Nivel): Nivel {
   let n = actualizarAmbientes(anterior, nuevo);
   const existe = new Set(n.ambientes.map((a) => a.id));
   const muros = new Set(n.muros.map((m) => m.id));
-  const techos = n.techos.flatMap((t) => {
-    if (existe.has(t.ambienteId)) return [t];
+  // Una zona cuyo ambiente cambió o desapareció se reasigna por dónde está; si no
+  // cae en ninguno queda sin ambiente, pero no se borra: la medida ya está tomada.
+  const techos = n.techos.map((t) => {
+    if (t.ambienteId && existe.has(t.ambienteId)) return t;
     const centro = t.contorno.reduce((s, p) => suma(s, por(p, 1 / t.contorno.length)), { x: 0, y: 0 });
-    const ambienteId = ambienteEnPunto(n, centro);
-    return ambienteId ? [{ ...t, ambienteId }] : [];
+    return { ...t, ambienteId: ambienteEnPunto(n, centro) };
   });
   const molduras = n.molduras.flatMap((m) => {
     const caras = m.caras.filter((c) => muros.has(c.muroId));

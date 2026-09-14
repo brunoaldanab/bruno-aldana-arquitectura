@@ -1,6 +1,7 @@
 // src/lib/plano/herramientas.ts
 import { ladosDeAmbiente } from "./ambientes";
 import { posicionNodo } from "./caras";
+import type { Control } from "./modelo";
 import { arrastrarAbertura, colocarAbertura } from "./edicion";
 import {
   agregarBandeja,
@@ -9,12 +10,13 @@ import {
   agregarViga,
   agregarZonaDibujada,
   agregarZonaTecho,
+  zonaDeAmbiente,
 } from "./elementos";
 import { arrastrarPuntoElectrico, colocarPuntoElectrico, TIPO_POR_DEFECTO } from "./electricos";
 import type { Nivel } from "./modelo";
 import { agregarMuro, ajustarPunto, moverNodo, type Extremo } from "./operaciones";
 import { ambienteEnPunto, puntoEnPoligono } from "./superficie";
-import { tocarPlanta, tocarTecho, type Seleccion } from "./toque";
+import { seleccionDeMuro, tocarPlanta, tocarTecho, type Seleccion } from "./toque";
 import { areaConSigno, distancia, por, suma, type Punto } from "./vector";
 
 /**
@@ -50,7 +52,14 @@ export const HERRAMIENTAS: Record<Modo, Herramienta[]> = {
 export type Trazo = { extremo: Extremo; punto: Punto; primero: string | null; puntos?: Punto[] } | null;
 
 export type EstadoToque = { nivel: Nivel; modo: Modo; herramienta: Herramienta; trazo: Trazo; codigosOtros: string[] };
-export type ResultadoToque = { nivel: Nivel; seleccion: Seleccion | null; trazo: Trazo; herramienta: Herramienta };
+export type ResultadoToque = {
+  nivel: Nivel;
+  seleccion: Seleccion | null;
+  trazo: Trazo;
+  herramienta: Herramienta;
+  /** Por qué el toque no hizo nada. La pantalla lo muestra un momento sobre el plano. */
+  aviso?: string;
+};
 
 export const COLUMNA_POR_DEFECTO = 30;
 export const MOLDURA_POR_DEFECTO = { ancho: 10, caida: 10 };
@@ -64,6 +73,35 @@ export function seleccionDeCota(nivel: Nivel, cota: string): Seleccion | null {
   if (!lado) return null;
   const { muroId, cara } = lado.caras[0];
   return { tipo: "muro", id: muroId, cara, punto: por(suma(lado.inicio, lado.fin), 0.5), ambienteId, indice };
+}
+
+/** De un control de la lista de pendientes al elemento que hay que abrir. */
+export function seleccionDeElemento(nivel: Nivel, elemento: NonNullable<Control["elemento"]>): Seleccion | null {
+  const { tipo, id } = elemento;
+  if (tipo === "muro") {
+    const m = nivel.muros.find((x) => x.id === id);
+    if (!m) return null;
+    const medio = por(suma(posicionNodo(nivel, m.desde), posicionNodo(nivel, m.hasta)), 0.5);
+    return seleccionDeMuro(nivel, id, medio);
+  }
+  if (tipo === "ambiente") {
+    // El ambiente se abre por su primer lado sin medir, que es lo que hay que cargar.
+    const amb = nivel.ambientes.find((a) => a.id === id);
+    if (!amb) return null;
+    const indice = ladosDeAmbiente(nivel, id).findIndex((l) => !l.medida?.tomada);
+    return indice >= 0 ? seleccionDeCota(nivel, `${id}:${indice}`) : { tipo: "ambiente", id };
+  }
+  const listas: Record<string, { id: string }[]> = {
+    abertura: nivel.aberturas,
+    columna: nivel.columnas,
+    electrico: nivel.electricos,
+    techo: nivel.techos,
+    moldura: nivel.molduras,
+    viga: nivel.vigas,
+  };
+  const lista = listas[tipo];
+  if (!lista?.some((e) => e.id === id)) return null;
+  return { tipo, id } as Seleccion;
 }
 
 /** Después de deshacer o borrar, la selección puede apuntar a algo que ya no existe. */
@@ -113,7 +151,9 @@ export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: stri
     case "ventana":
     case "vano": {
       const r = colocarAbertura(e.nivel, e.herramienta, p, radio, e.codigosOtros);
-      return r ? { nivel: r.nivel, seleccion: { tipo: "abertura", id: r.id }, trazo: null, herramienta: "tocar" } : nada;
+      return r
+        ? { nivel: r.nivel, seleccion: { tipo: "abertura", id: r.id }, trazo: null, herramienta: "tocar" }
+        : { ...nada, aviso: "Tocá encima de una pared para colocarla" };
     }
     case "columna": {
       const r = agregarColumna(e.nivel, { x: p.x, y: p.y, ancho: COLUMNA_POR_DEFECTO, profundidad: COLUMNA_POR_DEFECTO });
@@ -121,31 +161,46 @@ export function aplicarToque(e: EstadoToque, p: Punto, radio: number, cota: stri
     }
     case "electrico": {
       const r = colocarPuntoElectrico(e.nivel, TIPO_POR_DEFECTO, p, radio, e.codigosOtros);
-      return r ? { nivel: r.nivel, seleccion: { tipo: "electrico", id: r.id }, trazo: null, herramienta: "tocar" } : nada;
+      return r
+        ? { nivel: r.nivel, seleccion: { tipo: "electrico", id: r.id }, trazo: null, herramienta: "tocar" }
+        : { ...nada, aviso: "Tocá encima de una pared para poner el enchufe" };
     }
     case "bandeja": {
       // La bandeja nace adentro de la zona más chica que contenga el toque.
       const zona = e.nivel.techos
         .filter((t) => puntoEnPoligono(p, t.contorno))
         .sort((a, b) => Math.abs(areaConSigno(a.contorno)) - Math.abs(areaConSigno(b.contorno)))[0];
-      if (!zona) return nada;
+      if (!zona) return { ...nada, aviso: "La bandeja va adentro de un cielo falso: primero poné la zona" };
       const r = agregarBandeja(e.nivel, zona.id);
-      return r ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" } : nada;
+      return r
+        ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" }
+        : { ...nada, aviso: "No entra otra bandeja adentro de esa: es muy chica" };
     }
     case "dibujar": {
       const puntos = [...(e.trazo?.puntos ?? []), p];
       // Volver al primer punto cierra la zona, igual que el muro encadenado.
       if (puntos.length > 3 && distancia(p, puntos[0]) < 30) {
         const r = agregarZonaDibujada(e.nivel, puntos.slice(0, -1), e.nivel.alturaGeneral.valor);
-        return r ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" } : { ...nada, herramienta: "dibujar" };
+        return r
+          ? { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" }
+          : { ...nada, herramienta: "dibujar" };
       }
       return { ...nada, herramienta: "dibujar", trazo: { extremo: p, punto: p, primero: null, puntos } };
     }
     case "zona":
     case "moldura": {
       const ambienteId = ambienteEnPunto(e.nivel, p);
-      if (!ambienteId) return nada;
+      if (!ambienteId)
+        return {
+          ...nada,
+          aviso:
+            e.herramienta === "zona"
+              ? "La zona cubre un ambiente cerrado. Cerrá las paredes, o usá «A dedo»"
+              : "La moldura recorre el borde de un ambiente cerrado. Cerrá las paredes",
+        };
       if (e.herramienta === "zona") {
+        const ya = zonaDeAmbiente(e.nivel, ambienteId);
+        if (ya) return { ...nada, seleccion: { tipo: "techo", id: ya.id }, herramienta: "tocar", aviso: "Este ambiente ya tiene su cielo falso" };
         const r = agregarZonaTecho(e.nivel, { ambienteId, tipo: "cielo-falso", altura: e.nivel.alturaGeneral.valor });
         return { nivel: r.nivel, seleccion: { tipo: "techo", id: r.id }, trazo: null, herramienta: "tocar" };
       }

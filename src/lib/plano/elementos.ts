@@ -116,10 +116,10 @@ export function agregarColumna(
 /** Sin contorno, la zona cubre el ambiente entero. */
 export function agregarZonaTecho(
   nivel: Nivel,
-  datos: { ambienteId: string; tipo: ZonaTecho["tipo"]; contorno?: Punto[]; altura: number; padreId?: string; margen?: number },
+  datos: { ambienteId: string | null; tipo: ZonaTecho["tipo"]; contorno?: Punto[]; altura: number; padreId?: string; margen?: number },
 ): { nivel: Nivel; id: string } {
   const id = siguienteId(nivel.techos.map((t) => t.id), "t");
-  const contorno = (datos.contorno ?? contornoInterior(nivel, datos.ambienteId)).map(redondearPunto);
+  const contorno = (datos.contorno ?? contornoInterior(nivel, datos.ambienteId!)).map(redondearPunto);
   const zona: ZonaTecho = {
     id,
     ambienteId: datos.ambienteId,
@@ -131,6 +131,14 @@ export function agregarZonaTecho(
   };
   return { nivel: { ...nivel, techos: [...nivel.techos, zona] }, id };
 }
+
+/** La zona que cubre todo el ambiente: la madre de sus bandejas. */
+export const zonaDeAmbiente = (nivel: Nivel, ambienteId: string): ZonaTecho | undefined =>
+  nivel.techos.find((t) => t.ambienteId === ambienteId && t.padreId === null);
+
+export const bandejasDe = (nivel: Nivel, padreId: string): ZonaTecho[] => nivel.techos.filter((t) => t.padreId === padreId);
+
+export const MOLDURA_POR_DEFECTO_TECHO = { ancho: 10, caida: 10 };
 
 export const MARGEN_BANDEJA = 40;
 export const CAIDA_BANDEJA = 20;
@@ -202,8 +210,9 @@ export function cargarMargenBandeja(nivel: Nivel, id: string, margen: number): N
 export function agregarZonaDibujada(nivel: Nivel, puntos: Punto[], altura: number): { nivel: Nivel; id: string } | null {
   if (puntos.length < 3) return null;
   const centro = por(puntos.reduce(suma, { x: 0, y: 0 }), 1 / puntos.length);
-  const ambienteId = ambienteEnPunto(nivel, centro) ?? nivel.ambientes[0]?.id;
-  if (!ambienteId) return null;
+  // Sin ambiente cerrado la zona existe igual: en un relevamiento el cielo falso
+  // se mide aunque el recorrido de las paredes todavía no cierre.
+  const ambienteId = ambienteEnPunto(nivel, centro);
   return agregarZonaTecho(nivel, { ambienteId, tipo: "cajon", contorno: puntos, altura });
 }
 

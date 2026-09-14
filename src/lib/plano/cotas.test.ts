@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cotasDeAberturas, cotasDeColumnas, cotasDeTecho } from "./cotas";
 import { colocarAbertura } from "./edicion";
 import { agregarColumna, agregarViga, agregarZonaTecho } from "./elementos";
+import { nivelDesdePoligono } from "./prueba-casos";
 import { cargarMedidaElemento } from "./elementos";
 import { cuartoDeBruno } from "./prueba-casos";
 
@@ -44,6 +45,24 @@ describe("cotas automáticas", () => {
     // Centro en x=100 con media columna de 15: quedan 85 hasta la cara del muro izquierdo.
     expect(cotas[2].texto).toBe("≈ 85");
     expect(cotas[3].texto).toBe("≈ 135");
+  });
+
+  it("la columna se mide siempre por adentro del ambiente, nunca atravesando una pared", () => {
+    // Dos cuartos pegados: la columna del de la izquierda no puede medirse contra el de la derecha.
+    const n = agregarColumna(nivelDesdePoligono([
+      { x: 0, y: 0 },
+      { x: 400, y: 0 },
+      { x: 400, y: 400 },
+      { x: 0, y: 400 },
+    ]), { x: 100, y: 150, ancho: 30, profundidad: 30 }).nivel;
+    const distancias = cotasDeColumnas(n, 16).filter((c) => c.clave.endsWith(":x") || c.clave.endsWith(":y"));
+    // 85 hasta la pared izquierda (la más cercana), no 285 hasta la derecha.
+    expect(distancias.map((c) => c.texto)).toEqual(["≈ 85", "≈ 135"]);
+  });
+
+  it("una columna fuera de todo ambiente solo muestra sus lados", () => {
+    const n = agregarColumna(cuarto(), { x: 1000, y: 1000, ancho: 30, profundidad: 30 }).nivel;
+    expect(cotasDeColumnas(n, 16).map((c) => c.clave.split(":")[1])).toEqual(["ancho", "profundidad"]);
   });
 
   it("la zona de techo se acota por su contorno y la viga por su largo", () => {

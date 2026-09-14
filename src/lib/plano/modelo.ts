@@ -73,7 +73,8 @@ export const ambienteSchema = z.object({
 
 export const zonaTechoSchema = z.object({
   id,
-  ambienteId: id,
+  /** Null cuando se dibujó a dedo sobre un plano que todavía no cierra ningún ambiente. */
+  ambienteId: id.nullable(),
   tipo: z.enum(["losa", "cielo-falso", "cajon"]),
   contorno: z.array(puntoSchema).min(3),
   altura: medidaSchema,
@@ -179,7 +180,7 @@ export const nivelSchema = nivelBase.superRefine((n, ctx) => {
     if (a.contorno.some((c) => !muros.has(c.muroId))) problema(`El ambiente ${a.nombre} usa un muro inexistente`);
   const techos = new Set(n.techos.map((t) => t.id));
   for (const t of n.techos) {
-    if (!ambientes.has(t.ambienteId)) problema(`La zona de techo ${t.id} no tiene ambiente`);
+    if (t.ambienteId !== null && !ambientes.has(t.ambienteId)) problema(`La zona de techo ${t.id} apunta a un ambiente que no existe`);
     if (t.padreId !== null && !techos.has(t.padreId)) problema(`La bandeja ${t.id} no tiene su zona madre`);
     if (t.padreId === t.id) problema(`La bandeja ${t.id} es su propia madre`);
   }
